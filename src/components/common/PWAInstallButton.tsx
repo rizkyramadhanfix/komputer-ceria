@@ -6,7 +6,10 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
-export const PWAInstallButton: React.FC<{ className?: string }> = ({ className = '' }) => {
+export const PWAInstallButton: React.FC<{ className?: string; variant?: 'default' | 'hero' | string }> = ({
+  className = '',
+  variant = 'default',
+}) => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
 
@@ -58,11 +61,33 @@ export const PWAInstallButton: React.FC<{ className?: string }> = ({ className =
   };
 
   if (isInstalled) {
+    if (variant === 'hero') {
+      return (
+        <span className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 backdrop-blur-xs ${className}`}>
+          <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+          <span>Aplikasi Terpasang</span>
+        </span>
+      );
+    }
     return (
       <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 ${className}`}>
         <CheckCircle2 className="w-3.5 h-3.5" />
         Terpasang di Perangkat
       </span>
+    );
+  }
+
+  if (variant === 'hero') {
+    return (
+      <button
+        onClick={handleInstallClick}
+        type="button"
+        className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-xs transition-all duration-200 shadow-md cursor-pointer hover:scale-[1.02] active:scale-[0.98] ${className}`}
+        title="Pasang aplikasi Komputer Ceria ke layar utama komputer atau smartphone Anda"
+      >
+        <Download className="w-4 h-4 text-amber-300" />
+        <span>Install Aplikasi (PWA)</span>
+      </button>
     );
   }
 

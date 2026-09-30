@@ -414,16 +414,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     targetWpm: 25,
   });
 
-  // --- AI Quiz Generator States ---
-  const [showAiQuizModal, setShowAiQuizModal] = useState(false);
-  const [aiTopic, setAiTopic] = useState('Perangkat Keras & Komponen Motherboard');
-  const [aiDifficulty, setAiDifficulty] = useState<'Pemula' | 'Sedang' | 'Mahir'>('Pemula');
-  const [aiQuestionCount, setAiQuestionCount] = useState(5);
-  const [aiCategory, setAiCategory] = useState('Dasar Komputer');
-  const [isGeneratingAiQuiz, setIsGeneratingAiQuiz] = useState(false);
-  const [aiGeneratedQuiz, setAiGeneratedQuiz] = useState<any | null>(null);
-  const [aiGenerationError, setAiGenerationError] = useState<string | null>(null);
-  const [aiNotice, setAiNotice] = useState<string | null>(null);
 
   // --- School Rewards & Redemptions States ---
   const [schoolRewards, setSchoolRewards] = useState<SchoolRewardItem[]>(() => getSchoolRewards());
@@ -671,59 +661,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     reloadAll();
   };
 
-  const handleGenerateAiQuiz = async () => {
-    setIsGeneratingAiQuiz(true);
-    setAiGenerationError(null);
-    setAiNotice(null);
-    try {
-      const res = await fetch('/api/generate-quiz', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          topic: aiTopic,
-          difficulty: aiDifficulty,
-          questionCount: aiQuestionCount,
-          category: aiCategory,
-        }),
-      });
-      const data = await res.json();
-      if (data.success && data.data) {
-        setAiGeneratedQuiz(data.data);
-        if (data.notice) {
-          setAiNotice(data.notice);
-        }
-      } else {
-        setAiGenerationError(data.error || 'Gagal menghasilkan butir soal otomatis.');
-      }
-    } catch (err: any) {
-      setAiGenerationError(err.message || 'Terjadi kesalahan jaringan.');
-    } finally {
-      setIsGeneratingAiQuiz(false);
-    }
-  };
-
-  const handleSaveAiGeneratedQuiz = () => {
-    if (!aiGeneratedQuiz) return;
-    createQuiz({
-      title: aiGeneratedQuiz.title,
-      category: aiGeneratedQuiz.category || aiCategory,
-      description: aiGeneratedQuiz.description,
-      allocatedPoints: aiGeneratedQuiz.allocatedPoints || 100,
-      timeLimitMinutes: 10,
-      questions: aiGeneratedQuiz.questions.map((q: any, idx: number) => ({
-        id: `q-${Date.now()}-${idx}`,
-        questionText: q.questionText,
-        options: q.options || ['', '', '', ''],
-        correctAnswerIndex: typeof q.correctAnswerIndex === 'number' ? q.correctAnswerIndex : 0,
-        explanation: q.explanation || '',
-        weight: 20,
-      })),
-    });
-    setQuizzes(getQuizzes());
-    setShowAiQuizModal(false);
-    setAiGeneratedQuiz(null);
-    showSuccess(`Paket kuis AI "${aiGeneratedQuiz.title}" berhasil disimpan ke bank soal!`);
-  };
 
   const handleCompleteRedemption = (redId: string) => {
     updateRedemptionStatus(redId, 'completed');
@@ -2222,23 +2159,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </p>
             <div className="flex items-center gap-2">
               <button
-                type="button"
-                onClick={() => {
-                  setShowAiQuizModal(true);
-                  setAiGeneratedQuiz(null);
-                  setAiGenerationError(null);
-                }}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-linear-to-r from-purple-600 via-indigo-600 to-blue-600 hover:opacity-95 rounded-lg shadow-md shadow-indigo-500/20 transition-all cursor-pointer"
-              >
-                <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
-                <span>✨ AI Buat Soal Otomatis (Gemini)</span>
-              </button>
-              <button
                 onClick={handleOpenAddQuiz}
                 className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-xs transition-colors cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
-                <span>Buat Manual</span>
+                <span>Tambah Kuis Baru</span>
               </button>
             </div>
           </div>
@@ -4782,230 +4707,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       )}
 
-      {/* ================= MODAL: GENERATOR KUIS OTOMATIS (AI GEMINI) ================= */}
-      {showAiQuizModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-5 max-h-[90vh] overflow-y-auto animate-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold">
-                  <Sparkles className="w-5 h-5 text-amber-500 animate-pulse" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-black text-slate-900 dark:text-white">
-                    Generator Soal Kuis Otomatis (AI Gemini & Kurikulum)
-                  </h3>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Ketik topik materi yang diinginkan, sistem cerdas akan menyusun butir soal, opsi jawaban, dan penjelasan secara otomatis!
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowAiQuizModal(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
 
-            {/* Quick Topic Inspirations */}
-            <div className="space-y-1.5">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                Inspirasi Topik Cepat:
-              </span>
-              <div className="flex flex-wrap gap-1.5">
-                {[
-                  'Perangkat Keras & Komponen Motherboard',
-                  'Fungsi Tombol Shortcut Microsoft Word',
-                  'Etika Internet & Keamanan Password',
-                  'Pengenalan Sistem Operasi Windows',
-                  'Dasar Algoritma & Logika Koding',
-                  'Jaringan Komputer & Perangkat Wi-Fi',
-                ].map((preset) => (
-                  <button
-                    key={preset}
-                    type="button"
-                    onClick={() => setAiTopic(preset)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
-                      aiTopic === preset
-                        ? 'bg-purple-600 text-white shadow-xs'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                    }`}
-                  >
-                    {preset}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Parameter Inputs */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="sm:col-span-2">
-                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">
-                  Topik / Pokok Bahasan Kuis:
-                </label>
-                <input
-                  type="text"
-                  value={aiTopic}
-                  onChange={(e) => setAiTopic(e.target.value)}
-                  placeholder="Misal: Perangkat Keras Komputer, Shortcut Word, Internet Sehat..."
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500/30"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">
-                  Kategori Kuis:
-                </label>
-                <select
-                  value={aiCategory}
-                  onChange={(e) => setAiCategory(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium"
-                >
-                  <option value="Dasar Komputer">Dasar Komputer</option>
-                  <option value="Perangkat Keras">Perangkat Keras (Hardware)</option>
-                  <option value="Aplikasi Kantor">Aplikasi Kantor (Word/Excel)</option>
-                  <option value="Internet & Etika">Internet & Keamanan Siber</option>
-                  <option value="Logika Koding">Logika Koding & Algoritma</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">
-                  Tingkat Kesulitan:
-                </label>
-                <select
-                  value={aiDifficulty}
-                  onChange={(e) => setAiDifficulty(e.target.value as any)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium"
-                >
-                  <option value="Pemula">Pemula (Kelas 1 - 3 SD)</option>
-                  <option value="Sedang">Sedang (Kelas 4 - 6 SD)</option>
-                  <option value="Mahir">Mahir (SMP / Tingkat Lanjut)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">
-                  Jumlah Pertanyaan:
-                </label>
-                <select
-                  value={aiQuestionCount}
-                  onChange={(e) => setAiQuestionCount(Number(e.target.value))}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium"
-                >
-                  <option value={3}>3 Butir Soal (Kuis Kilat)</option>
-                  <option value={5}>5 Butir Soal (Standar)</option>
-                  <option value={8}>8 Butir Soal (Lengkap)</option>
-                  <option value={10}>10 Butir Soal (Ujian Mini)</option>
-                </select>
-              </div>
-
-              <div className="flex items-end">
-                <button
-                  type="button"
-                  onClick={handleGenerateAiQuiz}
-                  disabled={isGeneratingAiQuiz || !aiTopic.trim()}
-                  className="w-full py-2 px-4 bg-linear-to-r from-purple-600 via-indigo-600 to-blue-600 hover:opacity-90 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-indigo-500/20 flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  {isGeneratingAiQuiz ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Sedang Meracik Soal...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 text-amber-300" />
-                      <span>Buat Soal Otomatis</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {aiGenerationError && (
-              <div className="p-3 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 rounded-xl text-xs text-rose-700 dark:text-rose-300 font-semibold">
-                ⚠️ {aiGenerationError}
-              </div>
-            )}
-
-            {aiNotice && (
-              <div className="p-3 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 rounded-xl text-xs text-amber-800 dark:text-amber-300 font-semibold">
-                ℹ️ {aiNotice}
-              </div>
-            )}
-
-            {/* Generated Quiz Result Preview */}
-            {aiGeneratedQuiz && (
-              <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4 animate-in fade-in">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
-                  <div>
-                    <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider block">
-                      Hasil Generasi Kuis
-                    </span>
-                    <h4 className="text-sm font-black text-slate-900 dark:text-white">
-                      {aiGeneratedQuiz.title}
-                    </h4>
-                  </div>
-                  <span className="text-xs font-mono font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950 px-2.5 py-0.5 rounded">
-                    +{aiGeneratedQuiz.allocatedPoints || 100} Poin
-                  </span>
-                </div>
-
-                <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
-                  {aiGeneratedQuiz.questions?.map((q: any, qIdx: number) => (
-                    <div
-                      key={qIdx}
-                      className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-xs space-y-2"
-                    >
-                      <p className="font-bold text-slate-900 dark:text-white">
-                        {qIdx + 1}. {q.questionText}
-                      </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pl-2">
-                        {q.options?.map((opt: string, oIdx: number) => (
-                          <div
-                            key={oIdx}
-                            className={`p-1.5 rounded-lg border text-[11px] ${
-                              oIdx === q.correctAnswerIndex
-                                ? 'bg-emerald-50 dark:bg-emerald-950 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 font-bold'
-                                : 'bg-slate-50 dark:bg-slate-950 border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-400'
-                            }`}
-                          >
-                            <span>{String.fromCharCode(65 + oIdx)}. {opt}</span>
-                            {oIdx === q.correctAnswerIndex && ' ✓'}
-                          </div>
-                        ))}
-                      </div>
-                      {q.explanation && (
-                        <p className="text-[10px] text-slate-400 italic pl-2">
-                          💡 Pembahasan: {q.explanation}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
-                  <button
-                    type="button"
-                    onClick={() => setAiGeneratedQuiz(null)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:bg-slate-200"
-                  >
-                    Atur Ulang
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSaveAiGeneratedQuiz}
-                    className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-500/20 cursor-pointer"
-                  >
-                    💾 Simpan ke Bank Soal Sekolah
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* ================= MODAL: TAMBAH / EDIT LATIHAN MENGETIK ================= */}
       {showTypingModal && (
