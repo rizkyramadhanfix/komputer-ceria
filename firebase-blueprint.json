@@ -1,0 +1,253 @@
+{
+  "entities": {
+    "users": {
+      "title": "User",
+      "description": "User accounts for students, pembina, and admin across devices",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "role": { "type": "string" },
+        "username": { "type": "string" },
+        "password": { "type": "string" },
+        "name": { "type": "string" },
+        "nisn": { "type": "string" },
+        "grade": { "type": "string" },
+        "school": { "type": "string" },
+        "assignedSchool": { "type": "string" },
+        "totalPoints": { "type": "number" },
+        "totalStars": { "type": "number" }
+      },
+      "required": ["id", "role", "username", "name"]
+    },
+    "lessons": {
+      "title": "Lesson",
+      "description": "Computer extracurricular learning modules",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "points": { "type": "number" }
+      },
+      "required": ["id", "title"]
+    },
+    "quizzes": {
+      "title": "Quiz",
+      "description": "Interactive multiple choice quizzes",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "timeLimit": { "type": "number" }
+      },
+      "required": ["id", "title"]
+    },
+    "typingPractices": {
+      "title": "TypingPractice",
+      "description": "Typing speed and Microsoft Word practice materials",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "level": { "type": "string" }
+      },
+      "required": ["id", "title"]
+    },
+    "typingSubmissions": {
+      "title": "TypingSubmission",
+      "description": "Student typing speed submissions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "wpm": { "type": "number" },
+        "accuracy": { "type": "number" }
+      },
+      "required": ["id", "studentId"]
+    },
+    "quizSubmissions": {
+      "title": "QuizSubmission",
+      "description": "Student quiz results and answers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "quizId": { "type": "string" },
+        "score": { "type": "number" }
+      },
+      "required": ["id", "studentId", "quizId"]
+    },
+    "galleryWorks": {
+      "title": "GalleryWork",
+      "description": "Student Paint drawings and Word document creations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "title": { "type": "string" },
+        "type": { "type": "string" },
+        "starLikes": { "type": "number" }
+      },
+      "required": ["id", "studentId", "title"]
+    },
+    "gameScores": {
+      "title": "GameScore",
+      "description": "Game scores and achievements",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "gameId": { "type": "string" },
+        "score": { "type": "number" }
+      },
+      "required": ["id"]
+    },
+    "loginLogs": {
+      "title": "LoginLog",
+      "description": "User login audit records across devices",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "device": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "userId"]
+    },
+    "typingTournaments": {
+      "title": "TypingTournament",
+      "description": "Multiplayer typing race tournaments",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "title"]
+    },
+    "schoolRewards": {
+      "title": "SchoolReward",
+      "description": "School physical or virtual rewards",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "pointCost": { "type": "number" }
+      },
+      "required": ["id", "name"]
+    },
+    "rewardRedemptions": {
+      "title": "RewardRedemption",
+      "description": "Student reward redemption vouchers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "rewardId": { "type": "string" },
+        "redeemCode": { "type": "string" }
+      },
+      "required": ["id", "studentId", "rewardId"]
+    },
+    "announcements": {
+      "title": "Announcement",
+      "description": "School extracurricular announcements",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" }
+      },
+      "required": ["id", "title"]
+    },
+    "configs": {
+      "title": "Config",
+      "description": "System settings, dashboard texts, and gamification config",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" }
+      },
+      "required": ["id"]
+    },
+    "duels": {
+      "title": "Duel",
+      "description": "Real-time 1v1 quiz duels between students",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["id"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "users" },
+      "description": "User profiles and student credentials"
+    },
+    "/lessons/{lessonId}": {
+      "schema": { "$ref": "lessons" },
+      "description": "Learning lessons collection"
+    },
+    "/quizzes/{quizId}": {
+      "schema": { "$ref": "quizzes" },
+      "description": "Quizzes collection"
+    },
+    "/typingPractices/{practiceId}": {
+      "schema": { "$ref": "typingPractices" },
+      "description": "Typing practice texts"
+    },
+    "/typingSubmissions/{submissionId}": {
+      "schema": { "$ref": "typingSubmissions" },
+      "description": "Typing practice submissions"
+    },
+    "/quizSubmissions/{submissionId}": {
+      "schema": { "$ref": "quizSubmissions" },
+      "description": "Quiz submissions"
+    },
+    "/galleryWorks/{workId}": {
+      "schema": { "$ref": "galleryWorks" },
+      "description": "Student gallery artwork and writings"
+    },
+    "/gameScores/{scoreId}": {
+      "schema": { "$ref": "gameScores" },
+      "description": "Mini-game scores"
+    },
+    "/loginLogs/{logId}": {
+      "schema": { "$ref": "loginLogs" },
+      "description": "Login audit trails"
+    },
+    "/typingTournaments/{tournamentId}": {
+      "schema": { "$ref": "typingTournaments" },
+      "description": "Live typing tournament sessions"
+    },
+    "/schoolRewards/{rewardId}": {
+      "schema": { "$ref": "schoolRewards" },
+      "description": "School reward catalogue"
+    },
+    "/rewardRedemptions/{redemptionId}": {
+      "schema": { "$ref": "rewardRedemptions" },
+      "description": "Reward redemption claims"
+    },
+    "/announcements/{announcementId}": {
+      "schema": { "$ref": "announcements" },
+      "description": "Announcements"
+    },
+    "/config/{configId}": {
+      "schema": { "$ref": "configs" },
+      "description": "Platform configurations"
+    },
+    "/settings/{settingId}": {
+      "schema": { "$ref": "configs" },
+      "description": "Platform settings"
+    },
+    "/duels/{duelId}": {
+      "schema": { "$ref": "duels" },
+      "description": "Multiplayer 1v1 quiz duels"
+    },
+    "/_connection_test/{testId}": {
+      "schema": { "$ref": "configs" },
+      "description": "Cloud connectivity status verification"
+    }
+  }
+}

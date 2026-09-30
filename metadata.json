@@ -1,0 +1,8 @@
+{
+  "name": "Remix Website Komputer Ceria",
+  "description": "Platform pembelajaran interaktif ekstrakurikuler komputer berbasis gamifikasi dengan materi, kuis pilihan ganda, latihan mengetik Microsoft Word, leaderboard, dan panel admin.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

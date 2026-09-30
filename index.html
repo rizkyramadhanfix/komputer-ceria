@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Komputer Ceria - Sistem Pembelajaran Ekstrakurikuler Komputer Gamifikasi</title>
+    <meta name="description" content="Komputer Ceria: Platform pembelajaran interaktif ekstrakurikuler komputer berbasis gamifikasi dengan materi, kuis pilihan ganda, latihan mengetik Microsoft Word, leaderboard, dan panel admin." />
+    <meta property="og:title" content="Komputer Ceria - Sistem Pembelajaran Ekstrakurikuler Komputer Gamifikasi" />
+    <meta property="og:description" content="Komputer Ceria: Platform pembelajaran interaktif ekstrakurikuler komputer berbasis gamifikasi dengan materi, kuis pilihan ganda, latihan mengetik Microsoft Word, leaderboard, dan panel admin." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#4f46e5" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Komputer Ceria" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="apple-touch-icon" href="/icon.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap" rel="stylesheet">
+    <script>
+      try {
+        const theme = localStorage.getItem('ekskul_theme');
+        if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+          document.documentElement.removeAttribute('data-theme');
+        }
+      } catch (e) {}
+    </script>
+  </head>
+  <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen antialiased selection:bg-indigo-500 selection:text-white">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

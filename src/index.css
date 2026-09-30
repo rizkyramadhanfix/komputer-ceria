@@ -1,0 +1,245 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark,
+html.dark body {
+  background-color: #020617 !important;
+  color: #f8fafc !important;
+}
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* Custom styling for the Microsoft Word-like editor content */
+.word-paper-content {
+  min-height: 520px;
+  outline: none;
+  line-height: 1.6;
+}
+
+.word-paper-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1.25rem 0;
+  border: 2px solid #475569;
+  background-color: transparent;
+}
+
+.word-paper-content th,
+.word-paper-content td {
+  border: 1px solid #64748b;
+  padding: 10px 14px;
+  text-align: left;
+  min-width: 60px;
+  min-height: 38px;
+  vertical-align: top;
+}
+
+.word-paper-content th {
+  background-color: #f1f5f9;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.dark .word-paper-content table {
+  border-color: #64748b;
+}
+
+.dark .word-paper-content th {
+  background-color: #1e293b;
+  border-color: #475569;
+  color: #f8fafc;
+}
+
+.dark .word-paper-content td {
+  border-color: #475569;
+  color: #f1f5f9;
+}
+
+.word-paper-content ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.word-paper-content ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.word-paper-content p {
+  margin-bottom: 0.75rem;
+}
+
+/* Running Marquee Text for Header Announcement */
+@keyframes marquee {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-marquee {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee 24s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Reference document styling for Typing Practice */
+.reference-content {
+  line-height: 1.6;
+  font-size: 0.95rem;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  display: block; /* Use block to ensure vertical flow */
+}
+
+/* Force everything inside to stack vertically, except hidden elements like style/script */
+.reference-content > *:not(style):not(script) {
+  display: block !important;
+  float: none !important;
+  width: 100% !important;
+  margin-bottom: 1rem;
+}
+
+/* Tables should still be tables but not float */
+.reference-content table {
+  display: table !important;
+  width: 100% !important;
+  margin-bottom: 1.5rem;
+}
+
+/* Reset duplicate page wrappers inside reference-content to avoid duplicate/stacked pages */
+.reference-content .book,
+.reference-content .page,
+.reference-content .page2,
+.reference-content .reference-paper,
+.reference-content .word-paper-content {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+  background: transparent !important;
+  box-sizing: border-box !important;
+}
+
+.reference-content .page + .page,
+.reference-content .page + .page2 {
+  margin-top: 1.5rem !important;
+  padding-top: 1rem !important;
+  border-top: 1px dashed #cbd5e1 !important;
+}
+
+.reference-paper {
+  background-color: #ffffff;
+  color: #1e293b;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  min-height: 100%;
+  padding: 3.5rem 3rem;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 1000px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.reference-paper::before {
+  content: "NASKAH ACUAN";
+  position: absolute;
+  top: 1.5rem;
+  right: 2rem;
+  font-size: 10px;
+  font-weight: 900;
+  color: #94a3b8;
+  letter-spacing: 0.2em;
+  border: 1px solid #e2e8f0;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* Ensure images and tables don't force horizontal scroll */
+.reference-content img, 
+.reference-content table,
+.reference-content div,
+.reference-content p {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.dark .reference-paper {
+  background-color: #ffffff; /* Keep white for real paper feel */
+  color: #0f172a;
+}
+
+/* Custom scrollbar for reference panel */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.dark .reference-paper {
+  background-color: #ffffff; /* Keep white for real paper feel */
+  color: #0f172a;
+}
+
+.reference-content p {
+  margin-bottom: 1rem;
+}
+
+.reference-content h1, .reference-content h2, .reference-content h3, .reference-content h4 {
+  font-weight: 800;
+  margin-bottom: 0.75rem;
+  margin-top: 1.25rem;
+  color: #0f172a;
+}
+
+.reference-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1.5rem 0;
+  border: 2px solid #334155;
+}
+
+.reference-content th, .reference-content td {
+  border: 1px solid #475569;
+  padding: 10px 14px;
+  text-align: left;
+}
+
+.reference-content th {
+  background-color: #f1f5f9;
+  font-weight: 700;
+}
+
