@@ -10,6 +10,7 @@ import { LandingPage } from './components/landing/LandingPage';
 import { EditProfileModal } from './components/student/EditProfileModal';
 import { StudentDashboard } from './components/student/StudentDashboard';
 import { StudentGallery } from './components/gallery/StudentGallery';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
@@ -289,12 +290,14 @@ function MainAppContent() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <ToastProvider>
-        <AuthProvider>
-          <MainAppContent />
-        </AuthProvider>
-      </ToastProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <MainAppContent />
+          </AuthProvider>
+        </ToastProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
