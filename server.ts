@@ -188,6 +188,84 @@ Kembalikan HANYA format JSON valid tanpa tanda kutip markdown, tanpa backtick, d
   });
 });
 
+// ==========================================
+// CENTRALIZED SERVER-SIDE DATABASE (NO-FIREBASE)
+// ==========================================
+import fs from 'fs';
+
+const DB_DIR = path.resolve('db_store');
+if (!fs.existsSync(DB_DIR)) {
+  fs.mkdirSync(DB_DIR, { recursive: true });
+}
+
+function readCollection(collectionName: string): any[] {
+  const filePath = path.join(DB_DIR, `${collectionName}.json`);
+  if (!fs.existsSync(filePath)) {
+    return [];
+  }
+  try {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    return JSON.parse(content) || [];
+  } catch {
+    return [];
+  }
+}
+
+function writeCollection(collectionName: string, data: any[]): void {
+  const filePath = path.join(DB_DIR, `${collectionName}.json`);
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (err) {
+    console.error(`Error writing collection ${collectionName}:`, err);
+  }
+}
+
+// Get all documents in a collection
+app.get('/api/db/:collection', (req, res) => {
+  const { collection } = req.params;
+  const data = readCollection(collection);
+  res.json({ success: true, data });
+});
+
+// Create or update a document in a collection
+app.post('/api/db/:collection', (req, res) => {
+  const { collection } = req.params;
+  const doc = req.body;
+  if (!doc || !doc.id) {
+    return res.status(400).json({ success: false, message: 'Document must have an id' });
+  }
+
+  const list = readCollection(collection);
+  const idx = list.findIndex((item: any) => item.id === doc.id);
+  if (idx !== -1) {
+    list[idx] = { ...list[idx], ...doc, updatedAt: new Date().toISOString() };
+  } else {
+    list.push({ ...doc, createdAt: doc.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() });
+  }
+  writeCollection(collection, list);
+  res.json({ success: true, data: doc });
+});
+
+// Overwrite/save entire collection (Batch mode)
+app.post('/api/db/:collection/batch', (req, res) => {
+  const { collection } = req.params;
+  const data = req.body;
+  if (!Array.isArray(data)) {
+    return res.status(400).json({ success: false, message: 'Body must be an array' });
+  }
+  writeCollection(collection, data);
+  res.json({ success: true, count: data.length });
+});
+
+// Delete a document from a collection
+app.delete('/api/db/:collection/:id', (req, res) => {
+  const { collection, id } = req.params;
+  const list = readCollection(collection);
+  const filtered = list.filter((item: any) => item.id !== id);
+  writeCollection(collection, filtered);
+  res.json({ success: true });
+});
+
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

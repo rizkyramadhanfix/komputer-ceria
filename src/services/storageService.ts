@@ -36,19 +36,7 @@ import {
   TypingLeagueText,
   TypingLeagueScore,
 } from '../types';
-import {
-  collection,
-  doc,
-  getDoc,
-  setDoc,
-  deleteDoc,
-  onSnapshot,
-  getDocs,
-  query,
-  orderBy,
-  limit,
-} from 'firebase/firestore';
-import { db } from './firebase';
+// Firebase is completely disabled per user request -> 100% online Express Server-DB
 
 const STORAGE_KEYS = {
   USERS: 'ekskul_users',
@@ -116,21 +104,52 @@ function setStoredItem<T>(key: string, value: T): void {
   }
 }
 
-// --- Firestore Sync Helpers ---
-// Firebase is completely disabled per user request -> 100% local storage
-const DISABLE_FIREBASE = true;
-let isQuotaExhausted = true;
+// --- Server-DB Sync Helpers (Replacements for Firestore) ---
+export async function fetchCollectionFromServer(collectionName: string): Promise<any[]> {
+  try {
+    const res = await fetch(`/api/db/${collectionName}`);
+    const json = await res.json();
+    if (json.success && Array.isArray(json.data)) {
+      return json.data;
+    }
+  } catch (err) {
+    // Gracefully handle server offline / fallback to local storage
+  }
+  return [];
+}
 
-function handleFirestoreError(err: any, context: string) {
-  // Disabled
+export async function syncCollectionFromServer(collectionName: string, storageKey: string) {
+  const data = await fetchCollectionFromServer(collectionName);
+  if (data && data.length > 0) {
+    const existingRaw = localStorage.getItem(storageKey);
+    const newRaw = JSON.stringify(data);
+    if (existingRaw !== newRaw) {
+      setStoredItem(storageKey, data);
+      notifyDataUpdated();
+    }
+  }
 }
 
 async function syncDocToFirestore(collectionName: string, id: string, data: any): Promise<void> {
-  if (DISABLE_FIREBASE) return;
+  try {
+    await fetch(`/api/db/${collectionName}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...data, id }),
+    });
+  } catch (err) {
+    console.warn(`Server DB sync failed for ${collectionName}/${id}:`, err);
+  }
 }
 
 async function removeDocFromFirestore(collectionName: string, id: string): Promise<void> {
-  if (DISABLE_FIREBASE) return;
+  try {
+    await fetch(`/api/db/${collectionName}/${id}`, {
+      method: 'DELETE',
+    });
+  } catch (err) {
+    console.warn(`Server DB delete failed for ${collectionName}/${id}:`, err);
+  }
 }
 
 let notifyTimer: any = null;
@@ -144,302 +163,122 @@ function notifyDataUpdated() {
   }, 500);
 }
 
-// --- Real-time Firestore Listeners ---
+// --- Real-time Server-DB Sync Loop ---
 let listenersInitialized = false;
+let serverSyncInterval: any = null;
 
 function initFirestoreListeners() {
-  if (listenersInitialized || isQuotaExhausted) return;
+  if (listenersInitialized) return;
   listenersInitialized = true;
 
-  try {
-    // 1. Subscribe to Users (All users to ensure complete login access across devices)
-    onSnapshot(collection(db, 'users'), (snapshot) => {
-      if (!snapshot.empty) {
-        const firestoreUsers: User[] = [];
-        snapshot.forEach((docSnap) => {
-          firestoreUsers.push(docSnap.data() as User);
+  const allSync = async () => {
+    const collectionsToSync = [
+      { col: 'users', key: STORAGE_KEYS.USERS },
+      { col: 'lessons', key: STORAGE_KEYS.LESSONS },
+      { col: 'quizzes', key: STORAGE_KEYS.QUIZZES },
+      { col: 'typingPractices', key: STORAGE_KEYS.TYPING_PRACTICES },
+      { col: 'typingSubmissions', key: STORAGE_KEYS.TYPING_SUBMISSIONS },
+      { col: 'quizSubmissions', key: STORAGE_KEYS.QUIZ_SUBMISSIONS },
+      { col: 'config', key: 'dashboard' }, // config handled below
+      { col: 'galleryWorks', key: STORAGE_KEYS.GALLERY_WORKS },
+      { col: 'gameScores', key: STORAGE_KEYS.GAME_SCORES },
+      { col: 'loginLogs', key: STORAGE_KEYS.LOGIN_LOGS },
+      { col: 'typingTournaments', key: STORAGE_KEYS.TYPING_TOURNAMENTS },
+      { col: 'typingLeagueTexts', key: STORAGE_KEYS.TYPING_LEAGUE_TEXTS },
+      { col: 'typingLeagueScores', key: STORAGE_KEYS.TYPING_LEAGUE_SCORES },
+      { col: 'schoolRewards', key: STORAGE_KEYS.SCHOOL_REWARDS },
+      { col: 'rewardRedemptions', key: STORAGE_KEYS.REWARD_REDEMPTIONS },
+      { col: 'announcements', key: STORAGE_KEYS.ANNOUNCEMENTS },
+      { col: 'forumThreads', key: 'ekskul_forum_threads' },
+      { col: 'forumReplies', key: 'ekskul_forum_replies' },
+    ];
+
+    for (const item of collectionsToSync) {
+      if (item.col === 'config') {
+        const configs = await fetchCollectionFromServer('config');
+        configs.forEach((cfg) => {
+          if (cfg.id === 'dashboard') setStoredItem(STORAGE_KEYS.DASHBOARD_CONFIG, cfg);
+          else if (cfg.id === 'certificate') setStoredItem(STORAGE_KEYS.CERTIFICATE_CONFIG, cfg);
+          else if (cfg.id === 'gamification') setStoredItem(STORAGE_KEYS.GAMIFICATION_CONFIG, cfg);
+          else if (cfg.id === 'games_config') setStoredItem(STORAGE_KEYS.GAMES_CONFIG, cfg);
         });
-        firestoreUsers.sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
-
-        const existingRaw = localStorage.getItem(STORAGE_KEYS.USERS);
-        const newRaw = JSON.stringify(firestoreUsers);
-        if (existingRaw !== newRaw) {
-          setStoredItem(STORAGE_KEYS.USERS, firestoreUsers);
-
-          // Sync active user if present
-          const activeUser = getStoredItem<User | null>(STORAGE_KEYS.CURRENT_USER, null);
-          if (activeUser) {
-            const updatedActive = firestoreUsers.find((u) => u.id === activeUser.id);
-            if (updatedActive) {
-              setStoredItem(STORAGE_KEYS.CURRENT_USER, updatedActive);
-            }
-          }
-          notifyDataUpdated();
-        }
+      } else {
+        await syncCollectionFromServer(item.col, item.key);
       }
-    }, (err) => {
-      console.warn('Firestore User listener failed (probably quota):', err);
-    });
+    }
+  };
 
-    // 2. Subscribe to Lessons
-    onSnapshot(collection(db, 'lessons'), (snapshot) => {
-      if (!snapshot.empty) {
-        const firestoreLessons: Lesson[] = [];
-        snapshot.forEach((docSnap) => {
-          firestoreLessons.push(docSnap.data() as Lesson);
-        });
-        setStoredItem(STORAGE_KEYS.LESSONS, firestoreLessons);
-        notifyDataUpdated();
-      }
-    }, (err) => {
-      console.warn('Firestore Lesson listener failed:', err);
-    });
+  allSync();
 
-    // 3. Subscribe to Quizzes
-    onSnapshot(collection(db, 'quizzes'), (snapshot) => {
-      if (!snapshot.empty) {
-        const firestoreQuizzes: Quiz[] = [];
-        snapshot.forEach((docSnap) => {
-          firestoreQuizzes.push(docSnap.data() as Quiz);
-        });
-        setStoredItem(STORAGE_KEYS.QUIZZES, firestoreQuizzes);
-        notifyDataUpdated();
-      }
-    }, (err) => {
-      console.warn('Firestore Quiz listener failed:', err);
-    });
-
-    // 4. Subscribe to Typing Practices
-    onSnapshot(collection(db, 'typingPractices'), (snapshot) => {
-      if (!snapshot.empty) {
-        const firestorePractices: TypingPractice[] = [];
-        snapshot.forEach((docSnap) => {
-          firestorePractices.push(docSnap.data() as TypingPractice);
-        });
-        setStoredItem(STORAGE_KEYS.TYPING_PRACTICES, firestorePractices);
-        notifyDataUpdated();
-      }
-    }, (err) => {
-      console.warn('Firestore TypingPractice listener failed:', err);
-    });
-
-    // 5. Subscribe to Typing Submissions (Recent 50)
-    onSnapshot(query(collection(db, 'typingSubmissions'), orderBy('submittedAt', 'desc'), limit(50)), (snapshot) => {
-      if (!snapshot.empty) {
-        const firestoreSubmissions: TypingSubmission[] = [];
-        snapshot.forEach((docSnap) => {
-          firestoreSubmissions.push(docSnap.data() as TypingSubmission);
-        });
-        setStoredItem(STORAGE_KEYS.TYPING_SUBMISSIONS, firestoreSubmissions);
-        notifyDataUpdated();
-      }
-    }, (err) => {
-      console.warn('Firestore TypingSubmission listener failed:', err);
-    });
-
-    // 6. Subscribe to Quiz Submissions (Recent 50)
-    onSnapshot(query(collection(db, 'quizSubmissions'), orderBy('submittedAt', 'desc'), limit(50)), (snapshot) => {
-      if (!snapshot.empty) {
-        const firestoreSubmissions: QuizSubmission[] = [];
-        snapshot.forEach((docSnap) => {
-          firestoreSubmissions.push(docSnap.data() as QuizSubmission);
-        });
-        setStoredItem(STORAGE_KEYS.QUIZ_SUBMISSIONS, firestoreSubmissions);
-        notifyDataUpdated();
-      }
-    }, (err) => {
-      console.warn('Firestore QuizSubmission listener failed:', err);
-    });
-
-    // 7. Subscribe to Configs
-    onSnapshot(collection(db, 'config'), (snapshot) => {
-      if (!snapshot.empty) {
-        snapshot.forEach((docSnap) => {
-          const id = docSnap.id;
-          const data = docSnap.data();
-          if (id === 'dashboard') {
-            setStoredItem(STORAGE_KEYS.DASHBOARD_CONFIG, data as DashboardConfig);
-          } else if (id === 'certificate') {
-            setStoredItem(STORAGE_KEYS.CERTIFICATE_CONFIG, data as CertificateConfig);
-          } else if (id === 'gamification') {
-            setStoredItem(STORAGE_KEYS.GAMIFICATION_CONFIG, data as GamificationConfig);
-          } else if (id === 'games_config') {
-            setStoredItem(STORAGE_KEYS.GAMES_CONFIG, data as GamesConfig);
-          }
-        });
-        notifyDataUpdated();
-      }
-    }, (err) => {
-      console.warn('Firestore Config listener failed:', err);
-    });
-
-    // 8. Subscribe to Gallery Works (Recent 50)
-    onSnapshot(query(collection(db, 'galleryWorks'), orderBy('createdAt', 'desc'), limit(50)), (snapshot) => {
-      if (!snapshot.empty) {
-        const firestoreWorks: StudentGalleryWork[] = [];
-        snapshot.forEach((docSnap) => {
-          firestoreWorks.push(docSnap.data() as StudentGalleryWork);
-        });
-        setStoredItem(STORAGE_KEYS.GALLERY_WORKS, firestoreWorks);
-        notifyDataUpdated();
-      }
-    }, (err) => {
-      console.warn('Firestore Gallery listener failed:', err);
-    });
-
-    // 9. Subscribe to Game Scores (Recent 50)
-    onSnapshot(query(collection(db, 'gameScores'), orderBy('createdAt', 'desc'), limit(50)), (snapshot) => {
-      const firestoreScores: any[] = [];
-      if (!snapshot.empty) {
-        snapshot.forEach((docSnap) => {
-          firestoreScores.push(docSnap.data());
-        });
-        firestoreScores.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      }
-      setStoredItem(STORAGE_KEYS.GAME_SCORES, firestoreScores);
-      notifyDataUpdated();
-    }, (err) => {
-      console.warn('Firestore GameScores listener failed:', err);
-    });
-
-    // 10. Subscribe to Login Logs (Recent 100)
-    onSnapshot(query(collection(db, 'loginLogs'), orderBy('timestamp', 'desc'), limit(100)), (snapshot) => {
-      if (!snapshot.empty) {
-        const firestoreLogs: LoginLog[] = [];
-        snapshot.forEach((docSnap) => {
-          firestoreLogs.push(docSnap.data() as LoginLog);
-        });
-        firestoreLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-        setStoredItem(STORAGE_KEYS.LOGIN_LOGS, firestoreLogs);
-        notifyDataUpdated();
-      }
-    }, (err) => {
-      console.warn('Firestore LoginLogs listener failed:', err);
-    });
-
-    // 11. Subscribe to Typing Tournaments
-    onSnapshot(collection(db, 'typingTournaments'), (snapshot) => {
-      if (!snapshot.empty) {
-        const firestoreTournaments: TypingTournament[] = [];
-        snapshot.forEach((docSnap) => {
-          firestoreTournaments.push(docSnap.data() as TypingTournament);
-        });
-        setStoredItem(STORAGE_KEYS.TYPING_TOURNAMENTS, firestoreTournaments);
-        notifyDataUpdated();
-      }
-    }, (err) => {
-      console.warn('Firestore Tournament listener failed:', err);
-    });
-
-    // 12. Subscribe to Liga Mengetik Texts
-    onSnapshot(collection(db, 'typingLeagueTexts'), (snapshot) => {
-      if (!snapshot.empty) {
-        const firestoreTexts: TypingLeagueText[] = [];
-        snapshot.forEach((docSnap) => {
-          firestoreTexts.push(docSnap.data() as TypingLeagueText);
-        });
-        setStoredItem(STORAGE_KEYS.TYPING_LEAGUE_TEXTS, firestoreTexts);
-        notifyDataUpdated();
-      }
-    }, (err) => {
-      console.warn('Firestore typingLeagueTexts listener failed:', err);
-    });
-
-    // 13. Subscribe to Liga Mengetik Scores
-    onSnapshot(query(collection(db, 'typingLeagueScores'), orderBy('submittedAt', 'desc'), limit(100)), (snapshot) => {
-      if (!snapshot.empty) {
-        const firestoreScores: TypingLeagueScore[] = [];
-        snapshot.forEach((docSnap) => {
-          firestoreScores.push(docSnap.data() as TypingLeagueScore);
-        });
-        setStoredItem(STORAGE_KEYS.TYPING_LEAGUE_SCORES, firestoreScores);
-        notifyDataUpdated();
-      }
-    }, (err) => {
-      console.warn('Firestore typingLeagueScores listener failed:', err);
-    });
-
-    // 14. Subscribe to School Rewards Catalogue
-    onSnapshot(collection(db, 'schoolRewards'), (snapshot) => {
-      const firestoreRewards: SchoolRewardItem[] = [];
-      snapshot.forEach((docSnap) => {
-        firestoreRewards.push(docSnap.data() as SchoolRewardItem);
-      });
-      setStoredItem(STORAGE_KEYS.SCHOOL_REWARDS, firestoreRewards);
-      notifyDataUpdated();
-    }, (err) => {
-      console.warn('Firestore schoolRewards listener failed:', err);
-    });
-
-    // 15. Subscribe to Reward Redemptions (Voucher Klaim Siswa)
-    onSnapshot(query(collection(db, 'rewardRedemptions'), orderBy('redeemedAt', 'desc'), limit(100)), (snapshot) => {
-      const firestoreRedemptions: RewardRedemption[] = [];
-      snapshot.forEach((docSnap) => {
-        firestoreRedemptions.push(docSnap.data() as RewardRedemption);
-      });
-      setStoredItem(STORAGE_KEYS.REWARD_REDEMPTIONS, firestoreRedemptions);
-      notifyDataUpdated();
-    }, (err) => {
-      console.warn('Firestore rewardRedemptions listener failed:', err);
-    });
-  } catch (err) {
-    console.error('Error initializing Firestore listeners:', err);
+  // Polling highly dynamic interactive collections every 3 seconds to keep other computers in sync online!
+  if (!serverSyncInterval) {
+    serverSyncInterval = setInterval(async () => {
+      await syncCollectionFromServer('users', STORAGE_KEYS.USERS);
+      await syncCollectionFromServer('typingSubmissions', STORAGE_KEYS.TYPING_SUBMISSIONS);
+      await syncCollectionFromServer('quizSubmissions', STORAGE_KEYS.QUIZ_SUBMISSIONS);
+      await syncCollectionFromServer('forumThreads', 'ekskul_forum_threads');
+      await syncCollectionFromServer('forumReplies', 'ekskul_forum_replies');
+      await syncCollectionFromServer('gameScores', STORAGE_KEYS.GAME_SCORES);
+      await syncCollectionFromServer('announcements', STORAGE_KEYS.ANNOUNCEMENTS);
+      await syncCollectionFromServer('rewardRedemptions', STORAGE_KEYS.REWARD_REDEMPTIONS);
+    }, 3000);
   }
 }
 
-// --- Seed Firestore if Collections Are Empty ---
-async function seedFirestoreIfEmpty() {
-  const SEED_FLAG = 'ekskul_seed_attempted_v1';
-  // If we already attempted seeding in this browser session, skip it to save reads
-  if (sessionStorage.getItem(SEED_FLAG) === 'true') return;
-  sessionStorage.setItem(SEED_FLAG, 'true');
-
+// --- Seed Server DB if Empty ---
+async function seedServerDbIfEmpty() {
   try {
-    console.log('🌱 Ensuring all users are in Firestore...');
-    const initialUsers = getUsers();
-    for (const u of initialUsers) {
-      await syncDocToFirestore('users', u.id, u);
+    const serverUsers = await fetchCollectionFromServer('users');
+    if (serverUsers.length === 0) {
+      console.log('🌱 Seeding initial users to Server DB...');
+      const initialUsers = getUsers();
+      for (const u of initialUsers) {
+        await syncDocToFirestore('users', u.id, u);
+      }
     }
 
-    const lessonSnap = await getDocs(collection(db, 'lessons'));
-    if (lessonSnap.empty) {
-      console.log('🌱 Seeding initial lessons to Firestore...');
+    const serverLessons = await fetchCollectionFromServer('lessons');
+    if (serverLessons.length === 0) {
+      console.log('🌱 Seeding initial lessons to Server DB...');
       const initialLessons = getLessons();
       for (const l of initialLessons) {
         await syncDocToFirestore('lessons', l.id, l);
       }
     }
 
-    const quizSnap = await getDocs(collection(db, 'quizzes'));
-    if (quizSnap.empty) {
-      console.log('🌱 Seeding initial quizzes to Firestore...');
+    const serverQuizzes = await fetchCollectionFromServer('quizzes');
+    if (serverQuizzes.length === 0) {
+      console.log('🌱 Seeding initial quizzes to Server DB...');
       const initialQuizzes = getQuizzes();
       for (const q of initialQuizzes) {
         await syncDocToFirestore('quizzes', q.id, q);
       }
     }
 
-    const typingSnap = await getDocs(collection(db, 'typingPractices'));
-    if (typingSnap.empty) {
-      console.log('🌱 Seeding initial typing practices to Firestore...');
+    const serverTyping = await fetchCollectionFromServer('typingPractices');
+    if (serverTyping.length === 0) {
+      console.log('🌱 Seeding initial typing practices to Server DB...');
       const initialTyping = getTypingPractices();
       for (const tp of initialTyping) {
         await syncDocToFirestore('typingPractices', tp.id, tp);
       }
     }
 
-    await syncDocToFirestore('config', 'dashboard', getDashboardConfig());
-    await syncDocToFirestore('config', 'certificate', getCertificateConfig());
-    await syncDocToFirestore('config', 'gamification', getGamificationConfig());
-    await syncDocToFirestore('config', 'games_config', getGamesConfig());
+    const configs = await fetchCollectionFromServer('config');
+    if (configs.length === 0) {
+      await syncDocToFirestore('config', 'dashboard', getDashboardConfig());
+      await syncDocToFirestore('config', 'certificate', getCertificateConfig());
+      await syncDocToFirestore('config', 'gamification', getGamificationConfig());
+      await syncDocToFirestore('config', 'games_config', getGamesConfig());
+    }
   } catch (err) {
-    console.warn('Firestore seeding check interrupted (probably quota):', err);
+    console.warn('Server DB seeding warning:', err);
   }
 }
 
 // Start listeners and seeding check
 initFirestoreListeners();
-seedFirestoreIfEmpty();
+seedServerDbIfEmpty();
 
 // --- Users Management ---
 export function getUsers(): User[] {
@@ -2787,32 +2626,52 @@ export async function pullLatestDataFromCloud(): Promise<boolean> {
       { name: 'announcements', key: STORAGE_KEYS.ANNOUNCEMENTS },
       { name: 'galleryWorks', key: STORAGE_KEYS.GALLERY_WORKS },
       { name: 'schoolRewards', key: STORAGE_KEYS.SCHOOL_REWARDS },
-      { name: 'config', docId: 'dashboard_config', key: STORAGE_KEYS.DASHBOARD_CONFIG },
-      { name: 'config', docId: 'gamification_config', key: STORAGE_KEYS.GAMIFICATION_CONFIG },
-      { name: 'config', docId: 'games_config', key: STORAGE_KEYS.GAMES_CONFIG },
-      { name: 'config', docId: 'contact_info', key: STORAGE_KEYS.CONTACT_INFO },
     ];
     for (const c of collectionsToSync) {
-      if (c.docId) {
-        const snap = await getDoc(doc(db, c.name, c.docId));
-        if (snap.exists()) {
-          setStoredItem(c.key, snap.data());
-        }
-      } else {
-        const snap = await getDocs(collection(db, c.name));
-        if (!snap.empty) {
-          const list: any[] = [];
-          snap.forEach((d) => list.push(d.data()));
-          setStoredItem(c.key, list);
-        }
+      const data = await fetchCollectionFromServer(c.name);
+      if (data && data.length > 0) {
+        setStoredItem(c.key, data);
       }
     }
+
+    const configs = await fetchCollectionFromServer('config');
+    configs.forEach((cfg) => {
+      if (cfg.id === 'dashboard') setStoredItem(STORAGE_KEYS.DASHBOARD_CONFIG, cfg);
+      else if (cfg.id === 'certificate') setStoredItem(STORAGE_KEYS.CERTIFICATE_CONFIG, cfg);
+      else if (cfg.id === 'gamification') setStoredItem(STORAGE_KEYS.GAMIFICATION_CONFIG, cfg);
+      else if (cfg.id === 'games_config') setStoredItem(STORAGE_KEYS.GAMES_CONFIG, cfg);
+    });
+
     notifyDataUpdated();
     return true;
   } catch (err) {
     console.warn('Manual cloud data pull warning:', err);
     notifyDataUpdated();
     return false;
+  }
+}
+
+export function toggleModerateForumThread(id: string, isModerated: boolean): ForumThreadItem | null {
+  const threads = getForumThreads();
+  const idx = threads.findIndex((t) => t.id === id);
+  if (idx === -1) return null;
+
+  threads[idx].isModerated = isModerated;
+  setStoredItem('ekskul_forum_threads', threads);
+  syncDocToFirestore('forumThreads', id, threads[idx]);
+  notifyDataUpdated();
+  return threads[idx];
+}
+
+export function toggleModerateForumReply(threadId: string, replyId: string, isModerated: boolean): void {
+  const allRepliesMap = getStoredItem<Record<string, ForumReplyItem[]>>('ekskul_forum_replies', DEFAULT_FORUM_REPLIES);
+  const threadReplies = allRepliesMap[threadId] || [];
+  const idx = threadReplies.findIndex((r) => r.id === replyId);
+  if (idx !== -1) {
+    threadReplies[idx].isModerated = isModerated;
+    allRepliesMap[threadId] = threadReplies;
+    setStoredItem('ekskul_forum_replies', allRepliesMap);
+    notifyDataUpdated();
   }
 }
 

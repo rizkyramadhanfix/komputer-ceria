@@ -1,18 +1,6 @@
-import {
-  collection,
-  doc,
-  setDoc,
-  updateDoc,
-  onSnapshot,
-  query,
-  where,
-  serverTimestamp,
-} from 'firebase/firestore';
-import { db } from './firebase';
 import { GameBattle, User } from '../types';
 
 const BATTLES_STORAGE_KEY = 'ekskul_game_battles';
-const DISABLE_FIREBASE = true;
 
 function getLocalBattles(): GameBattle[] {
   try {
@@ -34,6 +22,31 @@ function saveLocalBattles(battles: GameBattle[]): void {
   }
 }
 
+async function saveBattleToServer(battle: GameBattle): Promise<void> {
+  try {
+    await fetch('/api/db/gameBattles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(battle),
+    });
+  } catch (err) {
+    console.warn('Failed to save battle to server:', err);
+  }
+}
+
+async function fetchBattlesFromServer(): Promise<GameBattle[]> {
+  try {
+    const res = await fetch('/api/db/gameBattles');
+    const json = await res.json();
+    if (json.success && Array.isArray(json.data)) {
+      return json.data;
+    }
+  } catch (err) {
+    // Gracefully handle server offline
+  }
+  return [];
+}
+
 export const createBattleChallenge = async (
   challenger: User,
   opponent: User,
@@ -47,7 +60,6 @@ export const createBattleChallenge = async (
   const battleId = `battle-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
   const nowIso = new Date().toISOString();
 
-  // Clean data: Ensure NO undefined values are passed to Firestore!
   const cleanBattleData: GameBattle = {
     id: battleId,
     gameType,
@@ -67,57 +79,69 @@ export const createBattleChallenge = async (
     updatedAt: nowIso,
   };
 
-  // 1. Always save to local storage first for instant reliability
+  // 1. Save to local storage
   const localBattles = getLocalBattles();
   localBattles.unshift(cleanBattleData);
   saveLocalBattles(localBattles.slice(0, 50));
 
-  if (DISABLE_FIREBASE) return battleId;
+  // 2. Sync to Server DB
+  await saveBattleToServer(cleanBattleData);
 
   return battleId;
 };
 
 export const acceptChallenge = async (battleId: string) => {
-  // Update local
   const battles = getLocalBattles();
   const idx = battles.findIndex((b) => b.id === battleId);
+  let updatedBattle: GameBattle | null = null;
+
   if (idx !== -1) {
     battles[idx].status = 'active';
     battles[idx].updatedAt = new Date().toISOString();
     saveLocalBattles(battles);
+    updatedBattle = battles[idx];
   }
 
-  // Update Firestore
-  try {
-    const battleRef = doc(db, 'gameBattles', battleId);
-    await updateDoc(battleRef, {
-      status: 'active',
-      updatedAt: serverTimestamp(),
-    });
-  } catch (err) {
-    console.warn('acceptChallenge Firestore warning:', err);
+  // Get from server if not found locally, then update
+  if (!updatedBattle) {
+    const serverBattles = await fetchBattlesFromServer();
+    const serverB = serverBattles.find((b) => b.id === battleId);
+    if (serverB) {
+      serverB.status = 'active';
+      serverB.updatedAt = new Date().toISOString();
+      updatedBattle = serverB;
+    }
+  }
+
+  if (updatedBattle) {
+    await saveBattleToServer(updatedBattle);
   }
 };
 
 export const cancelChallenge = async (battleId: string) => {
-  // Update local
   const battles = getLocalBattles();
   const idx = battles.findIndex((b) => b.id === battleId);
+  let updatedBattle: GameBattle | null = null;
+
   if (idx !== -1) {
     battles[idx].status = 'cancelled';
     battles[idx].updatedAt = new Date().toISOString();
     saveLocalBattles(battles);
+    updatedBattle = battles[idx];
   }
 
-  // Update Firestore
-  try {
-    const battleRef = doc(db, 'gameBattles', battleId);
-    await updateDoc(battleRef, {
-      status: 'cancelled',
-      updatedAt: serverTimestamp(),
-    });
-  } catch (err) {
-    console.warn('cancelChallenge Firestore warning:', err);
+  if (!updatedBattle) {
+    const serverBattles = await fetchBattlesFromServer();
+    const serverB = serverBattles.find((b) => b.id === battleId);
+    if (serverB) {
+      serverB.status = 'cancelled';
+      serverB.updatedAt = new Date().toISOString();
+      updatedBattle = serverB;
+    }
+  }
+
+  if (updatedBattle) {
+    await saveBattleToServer(updatedBattle);
   }
 };
 
@@ -131,23 +155,26 @@ export const updateBattleState = async (battleId: string, updates: Partial<GameB
     }
   });
 
-  // Update local
   const battles = getLocalBattles();
   const idx = battles.findIndex((b) => b.id === battleId);
+  let updatedBattle: GameBattle | null = null;
+
   if (idx !== -1) {
     battles[idx] = { ...battles[idx], ...cleanUpdates, updatedAt: new Date().toISOString() };
     saveLocalBattles(battles);
+    updatedBattle = battles[idx];
   }
 
-  // Update Firestore
-  try {
-    const battleRef = doc(db, 'gameBattles', battleId);
-    await updateDoc(battleRef, {
-      ...cleanUpdates,
-      updatedAt: serverTimestamp(),
-    });
-  } catch (err) {
-    console.warn('updateBattleState Firestore warning:', err);
+  if (!updatedBattle) {
+    const serverBattles = await fetchBattlesFromServer();
+    const serverB = serverBattles.find((b) => b.id === battleId);
+    if (serverB) {
+      updatedBattle = { ...serverB, ...cleanUpdates, updatedAt: new Date().toISOString() };
+    }
+  }
+
+  if (updatedBattle) {
+    await saveBattleToServer(updatedBattle);
   }
 };
 
@@ -155,14 +182,18 @@ export const subscribeToBattles = (
   userId: string,
   onUpdate: (battles: GameBattle[]) => void
 ) => {
-  const triggerUpdate = (firestoreBattles: GameBattle[] = []) => {
+  const triggerUpdate = (serverBattles: GameBattle[] = []) => {
     const local = getLocalBattles().filter((b) => b.opponentId === userId && b.status === 'pending');
     const combinedMap = new Map<string, GameBattle>();
 
     local.forEach((b) => combinedMap.set(b.id, b));
-    firestoreBattles.forEach((b) => combinedMap.set(b.id, b));
+    serverBattles.forEach((b) => {
+      if (b.opponentId === userId && b.status === 'pending') {
+        combinedMap.set(b.id, b);
+      }
+    });
 
-    const list = Array.from(combinedMap.values()).filter((b) => b.status === 'pending');
+    const list = Array.from(combinedMap.values());
     list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     onUpdate(list.slice(0, 5));
   };
@@ -176,46 +207,17 @@ export const subscribeToBattles = (
     window.addEventListener('ekskul_battle_updated', handleLocalUpdate);
   }
 
-  // Firestore listener
-  let unsubFirestore = () => {};
-  if (!DISABLE_FIREBASE) {
-    try {
-      const q = query(
-        collection(db, 'gameBattles'),
-        where('opponentId', '==', userId)
-      );
-
-      unsubFirestore = onSnapshot(
-        q,
-        (snapshot) => {
-          const fsBattles: GameBattle[] = [];
-          snapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            if (data.status === 'pending') {
-              fsBattles.push({
-                id: docSnap.id,
-                ...data,
-                createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt || new Date().toISOString(),
-                updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt || new Date().toISOString(),
-              } as GameBattle);
-            }
-          });
-          triggerUpdate(fsBattles);
-        },
-        (err) => {
-          console.warn('subscribeToBattles Firestore warning:', err);
-        }
-      );
-    } catch (e) {
-      console.warn('subscribeToBattles Firestore query catch:', e);
-    }
-  }
+  // Set up polling interval to fetch battles from server every 1.5 seconds for instant duels!
+  const pollInterval = setInterval(async () => {
+    const serverBattles = await fetchBattlesFromServer();
+    triggerUpdate(serverBattles);
+  }, 1500);
 
   return () => {
     if (typeof window !== 'undefined') {
       window.removeEventListener('ekskul_battle_updated', handleLocalUpdate);
     }
-    unsubFirestore();
+    clearInterval(pollInterval);
   };
 };
 
@@ -223,9 +225,9 @@ export const subscribeToActiveBattle = (
   battleId: string,
   onUpdate: (battle: GameBattle | null) => void
 ) => {
-  const triggerUpdate = (fsBattle: GameBattle | null = null) => {
-    if (fsBattle) {
-      onUpdate(fsBattle);
+  const triggerUpdate = (serverBattle: GameBattle | null = null) => {
+    if (serverBattle) {
+      onUpdate(serverBattle);
       return;
     }
     const local = getLocalBattles().find((b) => b.id === battleId);
@@ -241,37 +243,19 @@ export const subscribeToActiveBattle = (
     window.addEventListener('ekskul_battle_updated', handleLocalUpdate);
   }
 
-  let unsubFirestore = () => {};
-  if (!DISABLE_FIREBASE) {
-    try {
-      const battleRef = doc(db, 'gameBattles', battleId);
-      unsubFirestore = onSnapshot(
-        battleRef,
-        (docSnap) => {
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            const b: GameBattle = {
-              id: docSnap.id,
-              ...data,
-              createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt || new Date().toISOString(),
-              updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt || new Date().toISOString(),
-            } as GameBattle;
-            triggerUpdate(b);
-          }
-        },
-        (err) => {
-          console.warn(`subscribeToActiveBattle(${battleId}) Firestore warning:`, err);
-        }
-      );
-    } catch (e) {
-      console.warn(`subscribeToActiveBattle(${battleId}) catch:`, e);
+  // Poll server for live updates of active duel game states every 1.5 seconds!
+  const pollInterval = setInterval(async () => {
+    const serverBattles = await fetchBattlesFromServer();
+    const activeB = serverBattles.find((b) => b.id === battleId);
+    if (activeB) {
+      triggerUpdate(activeB);
     }
-  }
+  }, 1500);
 
   return () => {
     if (typeof window !== 'undefined') {
       window.removeEventListener('ekskul_battle_updated', handleLocalUpdate);
     }
-    unsubFirestore();
+    clearInterval(pollInterval);
   };
 };

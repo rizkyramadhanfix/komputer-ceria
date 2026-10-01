@@ -6,10 +6,9 @@ import {
   getUsers,
   updateUser,
   recordLoginLog,
+  fetchCollectionFromServer,
 } from '../services/storageService';
 import { User } from '../types';
-import { doc, getDoc, getDocs, collection, onSnapshot } from 'firebase/firestore';
-import { db } from '../services/firebase';
 import { ShieldAlert, LogOut, Clock, AlertTriangle } from 'lucide-react';
 
 interface AuthContextType {
@@ -170,6 +169,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
 
       user = findUserInList(allUsers);
+
+      // Fallback: If user not found in local storage, query Server DB directly so data entered on Main PC is fetched
+      if (!user) {
+        try {
+          const fetchedUsers = await fetchCollectionFromServer('users');
+          if (fetchedUsers && fetchedUsers.length > 0) {
+            localStorage.setItem('ekskul_users', JSON.stringify(fetchedUsers));
+            setUsers(fetchedUsers);
+            user = findUserInList(fetchedUsers);
+          }
+        } catch (fErr) {
+          console.warn('Server user fetch on login warning:', fErr);
+        }
+      }
       
       if (!user) {
         return {

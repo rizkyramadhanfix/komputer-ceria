@@ -16,7 +16,6 @@ import {
   User as UserIcon,
   ShieldAlert,
 } from 'lucide-react';
-import { db } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Avatar } from '../common/Avatar';
@@ -28,23 +27,9 @@ import {
   getForumReplies,
   addForumReply,
   deleteForumReply,
+  toggleModerateForumThread,
+  toggleModerateForumReply,
 } from '../../services/storageService';
-import {
-  collection,
-  doc,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  onSnapshot,
-  getDocs,
-  query,
-  orderBy,
-  limit,
-  increment,
-  arrayUnion,
-  arrayRemove,
-  serverTimestamp,
-} from 'firebase/firestore';
 
 interface ForumThread {
   id: string;
@@ -222,13 +207,15 @@ export const ForumDiskusi: React.FC = () => {
   // Moderation Handlers
   const handleToggleModerateThread = async (thread: ForumThread) => {
     if (!isAdmin) return;
-    const threadRef = doc(db, 'forumThreads', thread.id);
     const nextState = !thread.isModerated;
 
     try {
-      await updateDoc(threadRef, { isModerated: nextState });
-      if (activeThread?.id === thread.id) {
-        setActiveThread((prev) => (prev ? { ...prev, isModerated: nextState } : null));
+      const updated = toggleModerateForumThread(thread.id, nextState);
+      if (updated) {
+        setThreads((prev) => prev.map((t) => (t.id === thread.id ? (updated as any) : t)));
+        if (activeThread?.id === thread.id) {
+          setActiveThread(updated as any);
+        }
       }
       showToast(
         nextState
@@ -251,11 +238,6 @@ export const ForumDiskusi: React.FC = () => {
 
     try {
       deleteForumThread(thread.id);
-      try {
-        await deleteDoc(doc(db, 'forumThreads', thread.id));
-      } catch (fErr) {
-        console.warn('Firestore thread delete fallback:', fErr);
-      }
       setThreads((prev) => prev.filter((t) => t.id !== thread.id));
       if (activeThread?.id === thread.id) {
         setActiveThread(null);
@@ -269,11 +251,11 @@ export const ForumDiskusi: React.FC = () => {
 
   const handleToggleModerateReply = async (reply: ForumReply) => {
     if (!isAdmin || !activeThread) return;
-    const replyRef = doc(db, 'forumThreads', activeThread.id, 'replies', reply.id);
     const nextState = !reply.isModerated;
 
     try {
-      await updateDoc(replyRef, { isModerated: nextState });
+      toggleModerateForumReply(activeThread.id, reply.id, nextState);
+      setReplies((prev) => prev.map((r) => (r.id === reply.id ? { ...r, isModerated: nextState } : r)));
       showToast(
         nextState ? 'Balasan berhasil dimoderasi.' : 'Balasan dipulihkan kembali.',
         'success'
@@ -293,16 +275,6 @@ export const ForumDiskusi: React.FC = () => {
 
     try {
       deleteForumReply(activeThread.id, reply.id);
-      try {
-        await deleteDoc(doc(db, 'forumThreads', activeThread.id, 'replies', reply.id));
-        const threadRef = doc(db, 'forumThreads', activeThread.id);
-        await updateDoc(threadRef, {
-          repliesCount: increment(-1),
-        });
-      } catch (fErr) {
-        console.warn('Firestore reply delete fallback:', fErr);
-      }
-
       setReplies((prev) => prev.filter((r) => r.id !== reply.id));
       setActiveThread((prev) => (prev ? { ...prev, repliesCount: Math.max(0, prev.repliesCount - 1) } : null));
       showToast('Komentar berhasil dihapus.', 'success');
