@@ -21,6 +21,15 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Avatar } from '../common/Avatar';
 import {
+  getForumThreads,
+  saveForumThread,
+  deleteForumThread,
+  toggleLikeForumThread,
+  getForumReplies,
+  addForumReply,
+  deleteForumReply,
+} from '../../services/storageService';
+import {
   collection,
   doc,
   addDoc,
@@ -91,71 +100,62 @@ export const ForumDiskusi: React.FC = () => {
   const fetchThreads = async () => {
     setLoadingThreads(true);
     try {
-      const q = query(
-        collection(db, 'forumThreads'),
-        orderBy('createdAt', 'desc'),
-        limit(20)
-      );
-      const snapshot = await getDocs(q);
-      const loadedThreads: ForumThread[] = [];
-      snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        loadedThreads.push({
-          id: docSnap.id,
-          ...data,
-          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now()),
-        } as ForumThread);
-      });
-      setThreads(loadedThreads);
+      // Load local storage first
+      const localThreads = getForumThreads() as any[];
+      setThreads(localThreads);
+
+      // Attempt Firestore sync in background if available
+      try {
+        const q = query(
+          collection(db, 'forumThreads'),
+          orderBy('createdAt', 'desc'),
+          limit(30)
+        );
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+          const loadedThreads: ForumThread[] = [];
+          snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            loadedThreads.push({
+              id: docSnap.id,
+              ...data,
+              createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now()),
+            } as ForumThread);
+          });
+          setThreads(loadedThreads);
+        }
+      } catch (fErr) {
+        console.warn('Firestore threads query fallback to local storage:', fErr);
+      }
     } catch (error: any) {
       console.error('Error fetching forum threads:', error);
-      if (error.code === 'resource-exhausted') {
-        showToast('Kuota harian database penuh. Mohon tunggu beberapa saat.', 'error');
-      } else {
-        showToast('Gagal memuat diskusi. Coba lagi.', 'error');
-      }
     } finally {
       setLoadingThreads(false);
     }
   };
 
-  // Fetch threads on mount
+  // Fetch threads on mount and listen to updates
   useEffect(() => {
     fetchThreads();
-  }, []);
+    const handleDataUpdated = () => {
+      setThreads(getForumThreads() as any[]);
+      if (activeThread) {
+        setReplies(getForumReplies(activeThread.id) as any[]);
+      }
+    };
+    window.addEventListener('ekskul_data_updated', handleDataUpdated);
+    return () => window.removeEventListener('ekskul_data_updated', handleDataUpdated);
+  }, [activeThread]);
 
-  // Subscribe to replies of the active thread
+  // Load replies when active thread opens
   useEffect(() => {
     if (!activeThread) {
       setReplies([]);
       return;
     }
 
-    const q = query(
-      collection(db, 'forumThreads', activeThread.id, 'replies'),
-      orderBy('createdAt', 'asc')
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const loadedReplies: ForumReply[] = [];
-        snapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          loadedReplies.push({
-            id: docSnap.id,
-            ...data,
-            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now()),
-          } as ForumReply);
-        });
-        setReplies(loadedReplies);
-      },
-      (error) => {
-        console.error('Error fetching replies:', error);
-      }
-    );
-
-    return () => unsubscribe();
+    const localReplies = getForumReplies(activeThread.id) as any[];
+    setReplies(localReplies);
   }, [activeThread]);
 
   // Filter threads
@@ -180,21 +180,17 @@ export const ForumDiskusi: React.FC = () => {
     }
 
     try {
-      await addDoc(collection(db, 'forumThreads'), {
+      const created = saveForumThread({
         title: newTitle.trim(),
         category: newCategory,
         content: newContent.trim(),
         authorId: currentUser.id,
         authorName: currentUser.name,
         authorAvatar: currentUser.avatarUrl || '',
-        authorRole: currentUser.role,
-        createdAt: serverTimestamp(),
-        likes: 0,
-        likedBy: [],
-        repliesCount: 0,
-        isModerated: false,
+        authorRole: currentUser.role === 'admin' || currentUser.role === 'pembina' ? 'admin' : 'student',
       });
 
+      setThreads((prev) => [created as any, ...prev]);
       showToast('Pertanyaan / diskusi berhasil diterbitkan!', 'success');
       setNewTitle('');
       setNewContent('');
@@ -215,25 +211,17 @@ export const ForumDiskusi: React.FC = () => {
     }
 
     try {
-      const repliesColRef = collection(db, 'forumThreads', activeThread.id, 'replies');
-      await addDoc(repliesColRef, {
-        threadId: activeThread.id,
+      const newRep = addForumReply(activeThread.id, {
         content: replyContent.trim(),
         authorId: currentUser.id,
         authorName: currentUser.name,
         authorAvatar: currentUser.avatarUrl || '',
-        authorRole: currentUser.role,
-        createdAt: serverTimestamp(),
-        isModerated: false,
+        authorRole: currentUser.role === 'admin' || currentUser.role === 'pembina' ? 'admin' : 'student',
       });
 
-      // Update reply counter on thread
-      const threadRef = doc(db, 'forumThreads', activeThread.id);
-      await updateDoc(threadRef, {
-        repliesCount: increment(1),
-      });
-
+      setReplies((prev) => [...prev, newRep as any]);
       setReplyContent('');
+      setActiveThread((prev) => (prev ? { ...prev, repliesCount: prev.repliesCount + 1 } : null));
       showToast('Komentar berhasil ditambahkan!', 'success');
     } catch (err) {
       console.error(err);
@@ -243,50 +231,18 @@ export const ForumDiskusi: React.FC = () => {
 
   const handleLikeThread = async (thread: ForumThread) => {
     if (!currentUser) return;
-
-    const threadRef = doc(db, 'forumThreads', thread.id);
-    const hasLiked = thread.likedBy?.includes(currentUser.id);
-
     try {
-      if (hasLiked) {
-        await updateDoc(threadRef, {
-          likedBy: arrayRemove(currentUser.id),
-          likes: increment(-1),
-        });
-        // Sync active state locally if viewed
+      const updated = toggleLikeForumThread(thread.id, currentUser.id);
+      if (updated) {
+        setThreads((prev) => prev.map((t) => (t.id === thread.id ? (updated as any) : t)));
         if (activeThread?.id === thread.id) {
-          setActiveThread((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  likes: prev.likes - 1,
-                  likedBy: prev.likedBy.filter((uid) => uid !== currentUser.id),
-                }
-              : null
-          );
-        }
-      } else {
-        await updateDoc(threadRef, {
-          likedBy: arrayUnion(currentUser.id),
-          likes: increment(1),
-        });
-        if (activeThread?.id === thread.id) {
-          setActiveThread((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  likes: prev.likes + 1,
-                  likedBy: [...prev.likedBy, currentUser.id],
-                }
-              : null
-          );
+          setActiveThread(updated as any);
         }
       }
     } catch (err) {
       console.error(err);
     }
   };
-
   // Moderation Handlers
   const handleToggleModerateThread = async (thread: ForumThread) => {
     if (!isAdmin) return;
@@ -311,11 +267,20 @@ export const ForumDiskusi: React.FC = () => {
   };
 
   const handleDeleteThread = async (thread: ForumThread) => {
-    if (!isAdmin) return;
+    if (!currentUser) return;
+    const isAuthor = currentUser.id === thread.authorId;
+    if (!isAdmin && !isAuthor) return;
+
     if (!window.confirm('Apakah Anda yakin ingin menghapus diskusi ini secara permanen?')) return;
 
     try {
-      await deleteDoc(doc(db, 'forumThreads', thread.id));
+      deleteForumThread(thread.id);
+      try {
+        await deleteDoc(doc(db, 'forumThreads', thread.id));
+      } catch (fErr) {
+        console.warn('Firestore thread delete fallback:', fErr);
+      }
+      setThreads((prev) => prev.filter((t) => t.id !== thread.id));
       if (activeThread?.id === thread.id) {
         setActiveThread(null);
       }
@@ -344,18 +309,26 @@ export const ForumDiskusi: React.FC = () => {
   };
 
   const handleDeleteReply = async (reply: ForumReply) => {
-    if (!isAdmin || !activeThread) return;
+    if (!currentUser || !activeThread) return;
+    const isAuthor = currentUser.id === reply.authorId;
+    if (!isAdmin && !isAuthor) return;
+
     if (!window.confirm('Hapus komentar ini secara permanen?')) return;
 
     try {
-      await deleteDoc(doc(db, 'forumThreads', activeThread.id, 'replies', reply.id));
+      deleteForumReply(activeThread.id, reply.id);
+      try {
+        await deleteDoc(doc(db, 'forumThreads', activeThread.id, 'replies', reply.id));
+        const threadRef = doc(db, 'forumThreads', activeThread.id);
+        await updateDoc(threadRef, {
+          repliesCount: increment(-1),
+        });
+      } catch (fErr) {
+        console.warn('Firestore reply delete fallback:', fErr);
+      }
 
-      // Decrease reply count on thread
-      const threadRef = doc(db, 'forumThreads', activeThread.id);
-      await updateDoc(threadRef, {
-        repliesCount: increment(-1),
-      });
-
+      setReplies((prev) => prev.filter((r) => r.id !== reply.id));
+      setActiveThread((prev) => (prev ? { ...prev, repliesCount: Math.max(0, prev.repliesCount - 1) } : null));
       showToast('Komentar berhasil dihapus.', 'success');
     } catch (err) {
       console.error(err);
@@ -515,27 +488,29 @@ export const ForumDiskusi: React.FC = () => {
                 </div>
               </div>
 
-              {/* Admin Panel */}
-              {isAdmin && (
+              {/* Admin & Author Control Panel */}
+              {(isAdmin || (currentUser && currentUser.id === activeThread.authorId)) && (
                 <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => handleToggleModerateThread(activeThread)}
-                    className="p-1.5 text-xs font-semibold text-amber-600 hover:text-amber-700 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 rounded-lg flex items-center gap-1 cursor-pointer"
-                    title={activeThread.isModerated ? 'Pulihkan Diskusi' : 'Sembunyikan/Moderasi Diskusi'}
-                  >
-                    {activeThread.isModerated ? (
-                      <>
-                        <Eye className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Pulihkan</span>
-                      </>
-                    ) : (
-                      <>
-                        <EyeOff className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Sembunyikan</span>
-                      </>
-                    )}
-                  </button>
+                  {isAdmin && (
+                    <button
+                      type="button"
+                      onClick={() => handleToggleModerateThread(activeThread)}
+                      className="p-1.5 text-xs font-semibold text-amber-600 hover:text-amber-700 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 rounded-lg flex items-center gap-1 cursor-pointer"
+                      title={activeThread.isModerated ? 'Pulihkan Diskusi' : 'Sembunyikan/Moderasi Diskusi'}
+                    >
+                      {activeThread.isModerated ? (
+                        <>
+                          <Eye className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Pulihkan</span>
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Sembunyikan</span>
+                        </>
+                      )}
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => handleDeleteThread(activeThread)}
@@ -600,17 +575,19 @@ export const ForumDiskusi: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Reply Admin Control panel */}
-                      {isAdmin && (
+                      {/* Reply Admin/Author Control Panel */}
+                      {(isAdmin || (currentUser && currentUser.id === reply.authorId)) && (
                         <div className="flex items-center gap-1 self-end sm:self-center">
-                          <button
-                            type="button"
-                            onClick={() => handleToggleModerateReply(reply)}
-                            className="p-1 text-[10px] font-bold text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded cursor-pointer flex items-center gap-0.5"
-                          >
-                            {reply.isModerated ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                            <span>{reply.isModerated ? 'Sembunyikan' : 'Moderasi'}</span>
-                          </button>
+                          {isAdmin && (
+                            <button
+                              type="button"
+                              onClick={() => handleToggleModerateReply(reply)}
+                              className="p-1 text-[10px] font-bold text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded cursor-pointer flex items-center gap-0.5"
+                            >
+                              {reply.isModerated ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                              <span>{reply.isModerated ? 'Sembunyikan' : 'Moderasi'}</span>
+                            </button>
+                          )}
                           <button
                             type="button"
                             onClick={() => handleDeleteReply(reply)}

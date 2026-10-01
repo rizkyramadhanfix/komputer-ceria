@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Award, Crown, Medal, Sparkles, Star, Trophy, Swords, Search } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { getBadgeForPoints } from '../../services/storageService';
+import { getBadgeForPoints, isStudentOnline } from '../../services/storageService';
 import { createBattleChallenge } from '../../services/battleService';
 import { User } from '../../types';
 import { Avatar } from './Avatar';
@@ -29,6 +29,12 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
 
   const handleChallenge = async (student: User, gameType: 'quiz_duel' | 'typing_race' = 'quiz_duel') => {
     if (!currentUser) return;
+
+    if (!isStudentOnline(student)) {
+      showInfo(`Siswa ${student.name} sedang offline/tidak login saat ini. Anda hanya dapat menantang siswa yang sedang aktif online.`, 'Siswa Offline');
+      return;
+    }
+
     try {
       const newBattleId = await createBattleChallenge(currentUser, student, gameType);
       showInfo(`Tantangan duel ${gameType === 'typing_race' ? 'balap ketik' : 'kuis'} dikirim ke ${student.name}!`, 'Tantangan Dikirim');
@@ -139,12 +145,22 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
                   <td className="py-2.5 px-3 text-center align-middle">{getRankBadge(rank)}</td>
                   <td className="py-2.5 px-3 align-middle">
                     <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-                      <Avatar src={student.avatarUrl} name={student.name} size="xs" frame={student.equippedFrame} />
+                      <div className="relative shrink-0">
+                        <Avatar src={student.avatarUrl} name={student.name} size="xs" frame={student.equippedFrame} />
+                        {isStudentOnline(student) && (
+                          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900" title="Siswa Online" />
+                        )}
+                      </div>
                       <div className="flex flex-col min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="text-slate-900 dark:text-white font-semibold truncate text-xs">
                             {student.name}
                           </span>
+                          {isStudentOnline(student) && (
+                            <span className="text-[8px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/60 px-1 py-0.2 rounded-full">
+                              ● Online
+                            </span>
+                          )}
                           {student.equippedTitle && (
                             <span className="text-[8px] font-black bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 px-1.5 py-0.2 rounded">
                               {student.equippedTitle}

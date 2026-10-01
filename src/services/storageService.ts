@@ -73,6 +73,7 @@ const STORAGE_KEYS = {
   TYPING_TOURNAMENTS: 'ekskul_typing_tournaments',
   TYPING_LEAGUE_TEXTS: 'ekskul_typing_league_texts',
   TYPING_LEAGUE_SCORES: 'ekskul_typing_league_scores',
+  DELETED_TYPING_LEAGUE_TEXTS: 'ekskul_deleted_typing_league_texts',
   CLEAN_FLAG: 'ekskul_clean_v4',
 };
 
@@ -599,6 +600,31 @@ export function createUser(
   return newUser;
 }
 
+export function isStudentOnline(user: User): boolean {
+  if (!user || user.role !== 'student') return false;
+
+  // Check lastActiveAt within last 15 minutes
+  if (user.lastActiveAt) {
+    const lastActiveTime = new Date(user.lastActiveAt).getTime();
+    if (!isNaN(lastActiveTime) && Date.now() - lastActiveTime < 15 * 60 * 1000) {
+      return true;
+    }
+  }
+
+  // Check recent successful login log within last 15 minutes
+  const loginLogs = getStoredItem<any[]>(STORAGE_KEYS.LOGIN_LOGS, []);
+  const studentLogs = loginLogs.filter((l) => l.userId === user.id && l.status === 'success');
+  if (studentLogs.length > 0) {
+    const latestLog = studentLogs[0];
+    const logTime = new Date(latestLog.loginTime).getTime();
+    if (!isNaN(logTime) && Date.now() - logTime < 15 * 60 * 1000) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export function updateUser(id: string, updates: Partial<User>): User | null {
   const users = getUsers();
   const idx = users.findIndex((u) => u.id === id);
@@ -836,6 +862,13 @@ const DEFAULT_GAMES_CONFIG: GamesConfig = {
     { id: 'anti-phishing', name: 'Detektif Anti-Phishing Siber', category: 'game', isEnabled: true, pointsMultiplier: 1, basePoints: 45 },
     { id: 'grid-robot', name: 'Grid Robot Navigator (Logika Blok)', category: 'game', isEnabled: true, pointsMultiplier: 1, basePoints: 50 },
     { id: 'typing-league', name: 'Liga Mengetik Cepat 10 Jari', category: 'game', isEnabled: true, pointsMultiplier: 1, basePoints: 60 },
+    { id: 'cyber-shield', name: 'Cyber Shield Defender (Pertahanan Antivirus & Firewall)', category: 'game', isEnabled: true, pointsMultiplier: 1, basePoints: 50 },
+    { id: 'robot-maze', name: 'Algoritma Maze Runner (Logika Pemrograman Robot)', category: 'game', isEnabled: true, pointsMultiplier: 1, basePoints: 55 },
+    { id: 'lan-crimping', name: 'Simulator Krimping Kabel Jaringan LAN (UTP T568B)', category: 'simulator', isEnabled: true, pointsMultiplier: 1, basePoints: 45 },
+    { id: 'rhythm-typing', name: 'Rhythm Typing Beats (Mengetik Irama Musik)', category: 'game', isEnabled: true, pointsMultiplier: 1, basePoints: 60 },
+    { id: 'storage-master', name: 'Storage Master (Byte to Gigabyte Challenge)', category: 'game', isEnabled: true, pointsMultiplier: 1, basePoints: 50 },
+    { id: 'mini-poster', name: 'Studio Desain Poster Cilik (Mini Canva)', category: 'simulator', isEnabled: true, pointsMultiplier: 1, basePoints: 40 },
+    { id: 'activity-calendar', name: 'Kalender Agenda Praktikum & Kegiatan Ekskul', category: 'utility', isEnabled: true, pointsMultiplier: 1 },
   ]
 };
 
@@ -2379,13 +2412,15 @@ const DEFAULT_TYPING_LEAGUE_TEXTS: TypingLeagueText[] = [
   }
 ];
 
+function getDeletedTypingLeagueTextIds(): string[] {
+  return getStoredItem<string[]>(STORAGE_KEYS.DELETED_TYPING_LEAGUE_TEXTS, []);
+}
+
 export function getTypingLeagueTexts(): TypingLeagueText[] {
+  const deletedIds = new Set(getDeletedTypingLeagueTextIds());
   const stored = getStoredItem<TypingLeagueText[]>(STORAGE_KEYS.TYPING_LEAGUE_TEXTS, DEFAULT_TYPING_LEAGUE_TEXTS);
-  if (!stored || stored.length === 0) {
-    setStoredItem(STORAGE_KEYS.TYPING_LEAGUE_TEXTS, DEFAULT_TYPING_LEAGUE_TEXTS);
-    return DEFAULT_TYPING_LEAGUE_TEXTS;
-  }
-  return stored;
+  const activeTexts = (stored || DEFAULT_TYPING_LEAGUE_TEXTS).filter((t) => !deletedIds.has(t.id));
+  return activeTexts;
 }
 
 export function saveTypingLeagueText(text: Omit<TypingLeagueText, 'id' | 'createdAt'> & { id?: string; createdAt?: string }): TypingLeagueText {
@@ -2412,15 +2447,37 @@ export function saveTypingLeagueText(text: Omit<TypingLeagueText, 'id' | 'create
 }
 
 export function deleteTypingLeagueText(id: string): void {
-  const texts = getTypingLeagueTexts();
+  // Store ID in deleted IDs array so it never reappears from Firestore snapshot or initialData
+  const deletedIds = getDeletedTypingLeagueTextIds();
+  if (!deletedIds.includes(id)) {
+    deletedIds.push(id);
+    setStoredItem(STORAGE_KEYS.DELETED_TYPING_LEAGUE_TEXTS, deletedIds);
+    syncDocToFirestore('deletedTypingLeagueTexts', id, { id, deletedAt: new Date().toISOString() });
+  }
+
+  const texts = getStoredItem<TypingLeagueText[]>(STORAGE_KEYS.TYPING_LEAGUE_TEXTS, DEFAULT_TYPING_LEAGUE_TEXTS);
   const filtered = texts.filter((t) => t.id !== id);
   setStoredItem(STORAGE_KEYS.TYPING_LEAGUE_TEXTS, filtered);
   removeDocFromFirestore('typingLeagueTexts', id);
+
+  // Purge all scores belonging to this deleted naskah
+  const rawScores = getStoredItem<TypingLeagueScore[]>(STORAGE_KEYS.TYPING_LEAGUE_SCORES, []);
+  const remainingScores = rawScores.filter((s) => s.textId !== id);
+  const deletedScores = rawScores.filter((s) => s.textId === id);
+  setStoredItem(STORAGE_KEYS.TYPING_LEAGUE_SCORES, remainingScores);
+  deletedScores.forEach((s) => {
+    removeDocFromFirestore('typingLeagueScores', s.id);
+  });
+
   notifyDataUpdated();
 }
 
 export function getTypingLeagueScores(): TypingLeagueScore[] {
-  return getStoredItem<TypingLeagueScore[]>(STORAGE_KEYS.TYPING_LEAGUE_SCORES, []);
+  const scores = getStoredItem<TypingLeagueScore[]>(STORAGE_KEYS.TYPING_LEAGUE_SCORES, []);
+  const validTexts = getTypingLeagueTexts();
+  const validTextIds = new Set(validTexts.map((t) => t.id));
+  const deletedIds = new Set(getDeletedTypingLeagueTextIds());
+  return scores.filter((s) => validTextIds.has(s.textId) && !deletedIds.has(s.textId));
 }
 
 export function saveTypingLeagueScore(
@@ -2477,7 +2534,237 @@ export function getTypingLeagueLeaderboard(textId?: string, school?: string): Ty
   return bestList;
 }
 
-// --- Manual Cloud Sync Pull ---
+// --- Forum Threads & Replies Management ---
+export interface ForumThreadItem {
+  id: string;
+  title: string;
+  category: 'materi' | 'tips_belajar' | 'umum';
+  content: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar?: string;
+  authorRole: 'student' | 'admin';
+  createdAt: string;
+  likes: number;
+  likedBy: string[];
+  repliesCount: number;
+  isModerated: boolean;
+}
+
+export interface ForumReplyItem {
+  id: string;
+  threadId: string;
+  content: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar?: string;
+  authorRole: 'student' | 'admin';
+  createdAt: string;
+  isModerated: boolean;
+}
+
+const DEFAULT_FORUM_THREADS: ForumThreadItem[] = [
+  {
+    id: 'th-1',
+    title: '💬 Tips Cepat Mengetik 10 Jari Tanpa Melihat Keyboard',
+    category: 'tips_belajar',
+    content: 'Halo teman-teman! Agar kecepatan mengetik bisa tembus 50+ WPM, kuncinya adalah menempatkan jari telunjuk kiri di tombol F dan telunjuk kanan di tombol J (posisi Home Row). Ada yang punya tips latihan harian lainnya?',
+    authorId: 'admin-1',
+    authorName: 'Pembina Komputer Ceria',
+    authorAvatar: '',
+    authorRole: 'admin',
+    createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
+    likes: 8,
+    likedBy: [],
+    repliesCount: 2,
+    isModerated: false,
+  },
+  {
+    id: 'th-2',
+    title: '💻 Tanya Jawab: Komponen CPU dan Fungsi RAM Komputer',
+    category: 'materi',
+    content: 'Teman-teman, jika memori RAM di laptop kita penuh, apakah komputer akan menjadi lambat? Bagaimana cara mengecek penggunaan RAM di Windows Task Manager?',
+    authorId: 'std-seed-1',
+    authorName: 'Aisyah Putri',
+    authorAvatar: '',
+    authorRole: 'student',
+    createdAt: new Date(Date.now() - 3600000 * 12).toISOString(),
+    likes: 5,
+    likedBy: [],
+    repliesCount: 1,
+    isModerated: false,
+  },
+];
+
+const DEFAULT_FORUM_REPLIES: Record<string, ForumReplyItem[]> = {
+  'th-1': [
+    {
+      id: 'rep-1',
+      threadId: 'th-1',
+      content: 'Iya betul pak! Saya setiap hari rutin latihan 10 menit di menu Latihan Word, jari manis dan kelingking sekarang jadi lebih lentur!',
+      authorId: 'std-seed-2',
+      authorName: 'Nabila Syahrani',
+      authorAvatar: '',
+      authorRole: 'student',
+      createdAt: new Date(Date.now() - 3600000 * 18).toISOString(),
+      isModerated: false,
+    },
+    {
+      id: 'rep-2',
+      threadId: 'th-1',
+      content: 'Mantap Nabila! Pertahankan ritme latihan agar raih badge Diamond Champion!',
+      authorId: 'admin-1',
+      authorName: 'Pembina Komputer Ceria',
+      authorAvatar: '',
+      authorRole: 'admin',
+      createdAt: new Date(Date.now() - 3600000 * 10).toISOString(),
+      isModerated: false,
+    },
+  ],
+  'th-2': [
+    {
+      id: 'rep-3',
+      threadId: 'th-2',
+      content: 'Iya Aisyah, kalau RAM penuh aplikasi akan menjadi lag. Kita bisa menekan Ctrl + Shift + Esc untuk membuka Task Manager dan melihat penggunaan memori RAM.',
+      authorId: 'admin-1',
+      authorName: 'Pembina Komputer Ceria',
+      authorAvatar: '',
+      authorRole: 'admin',
+      createdAt: new Date(Date.now() - 3600000 * 8).toISOString(),
+      isModerated: false,
+    },
+  ],
+};
+
+export function getForumThreads(): ForumThreadItem[] {
+  return getStoredItem<ForumThreadItem[]>('ekskul_forum_threads', DEFAULT_FORUM_THREADS);
+}
+
+export function saveForumThread(
+  threadData: Omit<ForumThreadItem, 'id' | 'createdAt' | 'likes' | 'likedBy' | 'repliesCount' | 'isModerated'> & {
+    id?: string;
+    createdAt?: string;
+    likes?: number;
+    likedBy?: string[];
+    repliesCount?: number;
+    isModerated?: boolean;
+  }
+): ForumThreadItem {
+  const threads = getForumThreads();
+  const id = threadData.id || `th-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+  const newThread: ForumThreadItem = {
+    ...threadData,
+    id,
+    createdAt: threadData.createdAt || new Date().toISOString(),
+    likes: threadData.likes || 0,
+    likedBy: threadData.likedBy || [],
+    repliesCount: threadData.repliesCount || 0,
+    isModerated: threadData.isModerated || false,
+  };
+
+  const existingIdx = threads.findIndex((t) => t.id === id);
+  if (existingIdx !== -1) {
+    threads[existingIdx] = newThread;
+  } else {
+    threads.unshift(newThread);
+  }
+
+  setStoredItem('ekskul_forum_threads', threads);
+  syncDocToFirestore('forumThreads', id, newThread);
+  notifyDataUpdated();
+  return newThread;
+}
+
+export function deleteForumThread(id: string): void {
+  const threads = getForumThreads();
+  const filtered = threads.filter((t) => t.id !== id);
+  setStoredItem('ekskul_forum_threads', filtered);
+  removeDocFromFirestore('forumThreads', id);
+  notifyDataUpdated();
+}
+
+export function toggleLikeForumThread(threadId: string, userId: string): ForumThreadItem | null {
+  const threads = getForumThreads();
+  const idx = threads.findIndex((t) => t.id === threadId);
+  if (idx === -1) return null;
+
+  const t = threads[idx];
+  const hasLiked = t.likedBy.includes(userId);
+  const nextLikedBy = hasLiked ? t.likedBy.filter((uid) => uid !== userId) : [...t.likedBy, userId];
+  const nextLikes = Math.max(0, hasLiked ? t.likes - 1 : t.likes + 1);
+
+  const updated: ForumThreadItem = {
+    ...t,
+    likes: nextLikes,
+    likedBy: nextLikedBy,
+  };
+
+  threads[idx] = updated;
+  setStoredItem('ekskul_forum_threads', threads);
+  syncDocToFirestore('forumThreads', threadId, updated);
+  notifyDataUpdated();
+  return updated;
+}
+
+export function getForumReplies(threadId: string): ForumReplyItem[] {
+  const allRepliesMap = getStoredItem<Record<string, ForumReplyItem[]>>('ekskul_forum_replies', DEFAULT_FORUM_REPLIES);
+  return allRepliesMap[threadId] || [];
+}
+
+export function addForumReply(
+  threadId: string,
+  replyData: Omit<ForumReplyItem, 'id' | 'threadId' | 'createdAt' | 'isModerated'> & {
+    id?: string;
+    createdAt?: string;
+  }
+): ForumReplyItem {
+  const allRepliesMap = getStoredItem<Record<string, ForumReplyItem[]>>('ekskul_forum_replies', DEFAULT_FORUM_REPLIES);
+  const threadReplies = allRepliesMap[threadId] || [];
+  const id = replyData.id || `rep-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+
+  const newReply: ForumReplyItem = {
+    ...replyData,
+    id,
+    threadId,
+    createdAt: replyData.createdAt || new Date().toISOString(),
+    isModerated: false,
+  };
+
+  threadReplies.push(newReply);
+  allRepliesMap[threadId] = threadReplies;
+  setStoredItem('ekskul_forum_replies', allRepliesMap);
+
+  // Update thread repliesCount
+  const threads = getForumThreads();
+  const tIdx = threads.findIndex((t) => t.id === threadId);
+  if (tIdx !== -1) {
+    threads[tIdx].repliesCount = threadReplies.length;
+    setStoredItem('ekskul_forum_threads', threads);
+    syncDocToFirestore('forumThreads', threadId, threads[tIdx]);
+  }
+
+  notifyDataUpdated();
+  return newReply;
+}
+
+export function deleteForumReply(threadId: string, replyId: string): void {
+  const allRepliesMap = getStoredItem<Record<string, ForumReplyItem[]>>('ekskul_forum_replies', DEFAULT_FORUM_REPLIES);
+  const threadReplies = allRepliesMap[threadId] || [];
+  const filtered = threadReplies.filter((r) => r.id !== replyId);
+  allRepliesMap[threadId] = filtered;
+  setStoredItem('ekskul_forum_replies', allRepliesMap);
+
+  // Update thread repliesCount
+  const threads = getForumThreads();
+  const tIdx = threads.findIndex((t) => t.id === threadId);
+  if (tIdx !== -1) {
+    threads[tIdx].repliesCount = filtered.length;
+    setStoredItem('ekskul_forum_threads', threads);
+    syncDocToFirestore('forumThreads', threadId, threads[tIdx]);
+  }
+
+  notifyDataUpdated();
+}
 export async function pullLatestDataFromCloud(): Promise<boolean> {
   try {
     const collectionsToSync = [

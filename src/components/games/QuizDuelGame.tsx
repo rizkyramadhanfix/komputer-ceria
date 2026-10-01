@@ -16,7 +16,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Avatar } from '../common/Avatar';
-import { recordGameScore } from '../../services/storageService';
+import { recordGameScore, isStudentOnline } from '../../services/storageService';
 import { createBattleChallenge, subscribeToActiveBattle, updateBattleState, cancelChallenge } from '../../services/battleService';
 import { GameBattle, User } from '../../types';
 
@@ -658,27 +658,43 @@ export const QuizDuelGame: React.FC<QuizDuelGameProps> = ({
               </div>
               
               <div className="p-4 overflow-y-auto custom-scrollbar space-y-3">
-                 <p className="text-[11px] text-slate-500 mb-2">Pilih siswa yang ingin kamu tantang berduel kuis real-time:</p>
+                 <p className="text-[11px] text-slate-500 mb-2">Pilih siswa yang sedang <strong>Online / Login</strong> untuk diajak berduel real-time:</p>
                  
                  {users.filter(u => 
                     u.role === 'student' && 
                     u.id !== currentUser?.id && 
+                    isStudentOnline(u) &&
                     u.name.toLowerCase().includes(searchQuery.toLowerCase())
                  ).length === 0 ? (
-                    <div className="py-8 text-center text-slate-400 text-xs italic">
-                       {searchQuery ? 'Tidak ada siswa yang cocok dengan pencarian.' : 'Belum ada siswa lain yang terdaftar.'}
+                    <div className="py-8 px-4 text-center space-y-3 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+                       <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center mx-auto text-lg font-bold">
+                          🟢
+                       </div>
+                       <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                          {searchQuery ? 'Tidak ada siswa online yang cocok dengan pencarian.' : 'Belum ada siswa lain yang sedang online / login saat ini.'}
+                       </p>
+                       <p className="text-[11px] text-slate-500">
+                          Kamu tetap bisa berduel melawan <strong>Bot Pintar Komputer</strong> secara langsung!
+                       </p>
                     </div>
                  ) : (
                     users.filter(u => 
                        u.role === 'student' && 
                        u.id !== currentUser?.id && 
+                       isStudentOnline(u) &&
                        u.name.toLowerCase().includes(searchQuery.toLowerCase())
                     ).map(student => (
                        <div key={student.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
                           <div className="flex items-center gap-3">
-                             <Avatar src={student.avatarUrl} name={student.name} size="sm" />
+                             <div className="relative">
+                               <Avatar src={student.avatarUrl} name={student.name} size="sm" />
+                               <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900 shadow-xs" title="Siswa Online" />
+                             </div>
                              <div>
-                                <p className="text-xs font-bold text-slate-900 dark:text-white">{student.name}</p>
+                                <div className="flex items-center gap-1.5">
+                                  <p className="text-xs font-bold text-slate-900 dark:text-white">{student.name}</p>
+                                  <span className="text-[9px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/60 px-1.5 py-0.2 rounded-full">● Online</span>
+                                </div>
                                 <p className="text-[10px] text-slate-500">{student.school || 'Sekolah'} · {student.grade || 'Kelas'}</p>
                              </div>
                           </div>

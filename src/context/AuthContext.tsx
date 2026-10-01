@@ -109,10 +109,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, [currentUser?.id]);
 
-  // --- 1-Hour Inactivity Auto-Logout Timer (Waktu Tidur Akun 1 Jam) ---
+  // --- 1-Hour Inactivity Auto-Logout Timer & Online Heartbeat ---
   useEffect(() => {
     if (!currentUser) return;
     lastActivityRef.current = Date.now();
+
+    // Initial heartbeat on login
+    updateUser(currentUser.id, { lastActiveAt: new Date().toISOString() });
 
     const handleUserActivity = () => {
       lastActivityRef.current = Date.now();
@@ -120,6 +123,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const trackedEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
     trackedEvents.forEach((ev) => window.addEventListener(ev, handleUserActivity, { passive: true }));
+
+    const heartbeatInterval = setInterval(() => {
+      if (currentUser?.id) {
+        updateUser(currentUser.id, { lastActiveAt: new Date().toISOString() });
+      }
+    }, 20000); // Heartbeat every 20s
 
     const idleInterval = setInterval(() => {
       const inactiveDuration = Date.now() - lastActivityRef.current;
@@ -134,8 +143,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       trackedEvents.forEach((ev) => window.removeEventListener(ev, handleUserActivity));
       clearInterval(idleInterval);
+      clearInterval(heartbeatInterval);
     };
-  }, [currentUser]);
+  }, [currentUser?.id]);
 
   const refreshUser = () => {
     const allUsers = getUsers();

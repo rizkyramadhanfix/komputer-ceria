@@ -73,11 +73,20 @@ export const TypingLeagueGame: React.FC<TypingLeagueGameProps> = ({ onBackToMenu
   // Reload texts on listener update
   useEffect(() => {
     const handleDataUpdated = () => {
-      setTexts(getTypingLeagueTexts());
+      const updated = getTypingLeagueTexts();
+      setTexts(updated);
+
+      // Reset filter/selection if deleted
+      if (selectedText && !updated.some((t) => t.id === selectedText.id)) {
+        setSelectedText(null);
+      }
+      if (leaderboardTextFilter !== 'ALL' && !updated.some((t) => t.id === leaderboardTextFilter)) {
+        setLeaderboardTextFilter('ALL');
+      }
     };
     window.addEventListener('ekskul_data_updated', handleDataUpdated);
     return () => window.removeEventListener('ekskul_data_updated', handleDataUpdated);
-  }, []);
+  }, [selectedText, leaderboardTextFilter]);
 
   // Filtered Texts
   const filteredTexts = useMemo(() => {

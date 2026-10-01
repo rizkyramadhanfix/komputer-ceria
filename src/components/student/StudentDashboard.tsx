@@ -47,6 +47,8 @@ import {
   Binary,
   ShieldAlert,
   Bot,
+  Music,
+  HardDrive,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -100,6 +102,13 @@ import { BinaryCodeGame } from '../games/BinaryCodeGame';
 import { AntiPhishingGame } from '../games/AntiPhishingGame';
 import { GridRobotGame } from '../games/GridRobotGame';
 import { TypingLeagueGame } from '../games/TypingLeagueGame';
+import { CyberShieldGame } from '../games/CyberShieldGame';
+import { RobotMazeGame } from '../games/RobotMazeGame';
+import { LanCrimpingSimulator } from '../games/LanCrimpingSimulator';
+import { RhythmTypingGame } from '../games/RhythmTypingGame';
+import { StorageMasterGame } from '../games/StorageMasterGame';
+import { MiniPosterStudio } from '../games/MiniPosterStudio';
+import { ActivityCalendarModal } from '../common/ActivityCalendarModal';
 import { acceptChallenge, cancelChallenge, subscribeToBattles } from '../../services/battleService';
 
 interface StudentDashboardProps {
@@ -132,7 +141,13 @@ interface StudentDashboardProps {
     | 'port-master'
     | 'binary-code'
     | 'anti-phishing'
-    | 'grid-robot';
+    | 'grid-robot'
+    | 'cyber-shield'
+    | 'robot-maze'
+    | 'lan-crimping'
+    | 'rhythm-typing'
+    | 'storage-master'
+    | 'mini-poster';
 }
 
 export const StudentDashboard: React.FC<StudentDashboardProps> = ({
@@ -170,10 +185,17 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
     | 'binary-code'
     | 'anti-phishing'
     | 'grid-robot'
+    | 'cyber-shield'
+    | 'robot-maze'
+    | 'lan-crimping'
+    | 'rhythm-typing'
+    | 'storage-master'
+    | 'mini-poster'
   >(initialTab);
   const [gamesConfig, setGamesConfig] = useState(() => getGamesConfig());
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showCertificateModal, setShowCertificateModal] = useState(false);
+  const [showActivityCalendar, setShowActivityCalendar] = useState(false);
 
   useEffect(() => {
     setActiveTab(initialTab);
@@ -852,6 +874,67 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   <button onClick={() => setActiveTab('pc-doctor')} className="text-[10px] font-bold text-indigo-600 hover:underline uppercase tracking-widest cursor-pointer">Lihat Semua Game →</button>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                  <button
+                    onClick={() => setActiveTab('cyber-shield')}
+                    className="flex flex-col items-center justify-center p-3 bg-gradient-to-b from-cyan-950/40 to-indigo-950/40 border-2 border-cyan-500/60 rounded-xl hover:scale-105 transition-all group shadow-sm cursor-pointer relative overflow-hidden"
+                  >
+                    <div className="absolute -top-1 -right-1 bg-cyan-500 text-[8px] font-black text-white px-1.5 py-0.5 rounded-bl-lg shadow-xs uppercase">
+                      BARU
+                    </div>
+                    <Shield className="w-6 h-6 text-cyan-400 mb-2 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-black text-cyan-300 text-center">Cyber Shield</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('robot-maze')}
+                    className="flex flex-col items-center justify-center p-3 bg-gradient-to-b from-emerald-950/40 to-teal-950/40 border-2 border-emerald-500/60 rounded-xl hover:scale-105 transition-all group shadow-sm cursor-pointer relative overflow-hidden"
+                  >
+                    <div className="absolute -top-1 -right-1 bg-emerald-500 text-[8px] font-black text-white px-1.5 py-0.5 rounded-bl-lg shadow-xs uppercase">
+                      BARU
+                    </div>
+                    <Bot className="w-6 h-6 text-emerald-400 mb-2 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-black text-emerald-300 text-center">Maze Robot</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('lan-crimping')}
+                    className="flex flex-col items-center justify-center p-3 bg-gradient-to-b from-amber-950/40 to-orange-950/40 border-2 border-amber-500/60 rounded-xl hover:scale-105 transition-all group shadow-sm cursor-pointer relative overflow-hidden"
+                  >
+                    <div className="absolute -top-1 -right-1 bg-amber-500 text-[8px] font-black text-white px-1.5 py-0.5 rounded-bl-lg shadow-xs uppercase">
+                      BARU
+                    </div>
+                    <Network className="w-6 h-6 text-amber-400 mb-2 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-black text-amber-300 text-center">Krimping LAN</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('rhythm-typing')}
+                    className="flex flex-col items-center justify-center p-3 bg-gradient-to-b from-pink-950/40 to-purple-950/40 border-2 border-pink-500/60 rounded-xl hover:scale-105 transition-all group shadow-sm cursor-pointer relative overflow-hidden"
+                  >
+                    <div className="absolute -top-1 -right-1 bg-pink-500 text-[8px] font-black text-white px-1.5 py-0.5 rounded-bl-lg shadow-xs uppercase">
+                      BARU
+                    </div>
+                    <Music className="w-6 h-6 text-pink-400 mb-2 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-black text-pink-300 text-center">Rhythm Beats</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('storage-master')}
+                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-sky-400 transition-all group shadow-xs cursor-pointer"
+                  >
+                    <HardDrive className="w-6 h-6 text-sky-500 mb-2 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Kapasitas Byte</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('mini-poster')}
+                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-400 transition-all group shadow-xs cursor-pointer"
+                  >
+                    <Palette className="w-6 h-6 text-purple-500 mb-2 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Desain Poster</span>
+                  </button>
+                  <button
+                    onClick={() => setShowActivityCalendar(true)}
+                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-indigo-400 transition-all group shadow-xs cursor-pointer"
+                  >
+                    <Calendar className="w-6 h-6 text-indigo-500 mb-2 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Agenda Ekskul</span>
+                  </button>
                   <button
                     onClick={() => setActiveTab('typing-league')}
                     className="flex flex-col items-center justify-center p-3 bg-gradient-to-b from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/30 border-2 border-amber-400 dark:border-amber-500/60 rounded-xl hover:scale-105 transition-all group shadow-sm cursor-pointer relative overflow-hidden"
@@ -1592,6 +1675,24 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
       {/* TAB: LIGA MENGETIK */}
       {activeTab === 'typing-league' && (isFeatureEnabled('typing-league') ? <TypingLeagueGame onBackToMenu={() => setActiveTab('overview')} /> : renderLockedFeatureScreen('Liga Mengetik'))}
 
+      {/* TAB: CYBER SHIELD DEFENDER */}
+      {activeTab === 'cyber-shield' && (isFeatureEnabled('cyber-shield') ? <CyberShieldGame /> : renderLockedFeatureScreen('Cyber Shield Defender'))}
+
+      {/* TAB: ALGORITMA MAZE RUNNER */}
+      {activeTab === 'robot-maze' && (isFeatureEnabled('robot-maze') ? <RobotMazeGame /> : renderLockedFeatureScreen('Algoritma Maze Runner'))}
+
+      {/* TAB: SIMULATOR KRIMPING LAN */}
+      {activeTab === 'lan-crimping' && (isFeatureEnabled('lan-crimping') ? <LanCrimpingSimulator /> : renderLockedFeatureScreen('Simulator Krimping LAN'))}
+
+      {/* TAB: RHYTHM TYPING BEATS */}
+      {activeTab === 'rhythm-typing' && (isFeatureEnabled('rhythm-typing') ? <RhythmTypingGame /> : renderLockedFeatureScreen('Rhythm Typing Beats'))}
+
+      {/* TAB: STORAGE MASTER BYTE */}
+      {activeTab === 'storage-master' && (isFeatureEnabled('storage-master') ? <StorageMasterGame /> : renderLockedFeatureScreen('Storage Master (Byte to Gigabyte)'))}
+
+      {/* TAB: STUDIO MINI POSTER */}
+      {activeTab === 'mini-poster' && (isFeatureEnabled('mini-poster') ? <MiniPosterStudio /> : renderLockedFeatureScreen('Studio Desain Poster Cilik'))}
+
       {/* TAB: MASTER COLOKAN & PORT */}
       {activeTab === 'port-master' && (isFeatureEnabled('port-master') ? <PortMasterGame /> : renderLockedFeatureScreen('Master Colokan & Port Komputer'))}
 
@@ -1727,6 +1828,12 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
         isOpen={showCertificateModal}
         student={currentUser}
         onClose={() => setShowCertificateModal(false)}
+      />
+
+      {/* Activity Calendar Modal */}
+      <ActivityCalendarModal
+        isOpen={showActivityCalendar}
+        onClose={() => setShowActivityCalendar(false)}
       />
 
       {/* Student Account Card Print Preview Modal */}
