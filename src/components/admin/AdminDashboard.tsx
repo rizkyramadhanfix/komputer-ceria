@@ -134,6 +134,7 @@ import { compressImageFile } from '../../utils/imageCompressor';
 import { ForumDiskusi } from '../forum/ForumDiskusi';
 import { StudentLoginActivityTab } from './StudentLoginActivityTab';
 import { AdminTypingLeagueLeaderboard } from './AdminTypingLeagueLeaderboard';
+import { CloudSyncStatusButton } from '../common/CloudSyncStatusButton';
 
 interface AdminDashboardProps {
   initialTab?:
@@ -1309,6 +1310,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <span className="hidden sm:inline">Rekap Nilai Siswa</span>
                   <span className="sm:hidden">Rekap</span>
                 </button>
+
+                <CloudSyncStatusButton />
               </div>
             </div>
           </div>

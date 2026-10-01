@@ -49,8 +49,9 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
-import { getDashboardConfig, pullLatestDataFromCloud } from '../../services/storageService';
+import { getDashboardConfig } from '../../services/storageService';
 import { Avatar } from './Avatar';
+import { CloudSyncStatusButton } from './CloudSyncStatusButton';
 
 interface HeaderProps {
   currentView: string;
@@ -74,22 +75,7 @@ export const Header: React.FC<HeaderProps> = ({
   const { showToast } = useToast();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const [isPullingData, setIsPullingData] = useState(false);
   const dashboardConfig = getDashboardConfig();
-
-  const handlePullDatabase = async () => {
-    if (isPullingData) return;
-    setIsPullingData(true);
-    showToast('Sedang menarik data terbaru dari Database Cloud...');
-    try {
-      await pullLatestDataFromCloud();
-      showToast('Data terbaru berhasil ditarik dari Database Cloud!');
-    } catch {
-      showToast('Pembaruan data lokal selesai.');
-    } finally {
-      setIsPullingData(false);
-    }
-  };
 
   const handleNavClick = (view: string) => {
     onNavigate(view);
@@ -516,16 +502,8 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </button>
 
-          {/* Tombol tarik data database bentuk logo saja */}
-          <button
-            onClick={handlePullDatabase}
-            disabled={isPullingData}
-            title="Tarik Data Database Cloud"
-            aria-label="Tarik Data Database Cloud"
-            className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-          >
-            <Database className={`w-4 h-4 ${isPullingData ? 'animate-spin text-indigo-600' : ''}`} />
-          </button>
+          {/* Modern Real-Time Cloud Sync Button & Indicator */}
+          <CloudSyncStatusButton />
 
           {currentUser ? (
             <div className="flex items-center gap-3">
@@ -743,6 +721,11 @@ export const Header: React.FC<HeaderProps> = ({
               <PhoneCall className="w-4 h-4 text-indigo-500" />
               <span>📞 Informasi Kontak</span>
             </button>
+          </div>
+
+          {/* Real-Time Sync Button in Mobile Drawer */}
+          <div className="pt-3 border-t border-slate-200 dark:border-slate-800">
+            <CloudSyncStatusButton className="w-full flex justify-center" />
           </div>
 
           {currentUser && (

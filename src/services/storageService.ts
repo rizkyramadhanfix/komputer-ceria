@@ -125,7 +125,116 @@ if (typeof window !== 'undefined') {
   }
 }
 
-// --- Server-DB Sync Helpers (Replacements for Firestore) ---
+// --- Server-DB Sync Helpers (Real-Time Cloud Synchronization) ---
+export interface CloudSyncState {
+  status: 'online' | 'syncing' | 'offline' | 'error';
+  lastSyncTime: Date | null;
+  latencyMs: number;
+  itemCount: number;
+  isOnline: boolean;
+}
+
+let currentSyncState: CloudSyncState = {
+  status: 'online',
+  lastSyncTime: typeof window !== 'undefined' ? new Date() : null,
+  latencyMs: 15,
+  itemCount: 0,
+  isOnline: true,
+};
+
+const syncListeners = new Set<(state: CloudSyncState) => void>();
+
+export function getCloudSyncState(): CloudSyncState {
+  return { ...currentSyncState };
+}
+
+export function subscribeCloudSync(listener: (state: CloudSyncState) => void): () => void {
+  syncListeners.add(listener);
+  listener({ ...currentSyncState });
+  return () => {
+    syncListeners.delete(listener);
+  };
+}
+
+function updateCloudSyncState(updates: Partial<CloudSyncState>) {
+  currentSyncState = { ...currentSyncState, ...updates };
+  syncListeners.forEach((l) => l({ ...currentSyncState }));
+}
+
+export async function pullFullSyncFromServer(): Promise<{ success: boolean; count: number; message: string }> {
+  updateCloudSyncState({ status: 'syncing' });
+  const start = performance.now();
+
+  try {
+    const res = await fetch('/api/db/sync/all', { cache: 'no-store' });
+    const json = await res.json();
+    const latency = Math.round(performance.now() - start);
+
+    if (json.success && json.collections) {
+      const { collections } = json;
+      let updatedCount = 0;
+
+      const keyMap: Record<string, string> = {
+        users: STORAGE_KEYS.USERS,
+        lessons: STORAGE_KEYS.LESSONS,
+        quizzes: STORAGE_KEYS.QUIZZES,
+        quizSubmissions: STORAGE_KEYS.QUIZ_SUBMISSIONS,
+        typingPractices: STORAGE_KEYS.TYPING_PRACTICES,
+        typingSubmissions: STORAGE_KEYS.TYPING_SUBMISSIONS,
+        typingLeagueTexts: STORAGE_KEYS.TYPING_LEAGUE_TEXTS,
+        typingLeagueScores: STORAGE_KEYS.TYPING_LEAGUE_SCORES,
+        gameScores: STORAGE_KEYS.GAME_SCORES,
+        schoolRewards: STORAGE_KEYS.SCHOOL_REWARDS,
+        rewardRedemptions: STORAGE_KEYS.REWARD_REDEMPTIONS,
+        announcements: STORAGE_KEYS.ANNOUNCEMENTS,
+        galleryWorks: STORAGE_KEYS.GALLERY_WORKS,
+        loginLogs: STORAGE_KEYS.LOGIN_LOGS,
+        forumThreads: 'ekskul_forum_threads',
+        forumReplies: 'ekskul_forum_replies',
+      };
+
+      for (const [colName, items] of Object.entries(collections)) {
+        if (colName === 'config' && Array.isArray(items)) {
+          items.forEach((cfg: any) => {
+            if (cfg.id === 'dashboard') setStoredItem(STORAGE_KEYS.DASHBOARD_CONFIG, cfg);
+            else if (cfg.id === 'certificate') setStoredItem(STORAGE_KEYS.CERTIFICATE_CONFIG, cfg);
+            else if (cfg.id === 'gamification') setStoredItem(STORAGE_KEYS.GAMIFICATION_CONFIG, cfg);
+            else if (cfg.id === 'games_config') setStoredItem(STORAGE_KEYS.GAMES_CONFIG, cfg);
+          });
+          updatedCount += items.length;
+        } else if (keyMap[colName] && Array.isArray(items) && items.length > 0) {
+          setStoredItem(keyMap[colName], items);
+          updatedCount += items.length;
+        }
+      }
+
+      updateCloudSyncState({
+        status: 'online',
+        lastSyncTime: new Date(),
+        latencyMs: latency,
+        itemCount: updatedCount,
+        isOnline: true,
+      });
+
+      notifyDataUpdated();
+      return {
+        success: true,
+        count: updatedCount,
+        message: `Berhasil menarik data cloud terbaru (${latency}ms)!`,
+      };
+    }
+  } catch (err) {
+    console.warn('Manual cloud sync fallback:', err);
+    updateCloudSyncState({ status: 'offline', isOnline: false });
+  }
+
+  return {
+    success: false,
+    count: 0,
+    message: 'Gagal terhubung ke cloud server, menggunakan database lokal.',
+  };
+}
+
 export async function fetchCollectionFromServer(collectionName: string): Promise<any[]> {
   try {
     const res = await fetch(`/api/db/${collectionName}`);

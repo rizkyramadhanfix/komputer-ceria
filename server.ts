@@ -193,14 +193,41 @@ Kembalikan HANYA format JSON valid tanpa tanda kutip markdown, tanpa backtick, d
 // ==========================================
 import fs from 'fs';
 
-const DB_DIR = path.resolve('db_store');
+const SEED_DIR = path.resolve('db_store');
+const DB_DIR = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
+  ? path.join('/tmp', 'db_store')
+  : SEED_DIR;
+
 if (!fs.existsSync(DB_DIR)) {
-  fs.mkdirSync(DB_DIR, { recursive: true });
+  try {
+    fs.mkdirSync(DB_DIR, { recursive: true });
+    // Seed initial files if running in serverless tmp
+    if (DB_DIR !== SEED_DIR && fs.existsSync(SEED_DIR)) {
+      const files = fs.readdirSync(SEED_DIR);
+      for (const file of files) {
+        if (file.endsWith('.json')) {
+          fs.copyFileSync(path.join(SEED_DIR, file), path.join(DB_DIR, file));
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error initializing DB_DIR:', err);
+  }
 }
 
 function readCollection(collectionName: string): any[] {
   const filePath = path.join(DB_DIR, `${collectionName}.json`);
   if (!fs.existsSync(filePath)) {
+    // If not found in tmp, try reading from seed dir
+    if (DB_DIR !== SEED_DIR) {
+      const seedFile = path.join(SEED_DIR, `${collectionName}.json`);
+      if (fs.existsSync(seedFile)) {
+        try {
+          const content = fs.readFileSync(seedFile, 'utf-8');
+          return JSON.parse(content) || [];
+        } catch {}
+      }
+    }
     return [];
   }
   try {
@@ -219,6 +246,50 @@ function writeCollection(collectionName: string, data: any[]): void {
     console.error(`Error writing collection ${collectionName}:`, err);
   }
 }
+
+// Health check endpoint for real-time cloud connectivity
+app.get('/api/db/health', (_req, res) => {
+  res.json({
+    success: true,
+    status: 'online',
+    timestamp: new Date().toISOString(),
+    env: process.env.VERCEL ? 'vercel-serverless' : 'node-express',
+  });
+});
+
+// Single-request full sync of all collections for ultra-fast real-time multi-device synchronization
+app.get('/api/db/sync/all', (_req, res) => {
+  const collections = [
+    'users',
+    'lessons',
+    'quizzes',
+    'quizSubmissions',
+    'typingPractices',
+    'typingSubmissions',
+    'typingLeagueTexts',
+    'typingLeagueScores',
+    'gameScores',
+    'schoolRewards',
+    'rewardRedemptions',
+    'announcements',
+    'forumThreads',
+    'forumReplies',
+    'galleryWorks',
+    'loginLogs',
+    'config',
+  ];
+
+  const bundle: Record<string, any[]> = {};
+  for (const col of collections) {
+    bundle[col] = readCollection(col);
+  }
+
+  res.json({
+    success: true,
+    timestamp: new Date().toISOString(),
+    collections: bundle,
+  });
+});
 
 // Get all documents in a collection
 app.get('/api/db/:collection', (req, res) => {
