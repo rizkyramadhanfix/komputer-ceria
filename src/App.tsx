@@ -98,6 +98,9 @@ function MainAppContent() {
         {currentView === 'student-quiz-duel' && (
           <StudentDashboard initialTab="quiz-duel" />
         )}
+        {currentView === 'student-typing-league' && (
+          <StudentDashboard initialTab="typing-league" />
+        )}
         {currentView === 'student-typing' && (
           <StudentDashboard initialTab="typing" />
         )}

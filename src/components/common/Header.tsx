@@ -237,7 +237,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   onMouseEnter={() => setActiveDropdown('mengetik')}
                   className={`transition-all hover:text-indigo-600 dark:hover:text-indigo-400 py-1 flex items-center gap-1 cursor-pointer ${
-                    ['student-typing', 'student-typing-hero', 'student-typing-race'].includes(currentView) ? 'text-indigo-600 dark:text-indigo-400' : ''
+                    ['student-typing', 'student-typing-league', 'student-typing-hero', 'student-typing-race'].includes(currentView) ? 'text-indigo-600 dark:text-indigo-400' : ''
                   }`}
                 >
                   <span>Latihan Mengetik</span>
@@ -245,8 +245,15 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
                 <div 
                   onMouseLeave={() => setActiveDropdown(null)}
-                  className="absolute top-full left-0 mt-1 w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all z-50"
+                  className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all z-50"
                 >
+                  <button onClick={() => handleNavClick('student-typing-league')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between group/item">
+                    <div className="flex items-center gap-2">
+                      <Trophy className="w-3.5 h-3.5 text-amber-500" />
+                      <span className="font-bold text-amber-600 dark:text-amber-400">Liga Mengetik 10 Jari</span>
+                    </div>
+                    <span className="text-[9px] bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded font-black">BARU</span>
+                  </button>
                   <button onClick={() => handleNavClick('student-typing')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
                     <Keyboard className="w-3.5 h-3.5 text-indigo-500" />
                     <span>Mengetik MS Word</span>
@@ -652,6 +659,10 @@ export const Header: React.FC<HeaderProps> = ({
 
                 <div className="pt-2 pb-1">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-1">Latihan Mengetik</p>
+                  <button onClick={() => handleNavClick('student-typing-league')} className="w-full text-left py-2 px-2 text-sm font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 flex items-center justify-between">
+                    <span>Liga Mengetik 10 Jari</span>
+                    <span className="text-[9px] bg-amber-100 text-amber-800 px-1 rounded font-black">BARU</span>
+                  </button>
                   <button onClick={() => handleNavClick('student-typing')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Mengetik MS Word</button>
                   <button onClick={() => handleNavClick('student-typing-hero')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Typing Hero RPG</button>
                   <button onClick={() => handleNavClick('student-typing-race')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Balap Ketik Mobil</button>

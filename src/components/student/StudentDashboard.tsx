@@ -761,6 +761,40 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               {/* Daily Quests and Attendance Streak */}
               {isFeatureEnabled('daily-quests') && <DailyQuestsWidget />}
 
+              {/* Special Banner for Liga Mengetik 10 Jari */}
+              <div 
+                onClick={() => setActiveTab('typing-league')}
+                className="p-5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white rounded-2xl shadow-lg shadow-orange-500/20 flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer hover:scale-[1.01] transition-all relative overflow-hidden group"
+              >
+                <div className="flex items-center gap-4 relative z-10">
+                  <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-white shrink-0 group-hover:rotate-6 transition-transform">
+                    <Trophy className="w-7 h-7 text-amber-200" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black uppercase tracking-wider bg-white text-orange-600 px-2 py-0.5 rounded-full shadow-xs">
+                        FITUR BARU
+                      </span>
+                      <span className="text-xs font-bold text-amber-100">Arena Kompetisi Siswa</span>
+                    </div>
+                    <h3 className="text-base sm:text-lg font-black mt-0.5">Liga Mengetik Cepat 10 Jari 🏆</h3>
+                    <p className="text-xs text-orange-50 line-clamp-1">
+                      Pilih naskah dari Guru Pembina, ketik dengan panduan keyboard 10 jari, dan raih posisi puncak di Leaderboard Liga!
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveTab('typing-league');
+                  }}
+                  className="px-5 py-2.5 bg-white text-orange-600 hover:bg-orange-50 rounded-xl font-bold text-xs shadow-md shrink-0 transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <Keyboard className="w-4 h-4" />
+                  <span>Main Sekarang →</span>
+                </button>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Quick Action 1: Materi */}
                 <div
@@ -818,6 +852,16 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   <button onClick={() => setActiveTab('pc-doctor')} className="text-[10px] font-bold text-indigo-600 hover:underline uppercase tracking-widest cursor-pointer">Lihat Semua Game →</button>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                  <button
+                    onClick={() => setActiveTab('typing-league')}
+                    className="flex flex-col items-center justify-center p-3 bg-gradient-to-b from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/30 border-2 border-amber-400 dark:border-amber-500/60 rounded-xl hover:scale-105 transition-all group shadow-sm cursor-pointer relative overflow-hidden"
+                  >
+                    <div className="absolute -top-1 -right-1 bg-amber-500 text-[8px] font-black text-white px-1.5 py-0.5 rounded-bl-lg shadow-xs uppercase">
+                      LIGA
+                    </div>
+                    <Trophy className="w-6 h-6 text-amber-500 mb-2 group-hover:scale-110 transition-transform animate-bounce" />
+                    <span className="text-[10px] font-black text-amber-900 dark:text-amber-200 text-center">Liga Mengetik</span>
+                  </button>
                   <button
                     onClick={() => setActiveTab('pc-doctor')}
                     className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-rose-400 transition-all group shadow-xs cursor-pointer"
@@ -894,13 +938,6 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   >
                     <Flame className="w-6 h-6 text-rose-500 mb-2 group-hover:scale-110 transition-transform" />
                     <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Balap Ketik</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('typing-league')}
-                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-violet-400 transition-all group shadow-xs cursor-pointer"
-                  >
-                    <Keyboard className="w-6 h-6 text-violet-500 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Liga Mengetik</span>
                   </button>
                   <button
                     onClick={() => setActiveTab('typing-hero')}
