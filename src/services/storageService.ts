@@ -117,33 +117,38 @@ function setStoredItem<T>(key: string, value: T): void {
 }
 
 // --- Firestore Sync Helpers ---
+// Firebase is completely disabled per user request -> 100% local storage
+const DISABLE_FIREBASE = true;
+let isQuotaExhausted = true;
+
+function handleFirestoreError(err: any, context: string) {
+  // Disabled
+}
+
 async function syncDocToFirestore(collectionName: string, id: string, data: any): Promise<void> {
-  try {
-    await setDoc(doc(db, collectionName, id), JSON.parse(JSON.stringify(data)), { merge: true });
-  } catch (err) {
-    console.warn(`Firestore sync warning [${collectionName}/${id}]:`, err);
-  }
+  if (DISABLE_FIREBASE) return;
 }
 
 async function removeDocFromFirestore(collectionName: string, id: string): Promise<void> {
-  try {
-    await deleteDoc(doc(db, collectionName, id));
-  } catch (err) {
-    console.warn(`Firestore delete warning [${collectionName}/${id}]:`, err);
-  }
+  if (DISABLE_FIREBASE) return;
 }
 
+let notifyTimer: any = null;
 function notifyDataUpdated() {
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('ekskul_data_updated'));
-  }
+  if (notifyTimer) return;
+  notifyTimer = setTimeout(() => {
+    notifyTimer = null;
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('ekskul_data_updated'));
+    }
+  }, 500);
 }
 
 // --- Real-time Firestore Listeners ---
 let listenersInitialized = false;
 
 function initFirestoreListeners() {
-  if (listenersInitialized) return;
+  if (listenersInitialized || isQuotaExhausted) return;
   listenersInitialized = true;
 
   try {
@@ -155,17 +160,22 @@ function initFirestoreListeners() {
           firestoreUsers.push(docSnap.data() as User);
         });
         firestoreUsers.sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
-        setStoredItem(STORAGE_KEYS.USERS, firestoreUsers);
 
-        // Sync active user if present
-        const activeUser = getStoredItem<User | null>(STORAGE_KEYS.CURRENT_USER, null);
-        if (activeUser) {
-          const updatedActive = firestoreUsers.find((u) => u.id === activeUser.id);
-          if (updatedActive) {
-            setStoredItem(STORAGE_KEYS.CURRENT_USER, updatedActive);
+        const existingRaw = localStorage.getItem(STORAGE_KEYS.USERS);
+        const newRaw = JSON.stringify(firestoreUsers);
+        if (existingRaw !== newRaw) {
+          setStoredItem(STORAGE_KEYS.USERS, firestoreUsers);
+
+          // Sync active user if present
+          const activeUser = getStoredItem<User | null>(STORAGE_KEYS.CURRENT_USER, null);
+          if (activeUser) {
+            const updatedActive = firestoreUsers.find((u) => u.id === activeUser.id);
+            if (updatedActive) {
+              setStoredItem(STORAGE_KEYS.CURRENT_USER, updatedActive);
+            }
           }
+          notifyDataUpdated();
         }
-        notifyDataUpdated();
       }
     }, (err) => {
       console.warn('Firestore User listener failed (probably quota):', err);

@@ -12,6 +12,7 @@ import { db } from './firebase';
 import { GameBattle, User } from '../types';
 
 const BATTLES_STORAGE_KEY = 'ekskul_game_battles';
+const DISABLE_FIREBASE = true;
 
 function getLocalBattles(): GameBattle[] {
   try {
@@ -71,16 +72,7 @@ export const createBattleChallenge = async (
   localBattles.unshift(cleanBattleData);
   saveLocalBattles(localBattles.slice(0, 50));
 
-  // 2. Sync to Firestore in background
-  try {
-    await setDoc(doc(db, 'gameBattles', battleId), {
-      ...cleanBattleData,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
-  } catch (err) {
-    console.warn('Firestore setDoc battle fallback to local storage:', err);
-  }
+  if (DISABLE_FIREBASE) return battleId;
 
   return battleId;
 };
@@ -186,35 +178,37 @@ export const subscribeToBattles = (
 
   // Firestore listener
   let unsubFirestore = () => {};
-  try {
-    const q = query(
-      collection(db, 'gameBattles'),
-      where('opponentId', '==', userId)
-    );
+  if (!DISABLE_FIREBASE) {
+    try {
+      const q = query(
+        collection(db, 'gameBattles'),
+        where('opponentId', '==', userId)
+      );
 
-    unsubFirestore = onSnapshot(
-      q,
-      (snapshot) => {
-        const fsBattles: GameBattle[] = [];
-        snapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          if (data.status === 'pending') {
-            fsBattles.push({
-              id: docSnap.id,
-              ...data,
-              createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt || new Date().toISOString(),
-              updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt || new Date().toISOString(),
-            } as GameBattle);
-          }
-        });
-        triggerUpdate(fsBattles);
-      },
-      (err) => {
-        console.warn('subscribeToBattles Firestore warning:', err);
-      }
-    );
-  } catch (e) {
-    console.warn('subscribeToBattles Firestore query catch:', e);
+      unsubFirestore = onSnapshot(
+        q,
+        (snapshot) => {
+          const fsBattles: GameBattle[] = [];
+          snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            if (data.status === 'pending') {
+              fsBattles.push({
+                id: docSnap.id,
+                ...data,
+                createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt || new Date().toISOString(),
+                updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt || new Date().toISOString(),
+              } as GameBattle);
+            }
+          });
+          triggerUpdate(fsBattles);
+        },
+        (err) => {
+          console.warn('subscribeToBattles Firestore warning:', err);
+        }
+      );
+    } catch (e) {
+      console.warn('subscribeToBattles Firestore query catch:', e);
+    }
   }
 
   return () => {
@@ -248,28 +242,30 @@ export const subscribeToActiveBattle = (
   }
 
   let unsubFirestore = () => {};
-  try {
-    const battleRef = doc(db, 'gameBattles', battleId);
-    unsubFirestore = onSnapshot(
-      battleRef,
-      (docSnap) => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          const b: GameBattle = {
-            id: docSnap.id,
-            ...data,
-            createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt || new Date().toISOString(),
-            updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt || new Date().toISOString(),
-          } as GameBattle;
-          triggerUpdate(b);
+  if (!DISABLE_FIREBASE) {
+    try {
+      const battleRef = doc(db, 'gameBattles', battleId);
+      unsubFirestore = onSnapshot(
+        battleRef,
+        (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            const b: GameBattle = {
+              id: docSnap.id,
+              ...data,
+              createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt || new Date().toISOString(),
+              updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt || new Date().toISOString(),
+            } as GameBattle;
+            triggerUpdate(b);
+          }
+        },
+        (err) => {
+          console.warn(`subscribeToActiveBattle(${battleId}) Firestore warning:`, err);
         }
-      },
-      (err) => {
-        console.warn(`subscribeToActiveBattle(${battleId}) Firestore warning:`, err);
-      }
-    );
-  } catch (e) {
-    console.warn(`subscribeToActiveBattle(${battleId}) catch:`, e);
+      );
+    } catch (e) {
+      console.warn(`subscribeToActiveBattle(${battleId}) catch:`, e);
+    }
   }
 
   return () => {

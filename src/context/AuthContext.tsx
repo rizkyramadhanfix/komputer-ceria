@@ -48,32 +48,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const lastActivityRef = useRef<number>(Date.now());
 
   useEffect(() => {
-    // Initial fetch for active user only (avoid quota issues)
-    const initAuth = async () => {
+    // Initial fetch from local storage only
+    const initAuth = () => {
       try {
         const raw = localStorage.getItem('ekskul_active_user');
         if (raw) {
           const parsed = JSON.parse(raw) as User;
           if (parsed && parsed.id) {
-            try {
-              const userDoc = await getDoc(doc(db, 'users', parsed.id));
-              if (userDoc.exists()) {
-                const fresh = userDoc.data() as User;
-                const clientToken = localStorage.getItem('ekskul_session_token');
-                if (fresh.currentSessionId && clientToken && fresh.currentSessionId !== clientToken) {
-                  localStorage.removeItem('ekskul_active_user');
-                  setSessionNotice('Akun ini telah login di perangkat lain. Sesi pada perangkat ini telah ditutup secara otomatis.');
-                  setCurrentUser(null);
-                } else {
-                  setCurrentUser(fresh);
-                }
-              } else {
-                setCurrentUser(parsed);
-              }
-            } catch (err) {
-              console.warn('Firestore user fetch failed, fallback to local user data:', err);
-              setCurrentUser(parsed);
-            }
+            setCurrentUser(parsed);
           }
         }
       } catch (e) {
@@ -84,30 +66,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     initAuth();
   }, []);
-
-  // --- Real-time Single Session Enforcement (Anti-Double Login) ---
-  useEffect(() => {
-    if (!currentUser?.id) return;
-    const currentUserId = currentUser.id;
-    const clientToken = localStorage.getItem('ekskul_session_token');
-    if (!clientToken) return;
-
-    const unsubscribe = onSnapshot(doc(db, 'users', currentUserId), (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data() as User;
-        if (data.currentSessionId && data.currentSessionId !== clientToken) {
-          console.warn('Single session violation: user logged in from another device/browser:', currentUserId);
-          setCurrentUser(null);
-          localStorage.removeItem('ekskul_active_user');
-          setSessionNotice('Akun Anda telah login di perangkat atau jendela lain. Demi keamanan, sesi pada perangkat ini dinonaktifkan secara otomatis.');
-        }
-      }
-    }, (err) => {
-      console.warn('Session Firestore snapshot listener warning:', err);
-    });
-
-    return () => unsubscribe();
-  }, [currentUser?.id]);
 
   // --- 1-Hour Inactivity Auto-Logout Timer & Online Heartbeat ---
   useEffect(() => {
@@ -128,7 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (currentUser?.id) {
         updateUser(currentUser.id, { lastActiveAt: new Date().toISOString() });
       }
-    }, 20000); // Heartbeat every 20s
+    }, 180000); // Heartbeat every 3 minutes (prevents high traffic)
 
     const idleInterval = setInterval(() => {
       const inactiveDuration = Date.now() - lastActivityRef.current;
@@ -212,25 +170,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
 
       user = findUserInList(allUsers);
-
-      // Fallback: If user not found in local storage, query Firestore directly across devices/Vercel
-      if (!user) {
-        try {
-          const snapshot = await getDocs(collection(db, 'users'));
-          if (!snapshot.empty) {
-            const fetchedUsers: User[] = [];
-            snapshot.forEach((docSnap) => {
-              fetchedUsers.push(docSnap.data() as User);
-            });
-            // Update local storage & state with fresh Firestore users
-            localStorage.setItem('ekskul_users', JSON.stringify(fetchedUsers));
-            setUsers(fetchedUsers);
-            user = findUserInList(fetchedUsers);
-          }
-        } catch (fErr) {
-          console.warn('Firestore user fetch on login warning:', fErr);
-        }
-      }
       
       if (!user) {
         return {

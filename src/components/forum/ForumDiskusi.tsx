@@ -100,33 +100,9 @@ export const ForumDiskusi: React.FC = () => {
   const fetchThreads = async () => {
     setLoadingThreads(true);
     try {
-      // Load local storage first
+      // Load local storage
       const localThreads = getForumThreads() as any[];
       setThreads(localThreads);
-
-      // Attempt Firestore sync in background if available
-      try {
-        const q = query(
-          collection(db, 'forumThreads'),
-          orderBy('createdAt', 'desc'),
-          limit(30)
-        );
-        const snapshot = await getDocs(q);
-        if (!snapshot.empty) {
-          const loadedThreads: ForumThread[] = [];
-          snapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            loadedThreads.push({
-              id: docSnap.id,
-              ...data,
-              createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now()),
-            } as ForumThread);
-          });
-          setThreads(loadedThreads);
-        }
-      } catch (fErr) {
-        console.warn('Firestore threads query fallback to local storage:', fErr);
-      }
     } catch (error: any) {
       console.error('Error fetching forum threads:', error);
     } finally {
