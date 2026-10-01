@@ -19,8 +19,14 @@ import { GameBattle, User } from '../types';
 export const createBattleChallenge = async (
   challenger: User,
   opponent: User,
-  gameType: 'quiz_duel' | 'typing_race'
+  gameType: 'quiz_duel' | 'typing_race',
+  customData?: { questionIndices?: number[]; typingText?: string }
 ): Promise<string> => {
+  // Generate random 5 question indices for Quiz Duel or random text for Typing Race
+  const defaultIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    .sort(() => 0.5 - Math.random())
+    .slice(0, 5);
+
   const battleData: Omit<GameBattle, 'id' | 'createdAt' | 'updatedAt'> = {
     gameType,
     status: 'pending',
@@ -33,6 +39,8 @@ export const createBattleChallenge = async (
     currentRound: 0,
     challengerScore: 0,
     opponentScore: 0,
+    questionIndices: customData?.questionIndices || defaultIndices,
+    typingText: customData?.typingText,
   };
 
   const docRef = await addDoc(collection(db, 'gameBattles'), {
@@ -72,27 +80,35 @@ export const subscribeToBattles = (
   userId: string,
   onUpdate: (battles: GameBattle[]) => void
 ) => {
+  // Query by opponentId only (single field equality, NO composite index required!)
   const q = query(
     collection(db, 'gameBattles'),
-    where('opponentId', '==', userId),
-    where('status', '==', 'pending'),
-    orderBy('createdAt', 'desc'),
-    limit(5)
+    where('opponentId', '==', userId)
   );
 
-  return onSnapshot(q, (snapshot) => {
-    const battles: GameBattle[] = [];
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      battles.push({
-        id: docSnap.id,
-        ...data,
-        createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-        updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-      } as GameBattle);
-    });
-    onUpdate(battles);
-  });
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const battles: GameBattle[] = [];
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        if (data.status === 'pending') {
+          battles.push({
+            id: docSnap.id,
+            ...data,
+            createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+            updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+          } as GameBattle);
+        }
+      });
+      // Sort newest first in-memory
+      battles.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      onUpdate(battles.slice(0, 5));
+    },
+    (err) => {
+      console.warn('subscribeToBattles listener error:', err);
+    }
+  );
 };
 
 export const subscribeToActiveBattle = (
@@ -100,17 +116,23 @@ export const subscribeToActiveBattle = (
   onUpdate: (battle: GameBattle | null) => void
 ) => {
   const battleRef = doc(db, 'gameBattles', battleId);
-  return onSnapshot(battleRef, (docSnap) => {
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      onUpdate({
-        id: docSnap.id,
-        ...data,
-        createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-        updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-      } as GameBattle);
-    } else {
-      onUpdate(null);
+  return onSnapshot(
+    battleRef,
+    (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        onUpdate({
+          id: docSnap.id,
+          ...data,
+          createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+          updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+        } as GameBattle);
+      } else {
+        onUpdate(null);
+      }
+    },
+    (err) => {
+      console.warn(`subscribeToActiveBattle(${battleId}) error:`, err);
     }
-  });
+  );
 };

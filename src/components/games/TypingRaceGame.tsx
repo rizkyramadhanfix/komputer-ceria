@@ -18,7 +18,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Avatar } from '../common/Avatar';
 import { awardStudentPoints } from '../../services/storageService';
-import { createBattleChallenge, subscribeToActiveBattle, updateBattleState } from '../../services/battleService';
+import { createBattleChallenge, subscribeToActiveBattle, updateBattleState, cancelChallenge } from '../../services/battleService';
 import { GameBattle, User } from '../../types';
 
 const RACE_TEXTS = [
@@ -71,7 +71,9 @@ export const TypingRaceGame: React.FC<TypingRaceGameProps> = ({
   const [finishRank, setFinishRank] = useState<number | null>(null);
 
   const [activeBattle, setActiveBattle] = useState<GameBattle | null>(null);
-  const [isMultiplayer, setIsMultiplayer] = useState(!!battleId);
+  const [localBattleId, setLocalBattleId] = useState<string | null>(null);
+  const effectiveBattleId = battleId || localBattleId;
+  const [isMultiplayer, setIsMultiplayer] = useState(!!effectiveBattleId);
   const [showChallengeModal, setShowChallengeModal] = useState(false);
   const [challengingUser, setChallengingUser] = useState<User | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -119,16 +121,34 @@ export const TypingRaceGame: React.FC<TypingRaceGameProps> = ({
 
   // Battle subscription
   useEffect(() => {
-    if (!battleId || !currentUser) return;
+    if (!effectiveBattleId || !currentUser) return;
 
-    const unsubscribe = subscribeToActiveBattle(battleId, (battle) => {
+    const unsubscribe = subscribeToActiveBattle(effectiveBattleId, (battle) => {
       if (!battle) return;
       setActiveBattle(battle);
       setIsMultiplayer(true);
+
+      // Sync typing text
+      if (battle.typingText) {
+        setTargetText(battle.typingText);
+      }
       
       if (battle.status === 'active' && (raceState === 'idle' || raceState === 'waiting_opponent')) {
         setRaceState('countdown');
         setCountdown(3);
+        setTypedInput('');
+        setPlayerWpm(0);
+        setPlayerAccuracy(100);
+        setFinishRank(null);
+        showSuccess('Tantangan diterima! Balapan dimulai dalam 3 detik! 🏁', 'Balapan Dimulai');
+      }
+
+      if (battle.status === 'cancelled') {
+        showInfo('Tantangan balapan dibatalkan atau ditolak.', 'Balapan Selesai');
+        setRaceState('idle');
+        setIsMultiplayer(false);
+        setLocalBattleId(null);
+        onCloseBattle?.();
       }
 
       if (battle.status === 'finished' && raceState !== 'finished') {
@@ -161,12 +181,15 @@ export const TypingRaceGame: React.FC<TypingRaceGameProps> = ({
     });
 
     return () => unsubscribe();
-  }, [battleId, currentUser]);
+  }, [effectiveBattleId, currentUser, raceState]);
 
   const handleChallenge = async (student: User) => {
     if (!currentUser) return;
     try {
-      await createBattleChallenge(currentUser, student, 'typing_race');
+      const randomText = RACE_TEXTS[Math.floor(Math.random() * RACE_TEXTS.length)];
+      setTargetText(randomText);
+      const newBattleId = await createBattleChallenge(currentUser, student, 'typing_race', { typingText: randomText });
+      setLocalBattleId(newBattleId);
       setChallengingUser(student);
       setIsMultiplayer(true);
       setRaceState('waiting_opponent');
@@ -285,10 +308,10 @@ export const TypingRaceGame: React.FC<TypingRaceGameProps> = ({
 
     const progress = Math.min(100, Math.round((val.length / targetText.length) * 100));
 
-    if (isMultiplayer && battleId && currentUser) {
+    if (isMultiplayer && effectiveBattleId && currentUser) {
       const isChallenger = activeBattle?.challengerId === currentUser.id;
       const updates: any = isChallenger ? { challengerProgress: progress } : { opponentProgress: progress };
-      updateBattleState(battleId, updates);
+      updateBattleState(effectiveBattleId, updates);
     }
 
     // Calculate live WPM
@@ -307,7 +330,7 @@ export const TypingRaceGame: React.FC<TypingRaceGameProps> = ({
 
     // Check finished
     if (val === targetText) {
-      if (isMultiplayer && battleId && currentUser) {
+      if (isMultiplayer && effectiveBattleId && currentUser) {
          const isChallenger = activeBattle?.challengerId === currentUser.id;
          const opponentProgress = isChallenger ? (activeBattle?.opponentProgress || 0) : (activeBattle?.challengerProgress || 0);
          const rank = opponentProgress >= 100 ? 2 : 1;
@@ -315,11 +338,11 @@ export const TypingRaceGame: React.FC<TypingRaceGameProps> = ({
          
          // Update battle status if we are the winner or both finished
          if (rank === 1) {
-            updateBattleState(battleId, { winnerId: currentUser.id });
+            updateBattleState(effectiveBattleId, { winnerId: currentUser.id });
          }
          
          if (opponentProgress >= 100) {
-            updateBattleState(battleId, { status: 'finished' });
+            updateBattleState(effectiveBattleId, { status: 'finished' });
          }
          
          const rewardPoints = rank === 1 ? 75 : 40;
@@ -406,6 +429,36 @@ export const TypingRaceGame: React.FC<TypingRaceGameProps> = ({
           )}
         </div>
       </div>
+
+      {/* Waiting Opponent Screen */}
+      {raceState === 'waiting_opponent' && (
+        <div className="p-8 text-center bg-indigo-50 dark:bg-indigo-950/40 rounded-2xl border-2 border-dashed border-indigo-300 dark:border-indigo-800 space-y-4">
+          <div className="flex justify-center">
+            <Avatar src={challengingUser?.avatarUrl || activeBattle?.opponentAvatar} name={challengingUser?.name || activeBattle?.opponentName || 'Lawan'} size="xl" />
+          </div>
+          <div className="space-y-1">
+            <h4 className="text-base font-bold text-slate-900 dark:text-white">
+              Menunggu {challengingUser?.name || activeBattle?.opponentName || 'Lawan'}...
+            </h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+              Tantangan balapan sudah dikirim ke temanmu. Begitu ia menekan 'Terima & Duel', balapan akan otomatis dimulai!
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (effectiveBattleId) cancelChallenge(effectiveBattleId);
+              setRaceState('idle');
+              setIsMultiplayer(false);
+              setLocalBattleId(null);
+              onCloseBattle?.();
+            }}
+            className="text-xs font-bold text-rose-500 hover:text-rose-600 hover:underline cursor-pointer"
+          >
+            Batalkan Tantangan
+          </button>
+        </div>
+      )}
 
       {/* Racetrack Visualizer */}
       <div className="p-4 sm:p-6 bg-slate-950 rounded-2xl border-2 border-slate-800 space-y-4 shadow-xl">

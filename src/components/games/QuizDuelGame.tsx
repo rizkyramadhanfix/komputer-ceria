@@ -17,7 +17,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Avatar } from '../common/Avatar';
 import { recordGameScore } from '../../services/storageService';
-import { createBattleChallenge, subscribeToActiveBattle, updateBattleState } from '../../services/battleService';
+import { createBattleChallenge, subscribeToActiveBattle, updateBattleState, cancelChallenge } from '../../services/battleService';
 import { GameBattle, User } from '../../types';
 
 interface Question {
@@ -127,7 +127,9 @@ export const QuizDuelGame: React.FC<QuizDuelGameProps> = ({
   const [roundTimer, setRoundTimer] = useState(15);
 
   const [activeBattle, setActiveBattle] = useState<GameBattle | null>(null);
-  const [isMultiplayer, setIsMultiplayer] = useState(!!battleId);
+  const [localBattleId, setLocalBattleId] = useState<string | null>(null);
+  const effectiveBattleId = battleId || localBattleId;
+  const [isMultiplayer, setIsMultiplayer] = useState(!!effectiveBattleId);
   const [showChallengeModal, setShowChallengeModal] = useState(false);
   const [challengingUser, setChallengingUser] = useState<User | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -177,7 +179,7 @@ export const QuizDuelGame: React.FC<QuizDuelGameProps> = ({
     }, thinkTime);
 
     return () => clearTimeout(timer);
-  }, [currentRound, gameState]);
+  }, [currentRound, gameState, isMultiplayer, botDelayActive, opponentSelected, activeQuestion.correct]);
 
   // End round automatically when both selected
   useEffect(() => {
@@ -188,12 +190,21 @@ export const QuizDuelGame: React.FC<QuizDuelGameProps> = ({
 
   // Battle subscription
   useEffect(() => {
-    if (!battleId || !currentUser) return;
+    if (!effectiveBattleId || !currentUser) return;
 
-    const unsubscribe = subscribeToActiveBattle(battleId, (battle) => {
+    const unsubscribe = subscribeToActiveBattle(effectiveBattleId, (battle) => {
       if (!battle) return;
       setActiveBattle(battle);
       setIsMultiplayer(true);
+
+      // Sync question indices across both players
+      if (battle.questionIndices && battle.questionIndices.length > 0) {
+        setSessionQuestions(
+          battle.questionIndices.map(
+            (idx) => COMPUTER_DUEL_QUESTIONS[idx % COMPUTER_DUEL_QUESTIONS.length]
+          )
+        );
+      }
       
       const isChallenger = battle.challengerId === currentUser.id;
       
@@ -207,6 +218,19 @@ export const QuizDuelGame: React.FC<QuizDuelGameProps> = ({
 
       if (battle.status === 'active' && (gameState === 'intro' || gameState === 'waiting_opponent')) {
         setGameState('playing');
+        setRoundTimer(15);
+        showSuccess(
+          `Duel dimulai! Lawanmu adalah ${isChallenger ? battle.opponentName : battle.challengerName}! 🔥`,
+          'Duel Dimulai'
+        );
+      }
+
+      if (battle.status === 'cancelled') {
+        showInfo('Tantangan duel dibatalkan atau ditolak.', 'Duel Selesai');
+        setGameState('intro');
+        setIsMultiplayer(false);
+        setLocalBattleId(null);
+        onCloseBattle?.();
       }
 
       if (battle.status === 'finished' && gameState !== 'completed') {
@@ -215,12 +239,13 @@ export const QuizDuelGame: React.FC<QuizDuelGameProps> = ({
     });
 
     return () => unsubscribe();
-  }, [battleId, currentUser]);
+  }, [effectiveBattleId, currentUser, gameState]);
 
   const handleChallenge = async (student: User) => {
     if (!currentUser) return;
     try {
-      await createBattleChallenge(currentUser, student, 'quiz_duel');
+      const newBattleId = await createBattleChallenge(currentUser, student, 'quiz_duel');
+      setLocalBattleId(newBattleId);
       setChallengingUser(student);
       setIsMultiplayer(true);
       setGameState('waiting_opponent');
@@ -251,7 +276,7 @@ export const QuizDuelGame: React.FC<QuizDuelGameProps> = ({
     if (playerSelected !== null || gameState !== 'playing') return;
     setPlayerSelected(idx);
 
-    if (isMultiplayer && battleId && currentUser) {
+    if (isMultiplayer && effectiveBattleId && currentUser) {
       const isChallenger = activeBattle?.challengerId === currentUser.id;
       const currentScore = isChallenger ? (activeBattle?.challengerScore || 0) : (activeBattle?.opponentScore || 0);
       
@@ -265,7 +290,7 @@ export const QuizDuelGame: React.FC<QuizDuelGameProps> = ({
         updates.opponentScore = currentScore + earned;
       }
 
-      await updateBattleState(battleId, updates);
+      await updateBattleState(effectiveBattleId, updates);
     }
   };
 
@@ -292,11 +317,11 @@ export const QuizDuelGame: React.FC<QuizDuelGameProps> = ({
 
     if (currentRound + 1 < sessionQuestions.length) {
       const nextRound = currentRound + 1;
-      if (isMultiplayer && battleId && currentUser) {
+      if (isMultiplayer && effectiveBattleId && currentUser) {
         const isChallenger = activeBattle?.challengerId === currentUser.id;
         // Challenger resets selection for both for next round
         if (isChallenger) {
-          await updateBattleState(battleId, {
+          await updateBattleState(effectiveBattleId, {
             currentRound: nextRound,
             challengerSelection: null as any,
             opponentSelection: null as any,
@@ -306,8 +331,8 @@ export const QuizDuelGame: React.FC<QuizDuelGameProps> = ({
       setCurrentRound(nextRound);
       setGameState('playing');
     } else {
-      if (isMultiplayer && battleId && activeBattle?.challengerId === currentUser?.id) {
-        await updateBattleState(battleId, { status: 'finished' });
+      if (isMultiplayer && effectiveBattleId && activeBattle?.challengerId === currentUser?.id) {
+        await updateBattleState(effectiveBattleId, { status: 'finished' });
       }
       handleGameCompleted();
     }
@@ -411,7 +436,13 @@ export const QuizDuelGame: React.FC<QuizDuelGameProps> = ({
             </p>
           </div>
           <button
-            onClick={() => setGameState('intro')}
+            onClick={() => {
+              if (effectiveBattleId) cancelChallenge(effectiveBattleId);
+              setGameState('intro');
+              setIsMultiplayer(false);
+              setLocalBattleId(null);
+              onCloseBattle?.();
+            }}
             className="text-xs font-bold text-slate-500 hover:text-rose-500 hover:underline cursor-pointer"
           >
             Batalkan Tantangan

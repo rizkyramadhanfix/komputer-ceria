@@ -94,10 +94,11 @@ import {
   deleteAnnouncement,
   getContactInfo,
   saveContactInfo,
-  getTypingTournaments,
-  saveTypingTournament,
-  deleteTypingTournament,
   updateSubmissionFeedback,
+  getTypingLeagueTexts,
+  saveTypingLeagueText,
+  deleteTypingLeagueText,
+  getTypingLeagueScores,
 } from '../../services/storageService';
 import {
   AnnouncementItem,
@@ -113,9 +114,9 @@ import {
   SchoolRewardItem,
   ShopItem,
   RewardRedemption,
-  TypingTournament,
   TypingSubmission,
   QuizSubmission,
+  TypingLeagueText,
 } from '../../types';
 import { Avatar } from '../common/Avatar';
 import { BadgePill } from '../common/BadgePill';
@@ -147,8 +148,7 @@ interface AdminDashboardProps {
     | 'games'
     | 'forum'
     | 'login-activity'
-    | 'announcements'
-    | 'tournaments';
+    | 'announcements';
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -171,7 +171,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     | 'forum'
     | 'login-activity'
     | 'announcements'
-    | 'tournaments'
   >(initialTab);
 
   // Sync activeTab when initialTab changes from parent
@@ -270,7 +269,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setGamesConfigState(getGamesConfig());
     setAnnouncementsList(getAnnouncements());
     setContactForm(getContactInfo());
-    setTournaments(getTypingTournaments());
+    setLeagueTexts(getTypingLeagueTexts());
     refreshUser();
   };
 
@@ -521,24 +520,85 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   });
   const [contactForm, setContactForm] = useState<ContactInfoConfig>(() => getContactInfo());
 
+  // --- Liga Mengetik States ---
+  const [typingSubTab, setTypingSubTab] = useState<'practice' | 'league'>('practice');
+  const [leagueTexts, setLeagueTexts] = useState<TypingLeagueText[]>(() => getTypingLeagueTexts());
+  const [showLeagueTextModal, setShowLeagueTextModal] = useState(false);
+  const [editingLeagueText, setEditingLeagueText] = useState<TypingLeagueText | null>(null);
+  const [leagueTextForm, setLeagueTextForm] = useState({
+    title: '',
+    category: 'Dasar',
+    difficulty: 'Mudah' as 'Mudah' | 'Sedang' | 'Sulit',
+    durationSeconds: 60,
+    content: '',
+    author: '',
+  });
+
+  const handleOpenAddLeagueText = () => {
+    setEditingLeagueText(null);
+    setLeagueTextForm({
+      title: '',
+      category: 'Dasar',
+      difficulty: 'Mudah',
+      durationSeconds: 60,
+      content: '',
+      author: currentUser?.name || 'Pembina Komputer',
+    });
+    setShowLeagueTextModal(true);
+  };
+
+  const handleOpenEditLeagueText = (t: TypingLeagueText) => {
+    setEditingLeagueText(t);
+    setLeagueTextForm({
+      title: t.title,
+      category: t.category,
+      difficulty: t.difficulty,
+      durationSeconds: t.durationSeconds,
+      content: t.content,
+      author: t.author || '',
+    });
+    setShowLeagueTextModal(true);
+  };
+
+  const handleSaveLeagueText = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!leagueTextForm.title.trim() || !leagueTextForm.content.trim()) {
+      showError('Judul dan isi naskah wajib diisi.');
+      return;
+    }
+
+    saveTypingLeagueText({
+      id: editingLeagueText?.id,
+      title: leagueTextForm.title.trim(),
+      category: leagueTextForm.category.trim() || 'Dasar',
+      difficulty: leagueTextForm.difficulty,
+      durationSeconds: Number(leagueTextForm.durationSeconds) || 60,
+      content: leagueTextForm.content.trim(),
+      author: leagueTextForm.author.trim() || currentUser?.name || 'Pembina',
+    });
+
+    showSuccess(editingLeagueText ? 'Naskah liga berhasil diperbarui!' : 'Naskah liga baru berhasil ditambahkan!');
+    setShowLeagueTextModal(false);
+    reloadAll();
+  };
+
+  const handleDeleteLeagueText = (t: TypingLeagueText) => {
+    requestConfirm(
+      'Hapus Naskah Liga',
+      `Apakah Anda yakin ingin menghapus naskah "${t.title}"?`,
+      () => {
+        deleteTypingLeagueText(t.id);
+        showSuccess('Naskah liga berhasil dihapus.');
+        reloadAll();
+      }
+    );
+  };
+
   // --- Feedback States ---
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [feedbackType, setFeedbackType] = useState<'quiz' | 'typing'>('typing');
   const [targetSubmission, setTargetSubmission] = useState<TypingSubmission | QuizSubmission | null>(null);
   const [feedbackText, setFeedbackText] = useState('');
-
-  // --- Tournament States ---
-  const [tournaments, setTournaments] = useState<TypingTournament[]>(() => getTypingTournaments());
-  const [showTournamentModal, setShowTournamentModal] = useState(false);
-  const [editingTournament, setEditingTournament] = useState<TypingTournament | null>(null);
-  const [tournamentForm, setTournamentForm] = useState({
-    title: '',
-    description: '',
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0],
-    practiceId: '',
-    isActive: true,
-  });
 
   const handleOpenFeedback = (type: 'quiz' | 'typing', sub: TypingSubmission | QuizSubmission) => {
     setFeedbackType(type);
@@ -553,36 +613,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     updateSubmissionFeedback(feedbackType, targetSubmission.id, feedbackText.trim());
     showSuccess('Catatan umpan balik (feedback) guru berhasil disimpan!');
     setShowFeedbackModal(false);
-    reloadAll();
-  };
-
-  const handleOpenAddTournament = () => {
-    setEditingTournament(null);
-    setTournamentForm({
-      title: '',
-      description: '',
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0],
-      practiceId: typingPractices[0]?.id || '',
-      isActive: true,
-    });
-    setShowTournamentModal(true);
-  };
-
-  const handleSaveTournament = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!tournamentForm.title.trim() || !tournamentForm.practiceId) {
-      showError('Judul turnamen dan pilihan naskah wajib diisi.');
-      return;
-    }
-
-    saveTypingTournament({
-      id: editingTournament?.id,
-      ...tournamentForm,
-    });
-
-    showSuccess(editingTournament ? 'Turnamen berhasil diperbarui!' : 'Turnamen liga ketik baru berhasil dibuat!');
-    setShowTournamentModal(false);
     reloadAll();
   };
 
@@ -1524,108 +1554,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       )}
 
-      {/* ================= TAB: MANAJEMEN TURNAMEN LIGA KETIK ================= */}
-      {activeTab === 'tournaments' && (
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-amber-500" />
-                <span>Turnamen Liga Ketik Komputer</span>
-              </h2>
-              <p className="text-xs text-slate-500">
-                Buat dan kelola kompetisi mengetik cepat antar siswa dalam periode waktu tertentu.
-              </p>
-            </div>
-            <button
-              onClick={handleOpenAddTournament}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md shadow-indigo-500/20 transition-all cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Buat Turnamen Baru</span>
-            </button>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tournaments.map((trn) => {
-              const practice = typingPractices.find(p => p.id === trn.practiceId);
-              const isExpired = new Date(trn.endDate) < new Date();
-              
-              return (
-                <div key={trn.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs flex flex-col">
-                  <div className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest text-center ${trn.isActive && !isExpired ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
-                    {trn.isActive && !isExpired ? 'Sedang Berlangsung' : isExpired ? 'Sudah Berakhir' : 'Nonaktif'}
-                  </div>
-                  <div className="p-5 flex-1 space-y-3">
-                    <div>
-                      <h3 className="text-sm font-bold text-slate-900 dark:text-white line-clamp-1">{trn.title}</h3>
-                      <p className="text-[11px] text-slate-500 line-clamp-2 mt-1">{trn.description}</p>
-                    </div>
-
-                    <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-slate-400">Naskah Tanding:</span>
-                        <span className="font-semibold text-indigo-600 dark:text-indigo-400">{practice?.title || 'Unknown'}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-slate-400">Periode:</span>
-                        <span className="font-semibold text-slate-700 dark:text-slate-300">
-                          {new Date(trn.startDate).toLocaleDateString('id-ID')} - {new Date(trn.endDate).toLocaleDateString('id-ID')}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="px-4 py-3 bg-slate-50 dark:bg-slate-950/60 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => {
-                        setEditingTournament(trn);
-                        setTournamentForm({
-                          title: trn.title,
-                          description: trn.description,
-                          startDate: trn.startDate,
-                          endDate: trn.endDate,
-                          practiceId: trn.practiceId,
-                          isActive: trn.isActive,
-                        });
-                        setShowTournamentModal(true);
-                      }}
-                      className="p-1.5 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/40 rounded transition-colors"
-                      title="Edit Turnamen"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        requestConfirm(
-                          'Hapus Turnamen',
-                          `Apakah Anda yakin ingin menghapus turnamen "${trn.title}"?`,
-                          () => {
-                            deleteTypingTournament(trn.id);
-                            showSuccess('Turnamen berhasil dihapus.');
-                            reloadAll();
-                          }
-                        );
-                      }}
-                      className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/40 rounded transition-colors"
-                      title="Hapus Turnamen"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-
-            {tournaments.length === 0 && (
-              <div className="col-span-full py-12 text-center bg-white dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-800 rounded-3xl">
-                <Trophy className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500 font-bold">Belum ada turnamen liga ketik.</p>
-                <p className="text-xs text-slate-400">Klik tombol di pojok kanan atas untuk memulai turnamen pertama!</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* ================= TAB: MANAJEMEN PEMBINA SEKOLAH (SUPERADMIN ONLY) ================= */}
       {activeTab === 'pembina' && (
@@ -2217,68 +2146,210 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       )}
 
-      {/* ================= TAB 4: MANAJEMEN LATIHAN MENGETIK ================= */}
+      {/* ================= TAB 4: MANAJEMEN LATIHAN MENGETIK & LIGA MENGETIK ================= */}
       {activeTab === 'typing' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-slate-500">
-              Dokumen acuan naskah dan tabel yang harus diketik ulang oleh siswa pada Microsoft Word Editor.
-            </p>
+        <div className="space-y-6">
+          {/* Sub Tab Navigation */}
+          <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
             <button
-              onClick={handleOpenAddTyping}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-xs transition-colors cursor-pointer"
+              onClick={() => setTypingSubTab('practice')}
+              className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+                typingSubTab === 'practice'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+              }`}
             >
-              <Plus className="w-4 h-4" />
-              <span>Tambah Tugas Mengetik Baru</span>
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              <span>Tugas Mengetik Word ({typingPractices.length})</span>
+            </button>
+            <button
+              onClick={() => setTypingSubTab('league')}
+              className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+                typingSubTab === 'league'
+                  ? 'bg-amber-500 text-slate-950 shadow-xs'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+              }`}
+            >
+              <Trophy className="w-3.5 h-3.5" />
+              <span>Naskah Liga Mengetik ({leagueTexts.length})</span>
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {typingPractices.map((practice) => (
-              <div
-                key={practice.id}
-                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs space-y-3 flex flex-col justify-between"
-              >
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs text-slate-500">
-                    <span className="font-semibold text-indigo-600 dark:text-indigo-400">
-                      {practice.category} · {practice.difficulty}
-                    </span>
-                    <span className="font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
-                      +{practice.allocatedPoints} Poin Maks
-                    </span>
-                  </div>
-
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                    {practice.title}
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    {practice.instructions}
-                  </p>
-                  <p className="text-[11px] text-slate-400">
-                    Target WPM: {practice.targetWpm} · Minimal Akurasi: {practice.minAccuracy}%
-                  </p>
-                </div>
-
-                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
-                  <button
-                    onClick={() => handleOpenEditTyping(practice)}
-                    className="p-1.5 text-xs text-slate-600 dark:text-slate-300 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded"
-                    title="Edit Tugas Mengetik"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteTyping(practice)}
-                    className="p-1.5 text-xs text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950 rounded"
-                    title="Hapus Tugas"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+          {/* Sub Tab 1: Word Practice Exercises */}
+          {typingSubTab === 'practice' && (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <p className="text-xs text-slate-500">
+                  Dokumen acuan naskah dan tabel yang harus diketik ulang oleh siswa pada Microsoft Word Editor.
+                </p>
+                <button
+                  onClick={handleOpenAddTyping}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-xs transition-colors cursor-pointer shrink-0"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Tambah Tugas Mengetik Baru</span>
+                </button>
               </div>
-            ))}
-          </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {typingPractices.map((practice) => (
+                  <div
+                    key={practice.id}
+                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs space-y-3 flex flex-col justify-between"
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-xs text-slate-500">
+                        <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+                          {practice.category} · {practice.difficulty}
+                        </span>
+                        <span className="font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
+                          +{practice.allocatedPoints} Poin Maks
+                        </span>
+                      </div>
+
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                        {practice.title}
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        {practice.instructions}
+                      </p>
+                      <p className="text-[11px] text-slate-400">
+                        Target WPM: {practice.targetWpm} · Minimal Akurasi: {practice.minAccuracy}%
+                      </p>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => handleOpenEditTyping(practice)}
+                        className="p-1.5 text-xs text-slate-600 dark:text-slate-300 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded cursor-pointer"
+                        title="Edit Tugas Mengetik"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteTyping(practice)}
+                        className="p-1.5 text-xs text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950 rounded cursor-pointer"
+                        title="Hapus Tugas"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Sub Tab 2: Liga Mengetik Challenge Texts */}
+          {typingSubTab === 'league' && (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <Trophy className="w-4 h-4 text-amber-500" />
+                    <span>Naskah & Tantangan Resmi Liga Mengetik 10 Jari</span>
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Kelola naskah teks kalimat yang akan dipilih dan diketik cepat oleh siswa saat bertanding di arena Liga Mengetik.
+                  </p>
+                </div>
+                <button
+                  onClick={handleOpenAddLeagueText}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-500 rounded-xl shadow-xs transition-colors cursor-pointer shrink-0"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Tambah Naskah Liga Baru</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {leagueTexts.map((textItem) => {
+                  const scores = getTypingLeagueScores().filter((s) => s.textId === textItem.id);
+                  const topScore = scores.sort((a, b) => b.score - a.score)[0];
+
+                  return (
+                    <div
+                      key={textItem.id}
+                      className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-3 flex flex-col justify-between"
+                    >
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                            {textItem.category}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                textItem.difficulty === 'Mudah'
+                                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                                  : textItem.difficulty === 'Sedang'
+                                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                                  : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                              }`}
+                            >
+                              {textItem.difficulty}
+                            </span>
+                            <span className="text-[11px] font-semibold text-slate-400">
+                              ⏱️ {textItem.durationSeconds}s
+                            </span>
+                          </div>
+                        </div>
+
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                          {textItem.title}
+                        </h4>
+
+                        <div className="p-3 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 font-mono italic line-clamp-3">
+                          "{textItem.content}"
+                        </div>
+
+                        <div className="flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-2">
+                          <span>Panjang: <strong className="text-slate-700 dark:text-slate-300">{textItem.content.length} Karakter</strong></span>
+                          <span>Total Peserta: <strong className="text-slate-700 dark:text-slate-300">{scores.length} Submisi</strong></span>
+                        </div>
+
+                        {topScore && (
+                          <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 flex items-center justify-between text-[11px]">
+                            <span className="text-amber-900 dark:text-amber-300 font-bold">
+                              👑 Rekor: {topScore.studentName}
+                            </span>
+                            <span className="font-mono font-bold text-amber-800 dark:text-amber-400">
+                              {topScore.wpm} WPM · {topScore.score} pt
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => handleOpenEditLeagueText(textItem)}
+                          className="p-1.5 text-xs text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 rounded cursor-pointer"
+                          title="Edit Naskah Liga"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteLeagueText(textItem)}
+                          className="p-1.5 text-xs text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950 rounded cursor-pointer"
+                          title="Hapus Naskah Liga"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {leagueTexts.length === 0 && (
+                  <div className="col-span-full py-12 text-center bg-white dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-800 rounded-3xl space-y-2">
+                    <Trophy className="w-10 h-10 text-slate-300 mx-auto" />
+                    <p className="text-slate-500 font-bold">Belum ada naskah liga mengetik.</p>
+                    <p className="text-xs text-slate-400">Klik tombol di kanan atas untuk membuat naskah pertama!</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -5322,125 +5393,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </div>
       )}
-      {/* Tournament Modal */}
-      {showTournamentModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-md w-full overflow-hidden shadow-2xl">
-            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Trophy className="w-4 h-4 text-indigo-500" />
-                  {editingTournament ? 'Ubah Turnamen' : 'Buat Turnamen Liga Baru'}
-                </h3>
-              </div>
-              <button onClick={() => setShowTournamentModal(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleSaveTournament} className="p-6 space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Nama / Judul Turnamen:
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={tournamentForm.title}
-                  onChange={(e) => setTournamentForm({ ...tournamentForm, title: e.target.value })}
-                  placeholder="Contoh: Liga Mengetik Cepat Sumpah Pemuda"
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white"
-                />
-              </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Deskripsi / Aturan Turnamen:
-                </label>
-                <textarea
-                  rows={3}
-                  value={tournamentForm.description}
-                  onChange={(e) => setTournamentForm({ ...tournamentForm, description: e.target.value })}
-                  placeholder="Aturan lomba, hadiah, dll..."
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Pilih Naskah Ketik Lomba:
-                </label>
-                <select
-                  required
-                  value={tournamentForm.practiceId}
-                  onChange={(e) => setTournamentForm({ ...tournamentForm, practiceId: e.target.value })}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white cursor-pointer"
-                >
-                  <option value="">-- Pilih Naskah --</option>
-                  {typingPractices.map((p) => (
-                    <option key={p.id} value={p.id}>{p.title}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    Tanggal Mulai:
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={tournamentForm.startDate}
-                    onChange={(e) => setTournamentForm({ ...tournamentForm, startDate: e.target.value })}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    Tanggal Selesai:
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={tournamentForm.endDate}
-                    onChange={(e) => setTournamentForm({ ...tournamentForm, endDate: e.target.value })}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 pt-2">
-                <input
-                  type="checkbox"
-                  id="trn-active"
-                  checked={tournamentForm.isActive}
-                  onChange={(e) => setTournamentForm({ ...tournamentForm, isActive: e.target.checked })}
-                  className="w-4 h-4 text-indigo-600 rounded border-slate-300 dark:border-slate-700 focus:ring-indigo-500 cursor-pointer"
-                />
-                <label htmlFor="trn-active" className="text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
-                  Aktifkan Turnamen Ini Sekarang
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setShowTournamentModal(false)}
-                  className="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm"
-                >
-                  Simpan Turnamen
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* School Reward Item Modal */}
       {showSchoolRewardModal && (
@@ -5541,6 +5494,145 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   className="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm cursor-pointer"
                 >
                   Simpan Hadiah
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* League Text Modal */}
+      {showLeagueTextModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full overflow-hidden shadow-2xl">
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-amber-500" />
+                  {editingLeagueText ? 'Ubah Naskah Liga Mengetik' : 'Tambah Naskah Liga Baru'}
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowLeagueTextModal(false)}
+                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveLeagueText} className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Judul Naskah Tantangan:
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={leagueTextForm.title}
+                  onChange={(e) => setLeagueTextForm({ ...leagueTextForm, title: e.target.value })}
+                  placeholder="Contoh: Petualangan Mengetik 10 Jari"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Kategori:
+                  </label>
+                  <select
+                    value={leagueTextForm.category}
+                    onChange={(e) => setLeagueTextForm({ ...leagueTextForm, category: e.target.value })}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white cursor-pointer"
+                  >
+                    <option value="Dasar">Dasar</option>
+                    <option value="Teknologi">Teknologi</option>
+                    <option value="Sejarah">Sejarah</option>
+                    <option value="Inspiratif">Inspiratif</option>
+                    <option value="Umum">Umum</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Tingkat Kesulitan:
+                  </label>
+                  <select
+                    value={leagueTextForm.difficulty}
+                    onChange={(e) =>
+                      setLeagueTextForm({
+                        ...leagueTextForm,
+                        difficulty: e.target.value as 'Mudah' | 'Sedang' | 'Sulit',
+                      })
+                    }
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white cursor-pointer"
+                  >
+                    <option value="Mudah">Mudah</option>
+                    <option value="Sedang">Sedang</option>
+                    <option value="Sulit">Sulit</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Durasi (detik):
+                  </label>
+                  <input
+                    type="number"
+                    min={30}
+                    max={300}
+                    required
+                    value={leagueTextForm.durationSeconds}
+                    onChange={(e) =>
+                      setLeagueTextForm({ ...leagueTextForm, durationSeconds: Number(e.target.value) })
+                    }
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Teks Kalimat Naskah yang Harus Diketik:
+                </label>
+                <textarea
+                  rows={5}
+                  required
+                  value={leagueTextForm.content}
+                  onChange={(e) => setLeagueTextForm({ ...leagueTextForm, content: e.target.value })}
+                  placeholder="Tuliskan teks kalimat paragraf yang harus diketik oleh siswa saat bertanding..."
+                  className="w-full px-3 py-2 text-xs font-mono rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white leading-relaxed"
+                />
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Jumlah karakter: {leagueTextForm.content.length} karakter · {leagueTextForm.content.trim().split(/\s+/).filter(Boolean).length} kata
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Penulis / Sumber Naskah:
+                </label>
+                <input
+                  type="text"
+                  value={leagueTextForm.author}
+                  onChange={(e) => setLeagueTextForm({ ...leagueTextForm, author: e.target.value })}
+                  placeholder="Contoh: Tim Pembina Komputer"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowLeagueTextModal(false)}
+                  className="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-500 rounded-lg shadow-sm cursor-pointer"
+                >
+                  Simpan Naskah Liga
                 </button>
               </div>
             </form>

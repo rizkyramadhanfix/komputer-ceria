@@ -86,7 +86,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
 
           {/* Certificate Preview Box */}
           <div className="p-3 sm:p-5 overflow-y-auto flex-1 bg-slate-100 dark:bg-slate-950 flex items-center justify-center">
-            <div className="w-full max-w-2xl bg-white text-slate-900 p-4 sm:p-6 rounded-xl border-8 border-double border-amber-600/70 shadow-xl relative overflow-hidden flex flex-col justify-between aspect-[1.414/1] min-h-[420px] max-h-[75vh]">
+            <div className="w-full max-w-2xl bg-white text-slate-900 p-4 sm:p-6 rounded-xl border-8 border-double border-amber-600/70 shadow-xl relative overflow-hidden flex flex-col justify-between aspect-[1.414/1] min-h-[460px]">
               {/* Watermark Logo Background */}
               <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none select-none">
                 <Award className="w-96 h-96 text-indigo-900" />

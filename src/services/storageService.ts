@@ -33,10 +33,13 @@ import {
   SchoolRewardItem,
   RewardRedemption,
   TypingTournament,
+  TypingLeagueText,
+  TypingLeagueScore,
 } from '../types';
 import {
   collection,
   doc,
+  getDoc,
   setDoc,
   deleteDoc,
   onSnapshot,
@@ -68,6 +71,8 @@ const STORAGE_KEYS = {
   ANNOUNCEMENTS: 'ekskul_announcements',
   CONTACT_INFO: 'ekskul_contact_info',
   TYPING_TOURNAMENTS: 'ekskul_typing_tournaments',
+  TYPING_LEAGUE_TEXTS: 'ekskul_typing_league_texts',
+  TYPING_LEAGUE_SCORES: 'ekskul_typing_league_scores',
   CLEAN_FLAG: 'ekskul_clean_v4',
 };
 
@@ -312,6 +317,34 @@ function initFirestoreListeners() {
       }
     }, (err) => {
       console.warn('Firestore Tournament listener failed:', err);
+    });
+
+    // 12. Subscribe to Liga Mengetik Texts
+    onSnapshot(collection(db, 'typingLeagueTexts'), (snapshot) => {
+      if (!snapshot.empty) {
+        const firestoreTexts: TypingLeagueText[] = [];
+        snapshot.forEach((docSnap) => {
+          firestoreTexts.push(docSnap.data() as TypingLeagueText);
+        });
+        setStoredItem(STORAGE_KEYS.TYPING_LEAGUE_TEXTS, firestoreTexts);
+        notifyDataUpdated();
+      }
+    }, (err) => {
+      console.warn('Firestore typingLeagueTexts listener failed:', err);
+    });
+
+    // 13. Subscribe to Liga Mengetik Scores
+    onSnapshot(query(collection(db, 'typingLeagueScores'), orderBy('submittedAt', 'desc'), limit(100)), (snapshot) => {
+      if (!snapshot.empty) {
+        const firestoreScores: TypingLeagueScore[] = [];
+        snapshot.forEach((docSnap) => {
+          firestoreScores.push(docSnap.data() as TypingLeagueScore);
+        });
+        setStoredItem(STORAGE_KEYS.TYPING_LEAGUE_SCORES, firestoreScores);
+        notifyDataUpdated();
+      }
+    }, (err) => {
+      console.warn('Firestore typingLeagueScores listener failed:', err);
     });
   } catch (err) {
     console.error('Error initializing Firestore listeners:', err);
@@ -774,6 +807,11 @@ const DEFAULT_GAMES_CONFIG: GamesConfig = {
     { id: 'cyber-safety', name: 'Edukasi Keamanan Siber', category: 'utility', isEnabled: true, pointsMultiplier: 1 },
     { id: 'shortcuts', name: 'Master Shortcut Keyboard', category: 'utility', isEnabled: true, pointsMultiplier: 1 },
     { id: 'daily-quests', name: 'Misi Harian & Streak Absen', category: 'utility', isEnabled: true, pointsMultiplier: 1 },
+    { id: 'port-master', name: 'Master Colokan & Port Komputer', category: 'game', isEnabled: true, pointsMultiplier: 1, basePoints: 40 },
+    { id: 'binary-code', name: 'Detektif Kode Biner (0 dan 1)', category: 'game', isEnabled: true, pointsMultiplier: 1, basePoints: 50 },
+    { id: 'anti-phishing', name: 'Detektif Anti-Phishing Siber', category: 'game', isEnabled: true, pointsMultiplier: 1, basePoints: 45 },
+    { id: 'grid-robot', name: 'Grid Robot Navigator (Logika Blok)', category: 'game', isEnabled: true, pointsMultiplier: 1, basePoints: 50 },
+    { id: 'typing-league', name: 'Liga Mengetik Cepat 10 Jari', category: 'game', isEnabled: true, pointsMultiplier: 1, basePoints: 60 },
   ]
 };
 
@@ -1770,6 +1808,70 @@ const DEFAULT_SHOP_ITEMS: ShopItem[] = [
     icon: '🌈',
   },
   {
+    id: 'frame-diamond',
+    name: 'Bingkai Berlian Es Abadi',
+    description: 'Bingkai mewah berkilau warna biru es permata untuk siswa berprestasi tinggi!',
+    costStars: 30,
+    category: 'frame',
+    icon: '💎',
+  },
+  {
+    id: 'frame-galaxy',
+    name: 'Bingkai Galaksi Bintang',
+    description: 'Pendaran ungu kosmik luar angkasa yang memukau di foto profilmu!',
+    costStars: 35,
+    category: 'frame',
+    icon: '🌌',
+  },
+  {
+    id: 'item-avatar-astronaut',
+    name: 'Avatar Astronot Digital',
+    description: 'Buka avatar khusus penjelajah antariksa komputer ceria',
+    costStars: 10,
+    category: 'avatar',
+    icon: '🚀',
+  },
+  {
+    id: 'item-avatar-cat',
+    name: 'Avatar Kucing Hacker',
+    description: 'Buka avatar kucing hacker bertudung yang lucu dan cerdas',
+    costStars: 12,
+    category: 'avatar',
+    icon: '🐱',
+  },
+  {
+    id: 'item-avatar-ninja',
+    name: 'Avatar Ninja Keyboard',
+    description: 'Buka avatar ninja ketik secepat kilat',
+    costStars: 15,
+    category: 'avatar',
+    icon: '🥷',
+  },
+  {
+    id: 'item-badge-shield',
+    name: 'Lencana Pelindung Siber',
+    description: 'Lencana khusus tanda tameng anti-phishing dan keamanan internet',
+    costStars: 12,
+    category: 'badge',
+    icon: '🛡️',
+  },
+  {
+    id: 'item-badge-binary',
+    name: 'Lencana Ahli Biner 0-1',
+    description: 'Lencana pemecah kode rahasia bahasa mesin komputer',
+    costStars: 14,
+    category: 'badge',
+    icon: '💡',
+  },
+  {
+    id: 'item-badge-diamond',
+    name: 'Lencana Bintang Kehormatan',
+    description: 'Lencana kehormatan tertinggi atas loyalitas dan ketekunan belajar',
+    costStars: 25,
+    category: 'badge',
+    icon: '💎',
+  },
+  {
     id: 'title-captain',
     name: 'Kapten Komputer',
     description: 'Beli gelar khusus "Kapten Komputer" untuk profilmu!',
@@ -1860,14 +1962,18 @@ export function equipShopItem(studentId: string, item: ShopItem) {
   const user = getUserById(studentId);
   if (!user) return false;
   if (item.category === 'frame') {
-    updateUser(studentId, { equippedFrame: item.id });
+    updateUser(studentId, { equippedFrame: item.id.replace('frame-', '') });
   } else if (item.category === 'title') {
-    updateUser(studentId, { equippedTitle: item.name });
+    updateUser(studentId, { equippedTitle: item.titleBadge || item.name });
+  } else if (item.category === 'badge') {
+    updateUser(studentId, { equippedBadge: item.name });
+  } else if (item.category === 'avatar') {
+    updateUser(studentId, { equippedAvatar: item.icon });
   }
   return true;
 }
 
-export function unequipShopItem(studentId: string, target: 'frame' | 'title' | ShopItem) {
+export function unequipShopItem(studentId: string, target: 'frame' | 'title' | 'badge' | 'avatar' | ShopItem) {
   const user = getUserById(studentId);
   if (!user) return false;
   const category = typeof target === 'string' ? target : target.category;
@@ -1875,6 +1981,10 @@ export function unequipShopItem(studentId: string, target: 'frame' | 'title' | S
     updateUser(studentId, { equippedFrame: undefined });
   } else if (category === 'title') {
     updateUser(studentId, { equippedTitle: undefined });
+  } else if (category === 'badge') {
+    updateUser(studentId, { equippedBadge: undefined });
+  } else if (category === 'avatar') {
+    updateUser(studentId, { equippedAvatar: undefined });
   }
   return true;
 }
@@ -2057,6 +2167,14 @@ export function recordGameScore(
     'Petualangan Mengetik RPG': 'typing-hero',
     'Kuis Duel Cerdas': 'quiz-duel',
     'Game Kata Jatuh': 'games',
+    'Master Colokan & Port Komputer': 'port-master',
+    'Detektif Kode Biner (0 dan 1)': 'binary-code',
+    'Detektif Anti-Phishing Siber': 'anti-phishing',
+    'Grid Robot Navigator': 'grid-robot',
+    'port-master': 'port-master',
+    'binary-code': 'binary-code',
+    'anti-phishing': 'anti-phishing',
+    'grid-robot': 'grid-robot',
   };
   const featureId = featureMap[gameName];
   if (featureId) {
@@ -2169,3 +2287,187 @@ export function deleteTypingTournament(id: string): void {
   removeDocFromFirestore('typingTournaments', id);
   notifyDataUpdated();
 }
+
+// --- Liga Mengetik (Texts & Leaderboard) ---
+const DEFAULT_TYPING_LEAGUE_TEXTS: TypingLeagueText[] = [
+  {
+    id: 'league-text-1',
+    title: 'Sejarah & Manfaat Komputer Ceria',
+    category: 'Sejarah',
+    difficulty: 'Mudah',
+    durationSeconds: 60,
+    content: 'Komputer pertama kali diciptakan untuk membantu manusia menghitung dengan cepat dan tepat. Kini komputer telah berkembang menjadi perangkat pintar yang mempermudah kita belajar, menggambar, dan berkomunikasi dengan sahabat di seluruh dunia.',
+    author: 'Pembina Komputer',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'league-text-2',
+    title: 'Keahlian Mengetik Cepat 10 Jari',
+    category: 'Dasar',
+    difficulty: 'Sedang',
+    durationSeconds: 90,
+    content: 'Mengetik sepuluh jari adalah keterampilan yang sangat hebat. Jari telunjuk bertugas menekan tombol F dan J yang memiliki tanda timbul khusus. Dengan berlatih setiap hari, tangan kita dapat menari lincah di atas keyboard tanpa perlu melihat tombol lagi.',
+    author: 'Instruktur Rzk',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'league-text-3',
+    title: 'Inovasi Digital & Masa Depan Cemerlang',
+    category: 'Teknologi',
+    difficulty: 'Sulit',
+    durationSeconds: 120,
+    content: 'Dunia digital masa depan dipenuhi dengan inovasi kecerdasan buatan dan jaringan internet super cepat. Siswa hebat selalu menggunakan teknologi untuk menciptakan karya bermanfaat, menjaga keamanan data pribadi, dan menyebarkan kebaikan bagi sesama.',
+    author: 'Superadmin Ceria',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'league-text-4',
+    title: 'Semangat Pantang Menyerah Menuju Bintang',
+    category: 'Inspiratif',
+    difficulty: 'Sedang',
+    durationSeconds: 60,
+    content: 'Setiap kesalahan dalam mengetik adalah langkah untuk menjadi lebih teliti dan terampil. Jangan takut membuat kekeliruan, teruslah berusaha dengan gigih karena keberhasilan milik mereka yang tidak pernah berhenti belajar.',
+    author: 'Guru Pembina',
+    createdAt: new Date().toISOString(),
+  }
+];
+
+export function getTypingLeagueTexts(): TypingLeagueText[] {
+  const stored = getStoredItem<TypingLeagueText[]>(STORAGE_KEYS.TYPING_LEAGUE_TEXTS, DEFAULT_TYPING_LEAGUE_TEXTS);
+  if (!stored || stored.length === 0) {
+    setStoredItem(STORAGE_KEYS.TYPING_LEAGUE_TEXTS, DEFAULT_TYPING_LEAGUE_TEXTS);
+    return DEFAULT_TYPING_LEAGUE_TEXTS;
+  }
+  return stored;
+}
+
+export function saveTypingLeagueText(text: Omit<TypingLeagueText, 'id' | 'createdAt'> & { id?: string; createdAt?: string }): TypingLeagueText {
+  const texts = getTypingLeagueTexts();
+  const id = text.id || `league-text-${Date.now()}`;
+  const newText: TypingLeagueText = {
+    ...text,
+    id,
+    createdAt: text.createdAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  const existingIdx = texts.findIndex((t) => t.id === id);
+  if (existingIdx !== -1) {
+    texts[existingIdx] = newText;
+  } else {
+    texts.unshift(newText);
+  }
+
+  setStoredItem(STORAGE_KEYS.TYPING_LEAGUE_TEXTS, texts);
+  syncDocToFirestore('typingLeagueTexts', id, newText);
+  notifyDataUpdated();
+  return newText;
+}
+
+export function deleteTypingLeagueText(id: string): void {
+  const texts = getTypingLeagueTexts();
+  const filtered = texts.filter((t) => t.id !== id);
+  setStoredItem(STORAGE_KEYS.TYPING_LEAGUE_TEXTS, filtered);
+  removeDocFromFirestore('typingLeagueTexts', id);
+  notifyDataUpdated();
+}
+
+export function getTypingLeagueScores(): TypingLeagueScore[] {
+  return getStoredItem<TypingLeagueScore[]>(STORAGE_KEYS.TYPING_LEAGUE_SCORES, []);
+}
+
+export function saveTypingLeagueScore(
+  scoreData: Omit<TypingLeagueScore, 'id' | 'submittedAt'> & { id?: string; submittedAt?: string }
+): TypingLeagueScore {
+  const scores = getTypingLeagueScores();
+  const id = scoreData.id || `lscore-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+  const newScore: TypingLeagueScore = {
+    ...scoreData,
+    id,
+    submittedAt: scoreData.submittedAt || new Date().toISOString(),
+  };
+
+  scores.unshift(newScore);
+  // Keep latest 500 scores locally
+  const trimmed = scores.slice(0, 500);
+  setStoredItem(STORAGE_KEYS.TYPING_LEAGUE_SCORES, trimmed);
+  syncDocToFirestore('typingLeagueScores', id, newScore);
+
+  // Also award student points & stars
+  if (newScore.studentId) {
+    if (newScore.score > 0) {
+      awardStudentPoints(newScore.studentId, newScore.score);
+    }
+  }
+
+  notifyDataUpdated();
+  return newScore;
+}
+
+export function getTypingLeagueLeaderboard(textId?: string, school?: string): TypingLeagueScore[] {
+  const scores = getTypingLeagueScores();
+  let filtered = scores;
+
+  if (textId && textId !== 'ALL') {
+    filtered = filtered.filter((s) => s.textId === textId);
+  }
+
+  if (school && school !== 'ALL') {
+    filtered = filtered.filter((s) => !s.studentSchool || s.studentSchool === school);
+  }
+
+  // Group by studentId to keep only their best score for the given filter
+  const bestMap = new Map<string, TypingLeagueScore>();
+  for (const s of filtered) {
+    const existing = bestMap.get(s.studentId);
+    if (!existing || s.score > existing.score || (s.score === existing.score && s.wpm > existing.wpm)) {
+      bestMap.set(s.studentId, s);
+    }
+  }
+
+  const bestList = Array.from(bestMap.values());
+  bestList.sort((a, b) => b.score - a.score || b.wpm - a.wpm || b.accuracy - a.accuracy);
+  return bestList;
+}
+
+// --- Manual Cloud Sync Pull ---
+export async function pullLatestDataFromCloud(): Promise<boolean> {
+  try {
+    const collectionsToSync = [
+      { name: 'users', key: STORAGE_KEYS.USERS },
+      { name: 'lessons', key: STORAGE_KEYS.LESSONS },
+      { name: 'quizzes', key: STORAGE_KEYS.QUIZZES },
+      { name: 'typingPractices', key: STORAGE_KEYS.TYPING_PRACTICES },
+      { name: 'typingLeagueTexts', key: STORAGE_KEYS.TYPING_LEAGUE_TEXTS },
+      { name: 'announcements', key: STORAGE_KEYS.ANNOUNCEMENTS },
+      { name: 'galleryWorks', key: STORAGE_KEYS.GALLERY_WORKS },
+      { name: 'schoolRewards', key: STORAGE_KEYS.SCHOOL_REWARDS },
+      { name: 'config', docId: 'dashboard_config', key: STORAGE_KEYS.DASHBOARD_CONFIG },
+      { name: 'config', docId: 'gamification_config', key: STORAGE_KEYS.GAMIFICATION_CONFIG },
+      { name: 'config', docId: 'games_config', key: STORAGE_KEYS.GAMES_CONFIG },
+      { name: 'config', docId: 'contact_info', key: STORAGE_KEYS.CONTACT_INFO },
+    ];
+    for (const c of collectionsToSync) {
+      if (c.docId) {
+        const snap = await getDoc(doc(db, c.name, c.docId));
+        if (snap.exists()) {
+          setStoredItem(c.key, snap.data());
+        }
+      } else {
+        const snap = await getDocs(collection(db, c.name));
+        if (!snap.empty) {
+          const list: any[] = [];
+          snap.forEach((d) => list.push(d.data()));
+          setStoredItem(c.key, list);
+        }
+      }
+    }
+    notifyDataUpdated();
+    return true;
+  } catch (err) {
+    console.warn('Manual cloud data pull warning:', err);
+    notifyDataUpdated();
+    return false;
+  }
+}
+

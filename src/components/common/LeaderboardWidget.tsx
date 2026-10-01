@@ -12,22 +12,27 @@ import { StudentProfileModal } from './StudentProfileModal';
 interface LeaderboardWidgetProps {
   limit?: number;
   showAll?: boolean;
+  onChallengeInitiated?: (battleId: string, gameType: 'quiz_duel' | 'typing_race') => void;
 }
 
 export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
   limit = 10,
   showAll = false,
+  onChallengeInitiated,
 }) => {
   const { users, currentUser } = useAuth();
   const { showInfo, showError } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<User | null>(null);
 
-  const handleChallenge = async (student: User) => {
+  const handleChallenge = async (student: User, gameType: 'quiz_duel' | 'typing_race' = 'quiz_duel') => {
     if (!currentUser) return;
     try {
-      await createBattleChallenge(currentUser, student, 'quiz_duel');
-      showInfo(`Tantangan duel kuis telah dikirim ke ${student.name}!`, 'Tantangan Dikirim');
+      const newBattleId = await createBattleChallenge(currentUser, student, gameType);
+      showInfo(`Tantangan duel ${gameType === 'typing_race' ? 'balap ketik' : 'kuis'} dikirim ke ${student.name}!`, 'Tantangan Dikirim');
+      if (onChallengeInitiated) {
+        onChallengeInitiated(newBattleId, gameType);
+      }
     } catch (err) {
       console.error(err);
       showError('Gagal mengirim tantangan duel.');
@@ -126,15 +131,29 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
                   <td className="py-3 px-4 text-center">{getRankBadge(rank)}</td>
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2.5">
-                      <Avatar src={student.avatarUrl} name={student.name} size="xs" />
-                      <span className="text-slate-900 dark:text-white font-medium">
-                        {student.name}
-                      </span>
-                      {isCurrent && (
-                        <span className="text-[10px] text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/60 px-1.5 py-0.2 rounded font-normal">
-                          Anda
-                        </span>
-                      )}
+                      <Avatar src={student.avatarUrl} name={student.name} size="xs" frame={student.equippedFrame} />
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-slate-900 dark:text-white font-medium">
+                            {student.name}
+                          </span>
+                          {student.equippedTitle && (
+                            <span className="text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 px-1.5 py-0.5 rounded">
+                              {student.equippedTitle}
+                            </span>
+                          )}
+                          {isCurrent && (
+                            <span className="text-[9px] text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/60 px-1.5 py-0.2 rounded font-normal">
+                              Anda
+                            </span>
+                          )}
+                        </div>
+                        {student.equippedBadge && (
+                          <span className="text-[9px] text-slate-500 dark:text-slate-400">
+                            🎖️ {student.equippedBadge}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </td>
                   <td className="py-3 px-4 text-slate-600 dark:text-slate-300">

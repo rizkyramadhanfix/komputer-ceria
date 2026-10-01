@@ -270,7 +270,7 @@ export function generateCertificatesHtml(
         : `<div class="w-14 h-14 rounded-full border-4 border-double border-amber-500 bg-amber-100 text-amber-800 flex flex-col items-center justify-center mx-auto"><span class="text-[16px]">🛡️</span><span class="text-[6px] font-black uppercase">${activeCertConfig.sealTitle || 'RESMI'}</span></div>`;
 
       return `
-        <div class="certificate-page-item relative overflow-hidden bg-white text-slate-900 rounded-2xl shadow-xl border-8 border-double border-amber-600 p-5 flex flex-col justify-between max-w-[272mm] h-[182mm] mx-auto mb-6 print:mb-0 print:border-8 print:shadow-none box-border">
+        <div class="certificate-page-item relative overflow-hidden bg-white text-slate-900 rounded-2xl shadow-xl border-8 border-double border-amber-600 flex flex-col justify-between mx-auto mb-6 print:mb-0 print:border-8 print:shadow-none box-border">
           <!-- Header -->
           <div class="text-center space-y-1 relative z-10 pt-1">
             <div class="flex items-center justify-center gap-2 text-indigo-800 font-bold uppercase tracking-widest text-xs">
@@ -355,38 +355,61 @@ export function generateCertificatesHtml(
         size: A4 landscape;
         margin: 0;
       }
+      *, *::before, *::after {
+        box-sizing: border-box;
+      }
       body {
         margin: 0;
-        padding: 4mm;
+        padding: 0;
         background-color: #f8fafc;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
       .certificate-page-item {
-        width: 272mm;
-        height: 182mm;
-        margin: 0 auto 4mm auto;
-        padding: 6mm 10mm;
+        width: 277mm;
+        height: 190mm;
+        margin: 5mm auto;
+        padding: 5mm 8mm;
         box-sizing: border-box;
         page-break-after: always;
         break-after: page;
+        page-break-inside: avoid;
+        break-inside: avoid;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         background: #ffffff;
+        overflow: hidden;
       }
       @media print {
-        body {
-          padding: 0 !important;
-          background-color: #ffffff !important;
-        }
-        .certificate-page-item {
-          margin: 0 auto !important;
-          border-radius: 0 !important;
-          box-shadow: none !important;
+        html, body {
           width: 297mm !important;
           height: 210mm !important;
-          padding: 10mm 15mm !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          background-color: #ffffff !important;
+          overflow: hidden !important;
+        }
+        .print-certificates-container {
+          width: 297mm !important;
+          max-width: 297mm !important;
+          margin: 0 auto !important;
+          padding: 0 !important;
+        }
+        .certificate-page-item {
+          margin: 5mm auto !important;
+          border-radius: 0 !important;
+          box-shadow: none !important;
+          width: 277mm !important;
+          height: 190mm !important;
+          max-width: 277mm !important;
+          max-height: 190mm !important;
+          padding: 5mm 8mm !important;
+          page-break-inside: avoid !important;
+          break-inside: avoid !important;
+          page-break-after: always !important;
+          break-after: page !important;
+          overflow: hidden !important;
         }
       }
     </style>

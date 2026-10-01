@@ -4,7 +4,7 @@ import {
   LogOut, 
   Menu, 
   Moon, 
-  RotateCw, 
+  Database,
   Sun, 
   UserCheck, 
   X,
@@ -40,10 +40,15 @@ import {
   Gift,
   BookA,
   School,
+  Cable,
+  Binary,
+  ShieldAlert,
+  Bot,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { getDashboardConfig } from '../../services/storageService';
+import { useToast } from '../../context/ToastContext';
+import { getDashboardConfig, pullLatestDataFromCloud } from '../../services/storageService';
 import { Avatar } from './Avatar';
 
 interface HeaderProps {
@@ -65,9 +70,25 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const { theme, toggleTheme } = useTheme();
   const { currentUser, logout, isAdmin, isSuperAdmin, isPembina, isStudent, assignedSchool } = useAuth();
+  const { showToast } = useToast();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [isPullingData, setIsPullingData] = useState(false);
   const dashboardConfig = getDashboardConfig();
+
+  const handlePullDatabase = async () => {
+    if (isPullingData) return;
+    setIsPullingData(true);
+    showToast('Sedang menarik data terbaru dari Database Cloud...');
+    try {
+      await pullLatestDataFromCloud();
+      showToast('Data terbaru berhasil ditarik dari Database Cloud!');
+    } catch {
+      showToast('Pembaruan data lokal selesai.');
+    } finally {
+      setIsPullingData(false);
+    }
+  };
 
   const handleNavClick = (view: string) => {
     onNavigate(view);
@@ -235,12 +256,8 @@ export const Header: React.FC<HeaderProps> = ({
                     <span>Typing Hero RPG</span>
                   </button>
                   <button onClick={() => handleNavClick('student-typing-race')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
-                    <RotateCw className="w-3.5 h-3.5 text-pink-500" />
+                    <Zap className="w-3.5 h-3.5 text-pink-500" />
                     <span>Balap Ketik Mobil</span>
-                  </button>
-                  <button onClick={() => handleNavClick('student-tournaments')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 border-t border-slate-100 dark:border-slate-800">
-                    <Trophy className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Turnamen Liga Ketik</span>
                   </button>
                 </div>
               </div>
@@ -291,6 +308,22 @@ export const Header: React.FC<HeaderProps> = ({
                   <button onClick={() => handleNavClick('student-cyber-safety')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
                     <Shield className="w-3.5 h-3.5 text-rose-500" />
                     <span>Edukasi Keamanan Siber</span>
+                  </button>
+                  <button onClick={() => handleNavClick('student-port-master')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold border-t border-slate-100 dark:border-slate-800">
+                    <Cable className="w-3.5 h-3.5 text-blue-500" />
+                    <span>Master Colokan & Port</span>
+                  </button>
+                  <button onClick={() => handleNavClick('student-binary-code')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold">
+                    <Binary className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>Detektif Kode Biner</span>
+                  </button>
+                  <button onClick={() => handleNavClick('student-anti-phishing')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 text-rose-600 dark:text-rose-400 font-bold">
+                    <ShieldAlert className="w-3.5 h-3.5 text-rose-500" />
+                    <span>Detektif Anti-Phishing</span>
+                  </button>
+                  <button onClick={() => handleNavClick('student-grid-robot')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 text-cyan-600 dark:text-cyan-400 font-bold">
+                    <Bot className="w-3.5 h-3.5 text-cyan-500" />
+                    <span>Grid Robot Navigator</span>
                   </button>
                   <button onClick={() => handleNavClick('student-games')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
                     <Gamepad2 className="w-3.5 h-3.5 text-indigo-500" />
@@ -382,10 +415,6 @@ export const Header: React.FC<HeaderProps> = ({
                   <button onClick={() => handleNavClick('admin-typing')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 text-[11px]">
                     <Keyboard className="w-3.5 h-3.5 text-emerald-500" />
                     <span>Tugas Mengetik</span>
-                  </button>
-                  <button onClick={() => handleNavClick('admin-tournaments')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 text-[11px] font-bold text-amber-600 dark:text-amber-400 border-t border-slate-100 dark:border-slate-800/80 mt-1">
-                    <Trophy className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Turnamen Liga Ketik</span>
                   </button>
                 </div>
               </div>
@@ -489,14 +518,15 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </button>
 
-          {/* REQUIRED: Menu refresh halaman bentuknya logo saja di pojok kanan atas sebelum tombol keluar */}
+          {/* Tombol tarik data database bentuk logo saja */}
           <button
-            onClick={() => window.location.reload()}
-            title="Segarkan Halaman"
-            aria-label="Segarkan Halaman"
+            onClick={handlePullDatabase}
+            disabled={isPullingData}
+            title="Tarik Data Database Cloud"
+            aria-label="Tarik Data Database Cloud"
             className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
-            <RotateCw className="w-4 h-4" />
+            <Database className={`w-4 h-4 ${isPullingData ? 'animate-spin text-indigo-600' : ''}`} />
           </button>
 
           {currentUser ? (
@@ -513,11 +543,20 @@ export const Header: React.FC<HeaderProps> = ({
                 title={isStudent ? 'Klik untuk Edit Profil & Foto' : undefined}
                 className="flex items-center gap-2.5 cursor-pointer p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
-                <Avatar src={currentUser.avatarUrl} name={currentUser.name} size="sm" />
+                <Avatar src={currentUser.avatarUrl} name={currentUser.name} size="sm" frame={currentUser.equippedFrame} />
                 <div className="hidden sm:flex flex-col text-left">
-                  <span className="text-xs font-semibold text-slate-900 dark:text-slate-100 max-w-[140px] truncate">
-                    {currentUser.name}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-semibold text-slate-900 dark:text-slate-100 max-w-[140px] truncate">
+                      {currentUser.name}
+                    </span>
+                    {currentUser.schoolFaction && (
+                      <span className="text-[10px]" title={`Tim ${currentUser.schoolFaction}`}>
+                        {currentUser.schoolFaction === 'processor' && '⚡'}
+                        {currentUser.schoolFaction === 'graphics' && '🎨'}
+                        {currentUser.schoolFaction === 'memory' && '🧠'}
+                      </span>
+                    )}
+                  </div>
                   <span className="text-[10px] text-slate-500 dark:text-slate-400">
                     {isSuperAdmin
                       ? '👑 Super Administrator'
@@ -661,7 +700,6 @@ export const Header: React.FC<HeaderProps> = ({
                   <button onClick={() => handleNavClick('admin-lessons')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Materi Belajar</button>
                   <button onClick={() => handleNavClick('admin-quizzes')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Bank Kuis</button>
                   <button onClick={() => handleNavClick('admin-typing')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Tugas Mengetik</button>
-                  <button onClick={() => handleNavClick('admin-tournaments')} className="w-full text-left py-2 px-2 text-sm font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 flex items-center gap-1.5"><Trophy className="w-4 h-4 text-amber-500 animate-pulse" />Turnamen Liga Ketik</button>
                 </div>
 
                 <div className="pt-2 pb-1">

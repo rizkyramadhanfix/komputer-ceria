@@ -107,11 +107,20 @@ function MainAppContent() {
         {currentView === 'student-typing-race' && (
           <StudentDashboard initialTab="typing-race" />
         )}
-        {currentView === 'student-tournaments' && (
-          <StudentDashboard initialTab="tournaments" />
-        )}
         {currentView === 'student-games' && (
           <StudentDashboard initialTab="games" />
+        )}
+        {currentView === 'student-port-master' && (
+          <StudentDashboard initialTab="port-master" />
+        )}
+        {currentView === 'student-binary-code' && (
+          <StudentDashboard initialTab="binary-code" />
+        )}
+        {currentView === 'student-anti-phishing' && (
+          <StudentDashboard initialTab="anti-phishing" />
+        )}
+        {currentView === 'student-grid-robot' && (
+          <StudentDashboard initialTab="grid-robot" />
         )}
         {currentView === 'student-pc-builder' && (
           <StudentDashboard initialTab="pc-builder" />

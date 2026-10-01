@@ -43,6 +43,10 @@ import {
   FileSpreadsheet,
   Gift,
   BookA,
+  Cable,
+  Binary,
+  ShieldAlert,
+  Bot,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -57,10 +61,11 @@ import {
   recordTypingSubmission,
   getGamesConfig,
   getStudentUnlockedAchievements,
-  getTypingTournaments,
   getTypingSubmissions,
+  updateUser,
+  getUsers,
 } from '../../services/storageService';
-import { GameBattle, Lesson, Quiz, QuizQuestion, TypingPractice, TypingSubmission, TypingTournament } from '../../types';
+import { GameBattle, Lesson, Quiz, QuizQuestion, TypingPractice, TypingSubmission } from '../../types';
 import { AchievementsWidget } from '../achievements/AchievementsWidget';
 import { Avatar } from '../common/Avatar';
 import { BadgePill } from '../common/BadgePill';
@@ -90,6 +95,11 @@ import { PixelArtStudio } from '../games/PixelArtStudio';
 import { SpreadsheetAdventure } from '../games/SpreadsheetAdventure';
 import { SchoolRewardShop } from '../common/SchoolRewardShop';
 import { TechGlossary } from '../common/TechGlossary';
+import { PortMasterGame } from '../games/PortMasterGame';
+import { BinaryCodeGame } from '../games/BinaryCodeGame';
+import { AntiPhishingGame } from '../games/AntiPhishingGame';
+import { GridRobotGame } from '../games/GridRobotGame';
+import { TypingLeagueGame } from '../games/TypingLeagueGame';
 import { acceptChallenge, cancelChallenge, subscribeToBattles } from '../../services/battleService';
 
 interface StudentDashboardProps {
@@ -102,6 +112,7 @@ interface StudentDashboardProps {
     | 'pc-builder'
     | 'coding-lab'
     | 'typing-race'
+    | 'typing-league'
     | 'cyber-safety'
     | 'star-shop'
     | 'shortcuts'
@@ -118,7 +129,10 @@ interface StudentDashboardProps {
     | 'spreadsheet'
     | 'reward-shop'
     | 'tech-glossary'
-    | 'tournaments';
+    | 'port-master'
+    | 'binary-code'
+    | 'anti-phishing'
+    | 'grid-robot';
 }
 
 export const StudentDashboard: React.FC<StudentDashboardProps> = ({
@@ -135,6 +149,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
     | 'pc-builder'
     | 'coding-lab'
     | 'typing-race'
+    | 'typing-league'
     | 'cyber-safety'
     | 'star-shop'
     | 'shortcuts'
@@ -151,7 +166,10 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
     | 'spreadsheet'
     | 'reward-shop'
     | 'tech-glossary'
-    | 'tournaments'
+    | 'port-master'
+    | 'binary-code'
+    | 'anti-phishing'
+    | 'grid-robot'
   >(initialTab);
   const [gamesConfig, setGamesConfig] = useState(() => getGamesConfig());
   const [showEditProfile, setShowEditProfile] = useState(false);
@@ -181,6 +199,15 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
     return () => unsubscribe();
   }, [currentUser]);
 
+  const handleChallengeInitiated = (battleId: string, gameType: 'quiz_duel' | 'typing_race') => {
+    setActiveBattleId(battleId);
+    if (gameType === 'quiz_duel') {
+      setActiveTab('quiz-duel');
+    } else {
+      setActiveTab('typing-race');
+    }
+  };
+
   const handleAcceptBattle = async (battleId: string, gameType: string) => {
     try {
       await acceptChallenge(battleId);
@@ -206,7 +233,6 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   const lessons = getLessons();
   const quizzes = getQuizzes();
   const typingPractices = getTypingPractices();
-  const tournaments = getTypingTournaments();
   const config = getGamificationConfig();
 
   // Active Lesson Reader state
@@ -487,20 +513,20 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
             <div className="flex items-center gap-4">
               <div
                 className={`relative p-1 rounded-full transition-all shrink-0 ${
-                  currentUser.equippedFrame === 'frame-gold'
+                  currentUser.equippedFrame === 'gold' || currentUser.equippedFrame === 'frame-gold'
                     ? 'ring-4 ring-amber-400 shadow-md shadow-amber-500/30'
-                    : currentUser.equippedFrame === 'frame-neon'
+                    : currentUser.equippedFrame === 'neon' || currentUser.equippedFrame === 'frame-neon'
                     ? 'ring-4 ring-cyan-400 shadow-md shadow-cyan-500/30 animate-pulse'
-                    : currentUser.equippedFrame === 'frame-fire'
+                    : currentUser.equippedFrame === 'fire' || currentUser.equippedFrame === 'frame-fire'
                     ? 'ring-4 ring-rose-500 shadow-md shadow-rose-500/30'
-                    : currentUser.equippedFrame === 'frame-cyber'
+                    : currentUser.equippedFrame === 'cyber' || currentUser.equippedFrame === 'frame-cyber'
                     ? 'ring-4 ring-emerald-400 shadow-md shadow-emerald-500/30 animate-pulse'
-                    : currentUser.equippedFrame === 'frame-rainbow'
+                    : currentUser.equippedFrame === 'rainbow' || currentUser.equippedFrame === 'frame-rainbow'
                     ? 'ring-4 ring-purple-500 shadow-md bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500'
                     : ''
                 }`}
               >
-                <Avatar src={currentUser.avatarUrl} name={currentUser.name} size="lg" />
+                <Avatar src={currentUser.avatarUrl} name={currentUser.name} size="lg" frame={currentUser.equippedFrame} />
               </div>
               <div className="min-w-0 flex-1 space-y-1">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -510,6 +536,13 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   {currentUser.equippedTitle && (
                     <span className="text-[10px] font-bold bg-amber-500 text-white px-2 py-0.5 rounded shadow-xs">
                       {currentUser.equippedTitle}
+                    </span>
+                  )}
+                  {currentUser.schoolFaction && (
+                    <span className="text-[10px] font-bold bg-slate-800 text-white px-2 py-0.5 rounded shadow-xs flex items-center gap-1">
+                      {currentUser.schoolFaction === 'processor' && '⚡ Tim Prosesor'}
+                      {currentUser.schoolFaction === 'graphics' && '🎨 Tim Grafis'}
+                      {currentUser.schoolFaction === 'memory' && '🧠 Tim Memori'}
                     </span>
                   )}
                   <span className="text-xs font-mono text-slate-500">
@@ -615,6 +648,83 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
         </div>
 
         <main className="w-full space-y-6 min-w-0">
+          {/* Faction Selection Banner if student hasn't joined yet */}
+          {!currentUser.schoolFaction && (
+            <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 text-white rounded-2xl p-5 shadow-lg space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-amber-300 animate-pulse" />
+                  <h3 className="text-base font-black">Pilih Fraksi Tim Sekolahmu! ⚔️</h3>
+                </div>
+                <span className="text-xs bg-white/20 px-2.5 py-0.5 rounded-full font-bold">Team Battle Sekolah</span>
+              </div>
+              <p className="text-xs text-blue-100">
+                Pilih salah satu tim fraksi! Setiap poin yang kamu kumpulkan dari kuis, mengetik, dan game akan menyumbang skor untuk membawa fraksimu ke puncak klasemen sekolah!
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateUser(currentUser.id, { schoolFaction: 'processor' });
+                    showSuccess('Selamat bergabung dengan Tim Prosesor ⚡!');
+                    refreshUser();
+                  }}
+                  className="p-3.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-left transition-all cursor-pointer flex flex-col justify-between"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl">⚡</span>
+                    <span className="text-[10px] uppercase font-bold text-cyan-300">Kecepatan & Logika</span>
+                  </div>
+                  <div className="mt-2">
+                    <h4 className="text-sm font-black text-white">Tim Prosesor</h4>
+                    <p className="text-[11px] text-blue-200 mt-0.5">Fokus pada kecepatan kalkulasi dan logika koding!</p>
+                  </div>
+                  <span className="mt-3 inline-block px-3 py-1 bg-cyan-400 text-slate-950 font-black text-[10px] rounded-lg text-center">Pilih Tim Prosesor →</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateUser(currentUser.id, { schoolFaction: 'graphics' });
+                    showSuccess('Selamat bergabung dengan Tim Grafis 🎨!');
+                    refreshUser();
+                  }}
+                  className="p-3.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-left transition-all cursor-pointer flex flex-col justify-between"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl">🎨</span>
+                    <span className="text-[10px] uppercase font-bold text-pink-300">Kreativitas & Seni</span>
+                  </div>
+                  <div className="mt-2">
+                    <h4 className="text-sm font-black text-white">Tim Grafis</h4>
+                    <p className="text-[11px] text-purple-200 mt-0.5">Penuh warna, desain visual, dan kreasi pixel!</p>
+                  </div>
+                  <span className="mt-3 inline-block px-3 py-1 bg-pink-400 text-slate-950 font-black text-[10px] rounded-lg text-center">Pilih Tim Grafis →</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateUser(currentUser.id, { schoolFaction: 'memory' });
+                    showSuccess('Selamat bergabung dengan Tim Memori 🧠!');
+                    refreshUser();
+                  }}
+                  className="p-3.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-left transition-all cursor-pointer flex flex-col justify-between"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl">🧠</span>
+                    <span className="text-[10px] uppercase font-bold text-emerald-300">Ketelitian & Ingatan</span>
+                  </div>
+                  <div className="mt-2">
+                    <h4 className="text-sm font-black text-white">Tim Memori</h4>
+                    <p className="text-[11px] text-emerald-200 mt-0.5">Daya ingat tangguh, ketelitian, dan penyimpanan rapi!</p>
+                  </div>
+                  <span className="mt-3 inline-block px-3 py-1 bg-emerald-400 text-slate-950 font-black text-[10px] rounded-lg text-center">Pilih Tim Memori →</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Incoming Battle Challenges Alert */}
           {incomingBattles.length > 0 && (
             <div className="mb-6 space-y-3">
@@ -737,6 +847,34 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Toko Hadiah</span>
                   </button>
                   <button
+                    onClick={() => setActiveTab('port-master')}
+                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-blue-400 transition-all group shadow-xs cursor-pointer"
+                  >
+                    <Cable className="w-6 h-6 text-blue-500 mb-2 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Master Colokan</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('binary-code')}
+                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-emerald-400 transition-all group shadow-xs cursor-pointer"
+                  >
+                    <Binary className="w-6 h-6 text-emerald-500 mb-2 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Kode Biner</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('anti-phishing')}
+                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-rose-400 transition-all group shadow-xs cursor-pointer"
+                  >
+                    <ShieldAlert className="w-6 h-6 text-rose-500 mb-2 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Anti-Phishing</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('grid-robot')}
+                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-cyan-400 transition-all group shadow-xs cursor-pointer"
+                  >
+                    <Bot className="w-6 h-6 text-cyan-500 mb-2 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Grid Robot</span>
+                  </button>
+                  <button
                     onClick={() => setActiveTab('tech-glossary')}
                     className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-sky-400 transition-all group shadow-xs cursor-pointer"
                   >
@@ -756,6 +894,13 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   >
                     <Flame className="w-6 h-6 text-rose-500 mb-2 group-hover:scale-110 transition-transform" />
                     <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Balap Ketik</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('typing-league')}
+                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-violet-400 transition-all group shadow-xs cursor-pointer"
+                  >
+                    <Keyboard className="w-6 h-6 text-violet-500 mb-2 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Liga Mengetik</span>
                   </button>
                   <button
                     onClick={() => setActiveTab('typing-hero')}
@@ -1249,58 +1394,6 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 </p>
               </div>
 
-              {/* FEATURE 4: TURNAMEN LIGA KETIK AKTIF */}
-              {tournaments.filter((t: TypingTournament) => t.isActive).length > 0 && (
-                <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-indigo-500/10 rounded-2xl border border-amber-200 dark:border-amber-800/60 p-5 space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Trophy className="w-5 h-5 text-amber-500 animate-pulse" />
-                    <div>
-                      <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                        🏆 Turnamen Liga Ketik Aktif!
-                      </h3>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                        Ikuti kompetisi resmi kelas dan buktikan siapa pengetik tercepat di sekolahmu!
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {tournaments.filter((t: TypingTournament) => t.isActive).map((trn: TypingTournament) => {
-                      const practice = typingPractices.find((p: TypingPractice) => p.id === trn.practiceId);
-                      if (!practice) return null;
-
-                      return (
-                        <div key={trn.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9px] font-bold uppercase tracking-wider text-amber-700 bg-amber-100 px-2 py-0.5 rounded">
-                              Liga Ketik Resmi
-                            </span>
-                            <span className="text-[10px] text-slate-400 font-mono">
-                              Hingga: {new Date(trn.endDate).toLocaleDateString('id-ID')}
-                            </span>
-                          </div>
-                          <div>
-                            <h4 className="text-xs font-bold text-slate-900 dark:text-white">{trn.title}</h4>
-                            <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{trn.description}</p>
-                          </div>
-                          <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
-                            <span className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400">
-                              Naskah: {practice.title}
-                            </span>
-                            <button
-                              onClick={() => handleStartTyping(practice)}
-                              className="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg text-[10px] cursor-pointer shadow-xs"
-                            >
-                              Ikut Tanding →
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
               {/* FEATURE 5: RIWAYAT PENYERAHAN & FEEDBACK GURU */}
               {getTypingSubmissions().filter((s: TypingSubmission) => s.studentId === currentUser.id).length > 0 && (
                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4">
@@ -1459,77 +1552,20 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
       {/* TAB: BALAP KETIK CEPAT */}
       {activeTab === 'typing-race' && (isFeatureEnabled('typing-race') ? <TypingRaceGame battleId={activeBattleId} onCloseBattle={() => setActiveBattleId(null)} /> : renderLockedFeatureScreen('Balapan Mengetik'))}
 
-      {/* TAB: TURNAMEN LIGA MENGETIK */}
-      {activeTab === 'tournaments' && (
-        <div className="space-y-6">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-amber-500" />
-              <span>Turnamen Liga Mengetik Sekolah</span>
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Kompetisi mengetik cepat antar siswa untuk memperebutkan peringkat teratas dan hadiah prestasi.
-            </p>
-          </div>
+      {/* TAB: LIGA MENGETIK */}
+      {activeTab === 'typing-league' && (isFeatureEnabled('typing-league') ? <TypingLeagueGame onBackToMenu={() => setActiveTab('overview')} /> : renderLockedFeatureScreen('Liga Mengetik'))}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {tournaments.map((trn: TypingTournament) => {
-              const practice = typingPractices.find((p: TypingPractice) => p.id === trn.practiceId);
-              const isExpired = new Date(trn.endDate) < new Date();
+      {/* TAB: MASTER COLOKAN & PORT */}
+      {activeTab === 'port-master' && (isFeatureEnabled('port-master') ? <PortMasterGame /> : renderLockedFeatureScreen('Master Colokan & Port Komputer'))}
 
-              return (
-                <div key={trn.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4 flex flex-col justify-between">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${trn.isActive && !isExpired ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-slate-100 text-slate-500'}`}>
-                        {trn.isActive && !isExpired ? 'Sedang Berlangsung' : isExpired ? 'Turnamen Berakhir' : 'Nonaktif'}
-                      </span>
-                      <span className="text-xs font-mono text-slate-400">
-                        {new Date(trn.startDate).toLocaleDateString('id-ID')} s.d {new Date(trn.endDate).toLocaleDateString('id-ID')}
-                      </span>
-                    </div>
+      {/* TAB: DETEKTIF KODE BINER */}
+      {activeTab === 'binary-code' && (isFeatureEnabled('binary-code') ? <BinaryCodeGame /> : renderLockedFeatureScreen('Detektif Kode Biner (0 dan 1)'))}
 
-                    <div>
-                      <h3 className="text-base font-bold text-slate-900 dark:text-white">{trn.title}</h3>
-                      <p className="text-xs text-slate-500 mt-1">{trn.description}</p>
-                    </div>
+      {/* TAB: DETEKTIF ANTI-PHISHING */}
+      {activeTab === 'anti-phishing' && (isFeatureEnabled('anti-phishing') ? <AntiPhishingGame /> : renderLockedFeatureScreen('Detektif Anti-Phishing Siber'))}
 
-                    {practice && (
-                      <div className="p-3 bg-indigo-50 dark:bg-indigo-950/40 rounded-xl border border-indigo-100 dark:border-indigo-900/60 text-xs space-y-1">
-                        <p className="font-bold text-indigo-900 dark:text-indigo-300">Naskah Tanding: {practice.title}</p>
-                        <p className="text-[11px] text-indigo-700 dark:text-indigo-400">Target WPM: {practice.targetWpm} WPM · Akurasi Min: {practice.minAccuracy}%</p>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end">
-                    {practice && trn.isActive && !isExpired ? (
-                      <button
-                        onClick={() => {
-                          setActiveTab('typing');
-                          handleStartTyping(practice);
-                        }}
-                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-indigo-500/20 cursor-pointer"
-                      >
-                        Ikuti Turnamen & Mulai Mengetik ⌨️
-                      </button>
-                    ) : (
-                      <span className="text-xs text-slate-400 italic">Turnamen tidak aktif atau telah selesai</span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-
-            {tournaments.length === 0 && (
-              <div className="col-span-full py-12 text-center bg-white dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-800 rounded-3xl">
-                <Trophy className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500 font-bold">Belum ada turnamen liga mengetik yang aktif saat ini.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* TAB: GRID ROBOT NAVIGATOR */}
+      {activeTab === 'grid-robot' && (isFeatureEnabled('grid-robot') ? <GridRobotGame /> : renderLockedFeatureScreen('Grid Robot Navigator (Logika Blok)'))}
 
       {/* TAB: INTERNET SEHAT & KEAMANAN SIBER */}
       {activeTab === 'cyber-safety' && (isFeatureEnabled('cyber-safety') ? <CyberSafetyModule /> : renderLockedFeatureScreen('Edukasi Keamanan Siber'))}
@@ -1566,17 +1602,77 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
       {/* TAB 9: LEADERBOARD SISWA */}
       {activeTab === 'leaderboard' && (
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-              Papan Peringkat Prestasi Siswa
+              Papan Peringkat Prestasi Siswa & Klasemen Tim
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Peringkat global dihitung secara transparan berdasarkan akumulasi poin bintang dari membaca materi, kuis, dan latihan mengetik.
+              Peringkat global dihitung secara transparan berdasarkan akumulasi poin bintang dari membaca materi, kuis, latihan mengetik, dan mini game.
             </p>
           </div>
 
-          <LeaderboardWidget showAll={true} />
+          {/* School Faction Team Battle Leaderboard */}
+          <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-2 border-indigo-500/30 rounded-2xl p-5 text-white shadow-xl space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-amber-400 animate-bounce" />
+                <h3 className="text-sm font-black uppercase tracking-wider">
+                  Klasemen Fraksi Tim Sekolah {currentUser.school ? `· ${currentUser.school}` : ''}
+                </h3>
+              </div>
+              <span className="text-[11px] font-bold text-indigo-300">Team Battle Aktif ⚔️</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Processor Team */}
+              <div className={`p-4 rounded-xl border transition-all ${currentUser.schoolFaction === 'processor' ? 'bg-cyan-950/80 border-cyan-400 ring-2 ring-cyan-400/40' : 'bg-white/5 border-white/10'}`}>
+                <div className="flex items-center justify-between">
+                  <span className="text-2xl">⚡</span>
+                  <span className="text-[10px] font-mono font-bold text-cyan-300 uppercase">Prosesor</span>
+                </div>
+                <h4 className="text-sm font-black text-white mt-1">Tim Prosesor</h4>
+                <div className="mt-3 flex items-baseline justify-between">
+                  <span className="text-[11px] text-slate-400">{getUsers().filter(u => u.role === 'student' && u.schoolFaction === 'processor' && (!currentUser.school || u.school === currentUser.school)).length} Anggota</span>
+                  <span className="text-base font-black font-mono text-cyan-300">
+                    {getUsers().filter(u => u.role === 'student' && u.schoolFaction === 'processor' && (!currentUser.school || u.school === currentUser.school)).reduce((acc, u) => acc + (u.totalPoints || 0), 0)} pt
+                  </span>
+                </div>
+              </div>
+
+              {/* Graphics Team */}
+              <div className={`p-4 rounded-xl border transition-all ${currentUser.schoolFaction === 'graphics' ? 'bg-pink-950/80 border-pink-400 ring-2 ring-pink-400/40' : 'bg-white/5 border-white/10'}`}>
+                <div className="flex items-center justify-between">
+                  <span className="text-2xl">🎨</span>
+                  <span className="text-[10px] font-mono font-bold text-pink-300 uppercase">Grafis</span>
+                </div>
+                <h4 className="text-sm font-black text-white mt-1">Tim Grafis</h4>
+                <div className="mt-3 flex items-baseline justify-between">
+                  <span className="text-[11px] text-slate-400">{getUsers().filter(u => u.role === 'student' && u.schoolFaction === 'graphics' && (!currentUser.school || u.school === currentUser.school)).length} Anggota</span>
+                  <span className="text-base font-black font-mono text-pink-300">
+                    {getUsers().filter(u => u.role === 'student' && u.schoolFaction === 'graphics' && (!currentUser.school || u.school === currentUser.school)).reduce((acc, u) => acc + (u.totalPoints || 0), 0)} pt
+                  </span>
+                </div>
+              </div>
+
+              {/* Memory Team */}
+              <div className={`p-4 rounded-xl border transition-all ${currentUser.schoolFaction === 'memory' ? 'bg-emerald-950/80 border-emerald-400 ring-2 ring-emerald-400/40' : 'bg-white/5 border-white/10'}`}>
+                <div className="flex items-center justify-between">
+                  <span className="text-2xl">🧠</span>
+                  <span className="text-[10px] font-mono font-bold text-emerald-300 uppercase">Memori</span>
+                </div>
+                <h4 className="text-sm font-black text-white mt-1">Tim Memori</h4>
+                <div className="mt-3 flex items-baseline justify-between">
+                  <span className="text-[11px] text-slate-400">{getUsers().filter(u => u.role === 'student' && u.schoolFaction === 'memory' && (!currentUser.school || u.school === currentUser.school)).length} Anggota</span>
+                  <span className="text-base font-black font-mono text-emerald-300">
+                    {getUsers().filter(u => u.role === 'student' && u.schoolFaction === 'memory' && (!currentUser.school || u.school === currentUser.school)).reduce((acc, u) => acc + (u.totalPoints || 0), 0)} pt
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <LeaderboardWidget showAll={true} onChallengeInitiated={handleChallengeInitiated} />
         </div>
       )}
         </main>

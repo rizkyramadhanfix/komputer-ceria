@@ -21,6 +21,9 @@ export interface User {
   unlockedShopItemIds?: string[];
   equippedFrame?: string; // e.g. 'gold' | 'neon' | 'cyber' | 'fire'
   equippedTitle?: string; // e.g. 'Kapten Komputer' | 'Master Keyboard' | 'Polisi Siber Cilik'
+  equippedBadge?: string; // e.g. 'Word Master' | 'Pelindung Siber'
+  equippedAvatar?: string; // custom unlocked avatar
+  schoolFaction?: 'processor' | 'graphics' | 'memory'; // Team Battle: Tim Prosesor, Tim Grafis, Tim Memori
   createdAt: string;
   lastLoginAt?: string;
   loginCount?: number;
@@ -315,6 +318,8 @@ export interface GameBattle {
   opponentSelection?: number; // for quiz
   challengerProgress?: number; // for typing
   opponentProgress?: number; // for typing
+  questionIndices?: number[]; // shared quiz questions
+  typingText?: string; // shared typing race text
   createdAt: string;
   updatedAt: string;
 }
@@ -342,5 +347,40 @@ export interface RewardRedemption {
   redeemedAt: string;
   status: 'pending' | 'completed' | 'cancelled';
   completedAt?: string;
+}
+
+export interface TypingLeagueText {
+  id: string;
+  title: string;
+  category: string;
+  durationSeconds: number; // Duration in seconds (e.g. 60, 90, 120)
+  difficulty: 'Mudah' | 'Sedang' | 'Sulit';
+  content: string; // The passage/sentences to type
+  author?: string;
+  school?: string; // Optional: specific to a school or all
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface TypingLeagueScore {
+  id: string;
+  textId: string;
+  textTitle: string;
+  studentId: string;
+  studentName: string;
+  studentAvatar?: string;
+  studentSchool?: string;
+  studentGrade?: string;
+  equippedFrame?: string;
+  equippedTitle?: string;
+  equippedBadge?: string;
+  wpm: number;
+  accuracy: number; // percentage e.g. 98.5
+  rawKpm: number; // keystrokes / minute
+  errorsCount: number;
+  timeSpentSeconds: number;
+  score: number; // Total points score
+  starsEarned: number;
+  submittedAt: string;
 }
 

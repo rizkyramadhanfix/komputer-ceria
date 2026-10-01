@@ -57,23 +57,7 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
         {/* Profile Card Center */}
         <div className="text-center space-y-3">
           <div className="flex justify-center">
-            <div
-              className={`relative p-1.5 rounded-full inline-block ${
-                student.equippedFrame === 'frame-gold'
-                  ? 'ring-4 ring-amber-400 shadow-md shadow-amber-500/30'
-                  : student.equippedFrame === 'frame-neon'
-                  ? 'ring-4 ring-cyan-400 shadow-md shadow-cyan-500/30 animate-pulse'
-                  : student.equippedFrame === 'frame-fire'
-                  ? 'ring-4 ring-rose-500 shadow-md shadow-rose-500/30'
-                  : student.equippedFrame === 'frame-cyber'
-                  ? 'ring-4 ring-emerald-400 shadow-md shadow-emerald-500/30 animate-pulse'
-                  : student.equippedFrame === 'frame-rainbow'
-                  ? 'ring-4 ring-purple-500 shadow-md bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500'
-                  : ''
-              }`}
-            >
-              <Avatar src={student.avatarUrl} name={student.name} size="xl" />
-            </div>
+            <Avatar src={student.avatarUrl} name={student.name} size="xl" frame={student.equippedFrame} />
           </div>
 
           <div className="space-y-1">
@@ -81,6 +65,11 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
               {student.equippedTitle && (
                 <span className="text-[10px] font-bold bg-amber-500 text-white px-2 py-0.5 rounded shadow-xs">
                   {student.equippedTitle}
+                </span>
+              )}
+              {student.equippedBadge && (
+                <span className="text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 px-2 py-0.5 rounded shadow-xs">
+                  🎖️ {student.equippedBadge}
                 </span>
               )}
               <BadgePill tier={currentBadge.tier} size="sm" />
