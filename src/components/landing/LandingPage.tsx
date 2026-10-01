@@ -32,7 +32,6 @@ import { getDashboardConfig, getLessons, getQuizzes, getTypingPractices, trackVi
 import { VisitorStats } from '../../types';
 import { Avatar } from '../common/Avatar';
 import { LeaderboardWidget } from '../common/LeaderboardWidget';
-import { PWAInstallButton } from '../common/PWAInstallButton';
 
 interface LandingPageProps {
   onOpenAuth: (mode: 'admin' | 'superadmin' | 'pembina' | 'student-login' | 'student-register') => void;
@@ -351,7 +350,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <div>
                     <h4 className="text-xs font-bold text-white">Akses dari HP (Android & iOS)</h4>
                     <p className="text-[11px] text-indigo-200 mt-0.5 leading-snug">
-                      Tampilan responsif, ringan, dan dapat diinstall langsung ke layar utama HP (PWA).
+                      Tampilan responsif, ringan, dan mudah dibuka langsung dari browser HP.
                     </p>
                   </div>
                 </div>
@@ -385,7 +384,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     </>
                   )}
                 </button>
-                <PWAInstallButton variant="hero" />
               </div>
             </div>
 

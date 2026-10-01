@@ -346,6 +346,30 @@ function initFirestoreListeners() {
     }, (err) => {
       console.warn('Firestore typingLeagueScores listener failed:', err);
     });
+
+    // 14. Subscribe to School Rewards Catalogue
+    onSnapshot(collection(db, 'schoolRewards'), (snapshot) => {
+      const firestoreRewards: SchoolRewardItem[] = [];
+      snapshot.forEach((docSnap) => {
+        firestoreRewards.push(docSnap.data() as SchoolRewardItem);
+      });
+      setStoredItem(STORAGE_KEYS.SCHOOL_REWARDS, firestoreRewards);
+      notifyDataUpdated();
+    }, (err) => {
+      console.warn('Firestore schoolRewards listener failed:', err);
+    });
+
+    // 15. Subscribe to Reward Redemptions (Voucher Klaim Siswa)
+    onSnapshot(query(collection(db, 'rewardRedemptions'), orderBy('redeemedAt', 'desc'), limit(100)), (snapshot) => {
+      const firestoreRedemptions: RewardRedemption[] = [];
+      snapshot.forEach((docSnap) => {
+        firestoreRedemptions.push(docSnap.data() as RewardRedemption);
+      });
+      setStoredItem(STORAGE_KEYS.REWARD_REDEMPTIONS, firestoreRedemptions);
+      notifyDataUpdated();
+    }, (err) => {
+      console.warn('Firestore rewardRedemptions listener failed:', err);
+    });
   } catch (err) {
     console.error('Error initializing Firestore listeners:', err);
   }
@@ -842,12 +866,35 @@ export function saveGamesConfig(config: GamesConfig): void {
 
 // --- School Rewards & Redemption Management ---
 export function getSchoolRewards(): SchoolRewardItem[] {
-  return getStoredItem<SchoolRewardItem[]>(STORAGE_KEYS.SCHOOL_REWARDS, DEFAULT_SCHOOL_REWARDS);
+  const stored = localStorage.getItem(STORAGE_KEYS.SCHOOL_REWARDS);
+  if (stored !== null) {
+    try {
+      return JSON.parse(stored) as SchoolRewardItem[];
+    } catch {
+      return DEFAULT_SCHOOL_REWARDS;
+    }
+  }
+  setStoredItem(STORAGE_KEYS.SCHOOL_REWARDS, DEFAULT_SCHOOL_REWARDS);
+  return DEFAULT_SCHOOL_REWARDS;
 }
 
 export function saveSchoolRewards(rewards: SchoolRewardItem[]): void {
+  const previous = getSchoolRewards();
+  const currentIds = new Set(rewards.map((r) => r.id));
+  for (const prev of previous) {
+    if (!currentIds.has(prev.id)) {
+      removeDocFromFirestore('schoolRewards', prev.id);
+    }
+  }
   setStoredItem(STORAGE_KEYS.SCHOOL_REWARDS, rewards);
   rewards.forEach((r) => syncDocToFirestore('schoolRewards', r.id, r));
+  notifyDataUpdated();
+}
+
+export function deleteSchoolReward(id: string): void {
+  const rewards = getSchoolRewards().filter((r) => r.id !== id);
+  setStoredItem(STORAGE_KEYS.SCHOOL_REWARDS, rewards);
+  removeDocFromFirestore('schoolRewards', id);
   notifyDataUpdated();
 }
 

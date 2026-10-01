@@ -365,42 +365,51 @@ export const StudentGallery: React.FC<StudentGalleryProps> = ({
 
       {/* Modal: View Full Work (Paint Image or Word HTML) */}
       {activeViewingWork && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/75 backdrop-blur-xs overflow-y-auto animate-in fade-in">
-          <div className="relative w-full max-w-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden my-4 flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/80 backdrop-blur-sm overflow-y-auto animate-in fade-in">
+          <div className="relative w-full max-w-4xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden my-4 flex flex-col max-h-[92vh]">
             {/* Header */}
-            <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-3">
+            <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/80 flex items-center justify-between shrink-0 gap-3">
+              <div className="flex items-center gap-3 min-w-0">
                 <Avatar
                   src={activeViewingWork.studentAvatar}
                   name={activeViewingWork.studentName}
                   size="md"
                 />
-                <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                    {activeViewingWork.title}
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    Karya oleh <strong>{activeViewingWork.studentName}</strong> ({activeViewingWork.studentGrade}) · {activeViewingWork.studentSchool}
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white truncate">
+                      {activeViewingWork.title}
+                    </h3>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      activeViewingWork.type === 'paint' 
+                        ? 'bg-pink-100 dark:bg-pink-950/60 text-pink-700 dark:text-pink-300' 
+                        : 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300'
+                    }`}>
+                      {activeViewingWork.type === 'paint' ? '🎨 Lukisan Paint' : '📄 Naskah Microsoft Word'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Oleh <strong className="text-slate-700 dark:text-slate-200">{activeViewingWork.studentName}</strong> {activeViewingWork.studentGrade ? `(${activeViewingWork.studentGrade})` : ''} · {activeViewingWork.studentSchool || 'Sekolah Binaan'}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 {(isAdmin || isAdminView) && (
                   <button
                     type="button"
                     onClick={() => handleDelete(activeViewingWork.id, activeViewingWork.title)}
-                    className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded-lg flex items-center gap-1 text-xs font-semibold"
+                    className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded-xl flex items-center gap-1.5 text-xs font-bold transition-colors cursor-pointer border border-transparent hover:border-rose-200 dark:hover:border-rose-900"
                     title="Hapus Karya Siswa (Admin)"
                   >
                     <Trash2 className="w-4 h-4" />
-                    <span className="hidden sm:inline">Hapus Karya</span>
+                    <span className="hidden sm:inline">Hapus</span>
                   </button>
                 )}
                 <button
                   type="button"
                   onClick={() => setActiveViewingWork(null)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -408,40 +417,101 @@ export const StudentGallery: React.FC<StudentGalleryProps> = ({
             </div>
 
             {/* Content Area */}
-            <div className="p-4 sm:p-6 overflow-y-auto flex-1 bg-slate-100 dark:bg-slate-950 flex justify-center">
+            <div className="p-4 sm:p-8 overflow-y-auto flex-1 bg-slate-100 dark:bg-slate-950/60 flex justify-center">
               {activeViewingWork.type === 'paint' && activeViewingWork.imageUrl ? (
-                <div className="max-w-full text-center space-y-2">
-                  <img
-                    src={activeViewingWork.imageUrl}
-                    alt={activeViewingWork.title}
-                    className="max-w-full max-h-[60vh] object-contain rounded-xl shadow-lg border-2 border-slate-200 dark:border-slate-800 bg-white"
-                  />
+                <div className="max-w-full text-center space-y-3 flex flex-col items-center">
+                  <div className="p-2 sm:p-4 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border-2 border-slate-200 dark:border-slate-800 inline-block max-w-full">
+                    <img
+                      src={activeViewingWork.imageUrl}
+                      alt={activeViewingWork.title}
+                      className="max-w-full max-h-[65vh] object-contain rounded-xl bg-white"
+                    />
+                  </div>
+                  {activeViewingWork.previewText && (
+                    <p className="text-xs text-slate-500 dark:text-slate-400 italic max-w-lg bg-white/60 dark:bg-slate-900/60 backdrop-blur-xs py-2 px-4 rounded-xl border border-slate-200 dark:border-slate-800">
+                      "{activeViewingWork.previewText}"
+                    </p>
+                  )}
                 </div>
               ) : (
-                <div className="w-full max-w-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 p-6 sm:p-10 rounded-xl shadow-md border border-slate-200 dark:border-slate-800">
-                  <div
-                    className="prose dark:prose-invert max-w-none text-xs sm:text-sm leading-relaxed"
-                    dangerouslySetInnerHTML={{
-                      __html: activeViewingWork.contentHtml || activeViewingWork.previewText,
-                    }}
-                  />
+                /* Authentic Word / Paper Document Sheet Viewer */
+                <div className="w-full max-w-3xl bg-white text-slate-900 rounded-2xl shadow-xl border border-slate-200 p-6 sm:p-12 font-sans space-y-6">
+                  {/* Paper Header Ribbon */}
+                  <div className="border-b-2 border-indigo-500/80 pb-4 space-y-2">
+                    <div className="flex items-center justify-between text-[11px] text-slate-500">
+                      <span className="font-mono font-bold tracking-wider text-indigo-700 uppercase">
+                        DOKUMEN PRAKTIKUM KOMPUTER
+                      </span>
+                      <span>
+                        {new Date(activeViewingWork.createdAt).toLocaleDateString('id-ID', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
+                        })}
+                      </span>
+                    </div>
+                    <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                      {activeViewingWork.title}
+                    </h1>
+                    <div className="flex items-center gap-3 text-xs text-slate-600 font-medium">
+                      <span>Penulis: <strong>{activeViewingWork.studentName}</strong></span>
+                      <span>·</span>
+                      <span>{activeViewingWork.studentSchool}</span>
+                      <span>·</span>
+                      <span>{activeViewingWork.studentGrade}</span>
+                    </div>
+                  </div>
+
+                  {/* Formatted Body Content */}
+                  <div className="text-slate-800 text-sm sm:text-base leading-relaxed space-y-4">
+                    {activeViewingWork.contentHtml ? (
+                      <div
+                        className="prose prose-indigo max-w-none text-slate-800 [&_table]:w-full [&_table]:border-collapse [&_table]:my-4 [&_table]:border [&_table]:border-slate-300 [&_th]:border [&_th]:border-slate-300 [&_th]:p-2.5 [&_th]:bg-indigo-50 [&_th]:text-indigo-950 [&_th]:font-bold [&_th]:text-left [&_td]:border [&_td]:border-slate-300 [&_td]:p-2.5 [&_p]:my-2.5 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-indigo-900 [&_h2]:mt-4 [&_h2]:mb-2 [&_h3]:text-base [&_h3]:font-bold [&_h3]:text-slate-900 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
+                        dangerouslySetInnerHTML={{
+                          __html: activeViewingWork.contentHtml,
+                        }}
+                      />
+                    ) : (
+                      <div className="whitespace-pre-line leading-relaxed text-slate-800">
+                        {activeViewingWork.previewText}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Document Footer Signature Seal */}
+                  <div className="pt-8 mt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center font-black text-xs">
+                        KC
+                      </div>
+                      <div>
+                        <p className="font-bold text-slate-800 text-[11px]">Ekstrakurikuler Komputer Ceria</p>
+                        <p className="text-[10px] text-slate-400">Pusat Kreativitas & Portofolio Siswa</p>
+                      </div>
+                    </div>
+                    <div className="text-right text-[11px]">
+                      <span className="inline-flex items-center gap-1 text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                        ✓ Karya Terverifikasi
+                      </span>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
 
             {/* Footer Bar */}
-            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between shrink-0">
-              <span className="text-xs text-slate-500">
-                Kategori: <strong>{activeViewingWork.category}</strong>
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between shrink-0 gap-3">
+              <span className="text-xs text-slate-500 truncate">
+                Kategori: <strong className="text-slate-700 dark:text-slate-300">{activeViewingWork.category}</strong>
               </span>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => handleToggleLike(activeViewingWork.id)}
-                  className={`px-4 py-1.5 font-semibold rounded-lg border flex items-center gap-1.5 cursor-pointer text-xs transition-colors ${
+                  className={`px-4 py-2 font-bold rounded-xl border flex items-center gap-1.5 cursor-pointer text-xs transition-all ${
                     currentUser
-                      ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-300 hover:bg-amber-100'
+                      ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-300 hover:bg-amber-100 shadow-xs'
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-amber-50 dark:hover:bg-amber-950/40'
                   }`}
                   title={!currentUser ? 'Klik untuk masuk dan memberi bintang' : 'Beri Bintang'}
@@ -450,13 +520,13 @@ export const StudentGallery: React.FC<StudentGalleryProps> = ({
                   <span>
                     {currentUser
                       ? `Beri Bintang (${activeViewingWork.starLikes})`
-                      : `${activeViewingWork.starLikes} Bintang (Login untuk memberi bintang)`}
+                      : `${activeViewingWork.starLikes} Bintang`}
                   </span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveViewingWork(null)}
-                  className="px-4 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  className="px-4 py-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
                   Tutup
                 </button>

@@ -1709,7 +1709,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
             </div>
           </div>
 
-          <LeaderboardWidget showAll={true} onChallengeInitiated={handleChallengeInitiated} />
+          <LeaderboardWidget showAll={true} showChallenge={true} onChallengeInitiated={handleChallengeInitiated} />
         </div>
       )}
         </main>

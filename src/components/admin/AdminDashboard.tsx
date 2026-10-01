@@ -84,6 +84,7 @@ import {
   saveGamesConfig,
   getSchoolRewards,
   saveSchoolRewards,
+  deleteSchoolReward,
   getShopItems,
   saveShopItems,
   getRewardRedemptions,
@@ -499,10 +500,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       message: 'Apakah Anda yakin ingin menghapus hadiah ini dari katalog penukaran?',
       confirmText: 'Hapus',
       onConfirm: () => {
-        const updated = schoolRewards.filter((r) => r.id !== id);
+        deleteSchoolReward(id);
+        const updated = getSchoolRewards();
         setSchoolRewards(updated);
-        saveSchoolRewards(updated);
-        showSuccess('Hadiah berhasil dihapus dari katalog.');
+        showSuccess('Hadiah berhasil dihapus dari katalog dan server.');
       },
     });
   };

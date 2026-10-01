@@ -24,6 +24,8 @@ export interface User {
   equippedBadge?: string; // e.g. 'Word Master' | 'Pelindung Siber'
   equippedAvatar?: string; // custom unlocked avatar
   schoolFaction?: 'processor' | 'graphics' | 'memory'; // Team Battle: Tim Prosesor, Tim Grafis, Tim Memori
+  currentSessionId?: string; // Single active session enforcement
+  lastActiveAt?: string; // Last heartbeat / activity time
   createdAt: string;
   lastLoginAt?: string;
   loginCount?: number;

@@ -34,12 +34,19 @@ export const SchoolRewardShop: React.FC = () => {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   useEffect(() => {
-    const user = getActiveUser();
-    setCurrentUser(user);
-    if (user) {
-      const all = getRewardRedemptions();
-      setMyRedemptions(all.filter((r) => r.studentId === user.id));
-    }
+    const syncData = () => {
+      const user = getActiveUser();
+      setCurrentUser(user);
+      setRewards(getSchoolRewards());
+      if (user) {
+        const all = getRewardRedemptions();
+        setMyRedemptions(all.filter((r) => r.studentId === user.id));
+      }
+    };
+    syncData();
+
+    window.addEventListener('ekskul_data_updated', syncData);
+    return () => window.removeEventListener('ekskul_data_updated', syncData);
   }, []);
 
   const handleRedeem = (item: SchoolRewardItem) => {
