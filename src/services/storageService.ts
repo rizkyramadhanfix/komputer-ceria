@@ -189,6 +189,7 @@ export async function pullFullSyncFromServer(): Promise<{ success: boolean; coun
         announcements: STORAGE_KEYS.ANNOUNCEMENTS,
         galleryWorks: STORAGE_KEYS.GALLERY_WORKS,
         loginLogs: STORAGE_KEYS.LOGIN_LOGS,
+        typingTournaments: STORAGE_KEYS.TYPING_TOURNAMENTS,
         forumThreads: 'ekskul_forum_threads',
         forumReplies: 'ekskul_forum_replies',
       };
@@ -302,56 +303,13 @@ function initFirestoreListeners() {
   if (listenersInitialized) return;
   listenersInitialized = true;
 
-  const allSync = async () => {
-    const collectionsToSync = [
-      { col: 'users', key: STORAGE_KEYS.USERS },
-      { col: 'lessons', key: STORAGE_KEYS.LESSONS },
-      { col: 'quizzes', key: STORAGE_KEYS.QUIZZES },
-      { col: 'typingPractices', key: STORAGE_KEYS.TYPING_PRACTICES },
-      { col: 'typingSubmissions', key: STORAGE_KEYS.TYPING_SUBMISSIONS },
-      { col: 'quizSubmissions', key: STORAGE_KEYS.QUIZ_SUBMISSIONS },
-      { col: 'config', key: 'dashboard' }, // config handled below
-      { col: 'galleryWorks', key: STORAGE_KEYS.GALLERY_WORKS },
-      { col: 'gameScores', key: STORAGE_KEYS.GAME_SCORES },
-      { col: 'loginLogs', key: STORAGE_KEYS.LOGIN_LOGS },
-      { col: 'typingTournaments', key: STORAGE_KEYS.TYPING_TOURNAMENTS },
-      { col: 'typingLeagueTexts', key: STORAGE_KEYS.TYPING_LEAGUE_TEXTS },
-      { col: 'typingLeagueScores', key: STORAGE_KEYS.TYPING_LEAGUE_SCORES },
-      { col: 'schoolRewards', key: STORAGE_KEYS.SCHOOL_REWARDS },
-      { col: 'rewardRedemptions', key: STORAGE_KEYS.REWARD_REDEMPTIONS },
-      { col: 'announcements', key: STORAGE_KEYS.ANNOUNCEMENTS },
-      { col: 'forumThreads', key: 'ekskul_forum_threads' },
-      { col: 'forumReplies', key: 'ekskul_forum_replies' },
-    ];
+  // Perform highly-optimized instant single-request bulk sync on startup
+  pullFullSyncFromServer();
 
-    for (const item of collectionsToSync) {
-      if (item.col === 'config') {
-        const configs = await fetchCollectionFromServer('config');
-        configs.forEach((cfg) => {
-          if (cfg.id === 'dashboard') setStoredItem(STORAGE_KEYS.DASHBOARD_CONFIG, cfg);
-          else if (cfg.id === 'certificate') setStoredItem(STORAGE_KEYS.CERTIFICATE_CONFIG, cfg);
-          else if (cfg.id === 'gamification') setStoredItem(STORAGE_KEYS.GAMIFICATION_CONFIG, cfg);
-          else if (cfg.id === 'games_config') setStoredItem(STORAGE_KEYS.GAMES_CONFIG, cfg);
-        });
-      } else {
-        await syncCollectionFromServer(item.col, item.key);
-      }
-    }
-  };
-
-  allSync();
-
-  // Polling highly dynamic interactive collections every 3 seconds to keep other computers in sync online!
+  // Polling bulk data in a single request every 3 seconds to keep all browsers/devices synchronized instantly!
   if (!serverSyncInterval) {
     serverSyncInterval = setInterval(async () => {
-      await syncCollectionFromServer('users', STORAGE_KEYS.USERS);
-      await syncCollectionFromServer('typingSubmissions', STORAGE_KEYS.TYPING_SUBMISSIONS);
-      await syncCollectionFromServer('quizSubmissions', STORAGE_KEYS.QUIZ_SUBMISSIONS);
-      await syncCollectionFromServer('forumThreads', 'ekskul_forum_threads');
-      await syncCollectionFromServer('forumReplies', 'ekskul_forum_replies');
-      await syncCollectionFromServer('gameScores', STORAGE_KEYS.GAME_SCORES);
-      await syncCollectionFromServer('announcements', STORAGE_KEYS.ANNOUNCEMENTS);
-      await syncCollectionFromServer('rewardRedemptions', STORAGE_KEYS.REWARD_REDEMPTIONS);
+      await pullFullSyncFromServer();
     }, 3000);
   }
 }
