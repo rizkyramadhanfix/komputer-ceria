@@ -44,6 +44,7 @@ import {
   Binary,
   ShieldAlert,
   Bot,
+  Rocket,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -207,7 +208,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   onMouseEnter={() => setActiveDropdown('belajar')}
                   className={`transition-all hover:text-indigo-600 dark:hover:text-indigo-400 py-1 flex items-center gap-1 cursor-pointer ${
-                    ['student-lessons', 'student-quizzes', 'student-quiz-duel'].includes(currentView) ? 'text-indigo-600 dark:text-indigo-400' : ''
+                    ['student-lessons', 'student-quizzes'].includes(currentView) ? 'text-indigo-600 dark:text-indigo-400' : ''
                   }`}
                 >
                   <span>Materi & Kuis</span>
@@ -225,10 +226,6 @@ export const Header: React.FC<HeaderProps> = ({
                     <HelpCircle className="w-3.5 h-3.5 text-amber-500" />
                     <span>Kuis Mandiri</span>
                   </button>
-                  <button onClick={() => handleNavClick('student-quiz-duel')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 border-t border-slate-100 dark:border-slate-800 mt-1">
-                    <Zap className="w-3.5 h-3.5 text-purple-500" />
-                    <span>Duel Cerdas Cermat</span>
-                  </button>
                 </div>
               </div>
 
@@ -237,7 +234,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   onMouseEnter={() => setActiveDropdown('mengetik')}
                   className={`transition-all hover:text-indigo-600 dark:hover:text-indigo-400 py-1 flex items-center gap-1 cursor-pointer ${
-                    ['student-typing', 'student-typing-league', 'student-typing-hero', 'student-typing-race'].includes(currentView) ? 'text-indigo-600 dark:text-indigo-400' : ''
+                    ['student-typing', 'student-typing-league', 'student-typing-hero'].includes(currentView) ? 'text-indigo-600 dark:text-indigo-400' : ''
                   }`}
                 >
                   <span>Latihan Mengetik</span>
@@ -261,10 +258,6 @@ export const Header: React.FC<HeaderProps> = ({
                   <button onClick={() => handleNavClick('student-typing-hero')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
                     <Zap className="w-3.5 h-3.5 text-orange-500" />
                     <span>Typing Hero RPG</span>
-                  </button>
-                  <button onClick={() => handleNavClick('student-typing-race')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
-                    <Zap className="w-3.5 h-3.5 text-pink-500" />
-                    <span>Balap Ketik Mobil</span>
                   </button>
                 </div>
               </div>
@@ -390,7 +383,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   onMouseEnter={() => setActiveDropdown('admin-data')}
                   className={`transition-all hover:text-indigo-600 dark:hover:text-indigo-400 py-1 flex items-center gap-1 cursor-pointer ${
-                    ['admin-pembina', 'admin-students', 'admin-lessons', 'admin-quizzes', 'admin-typing'].includes(currentView) ? 'text-indigo-600 dark:text-indigo-400' : ''
+                    ['admin-students', 'admin-lessons', 'admin-quizzes', 'admin-typing'].includes(currentView) ? 'text-indigo-600 dark:text-indigo-400' : ''
                   }`}
                 >
                   <Users className="w-3.5 h-3.5" />
@@ -401,15 +394,9 @@ export const Header: React.FC<HeaderProps> = ({
                   onMouseLeave={() => setActiveDropdown(null)}
                   className="absolute top-full left-0 mt-1 w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all z-50"
                 >
-                  {isSuperAdmin && (
-                    <button onClick={() => handleNavClick('admin-pembina')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 text-[11px] font-bold text-purple-600 dark:text-purple-400 border-b border-slate-100 dark:border-slate-800">
-                      <School className="w-3.5 h-3.5 text-purple-500" />
-                      <span>Manajemen Akun Pembina</span>
-                    </button>
-                  )}
-                  <button onClick={() => handleNavClick('admin-students')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 text-[11px]">
+                  <button onClick={() => handleNavClick('admin-students')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 text-[11px] font-bold text-blue-600 dark:text-blue-400">
                     <Users className="w-3.5 h-3.5 text-blue-500" />
-                    <span>{isPembina ? `Siswa ${assignedSchool || ''}` : 'Manajemen Siswa'}</span>
+                    <span>Manajemen Siswa</span>
                   </button>
                   <button onClick={() => handleNavClick('admin-lessons')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 text-[11px]">
                     <BookOpen className="w-3.5 h-3.5 text-indigo-500" />
@@ -431,7 +418,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   onMouseEnter={() => setActiveDropdown('admin-monitor')}
                   className={`transition-all hover:text-indigo-600 dark:hover:text-indigo-400 py-1 flex items-center gap-1 cursor-pointer ${
-                    ['admin-login-activity', 'admin-submissions', 'admin-gallery', 'admin-forum', 'admin-games'].includes(currentView) ? 'text-indigo-600 dark:text-indigo-400' : ''
+                    ['admin-typing-league', 'admin-login-activity', 'admin-submissions', 'admin-gallery', 'admin-forum', 'admin-games'].includes(currentView) ? 'text-indigo-600 dark:text-indigo-400' : ''
                   }`}
                 >
                   <Trophy className="w-3.5 h-3.5" />
@@ -440,8 +427,12 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
                 <div 
                   onMouseLeave={() => setActiveDropdown(null)}
-                  className="absolute top-full left-0 mt-1 w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all z-50"
+                  className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all z-50"
                 >
+                  <button onClick={() => handleNavClick('admin-typing-league')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 text-[11px] font-bold text-amber-600 dark:text-amber-400">
+                    <Trophy className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Leaderboard Liga Mengetik</span>
+                  </button>
                   <button onClick={() => handleNavClick('admin-login-activity')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400">
                     <Activity className="w-3.5 h-3.5 text-indigo-500" />
                     <span>Keaktifan Akun Siswa</span>
@@ -585,24 +576,21 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             </div>
           ) : (
-            <div className="hidden sm:flex items-center gap-1.5">
+            <div className="hidden sm:flex items-center gap-2">
               <button
                 onClick={() => onOpenAuthModal('student-login')}
-                className="px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors whitespace-nowrap cursor-pointer"
+                className="px-4 py-2 text-xs font-black text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-xl shadow-md hover:shadow-indigo-500/25 active:scale-95 transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5"
               >
-                🎓 Login Siswa
-              </button>
-              <button
-                onClick={() => onOpenAuthModal('pembina')}
-                className="px-3 py-1.5 text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900 rounded-lg transition-colors whitespace-nowrap cursor-pointer"
-              >
-                🏫 Login Pembina
+                <Rocket className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+                <span>Mulai Belajar</span>
               </button>
               <button
                 onClick={() => onOpenAuthModal('superadmin')}
-                className="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-xs transition-colors whitespace-nowrap cursor-pointer"
+                title="Akses Pengelola Website"
+                className="px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5"
               >
-                👑 Login Superadmin
+                <Shield className="w-3.5 h-3.5 text-indigo-500" />
+                <span>Login Super Admin</span>
               </button>
             </div>
           )}
@@ -654,7 +642,6 @@ export const Header: React.FC<HeaderProps> = ({
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-1">Materi & Kuis</p>
                   <button onClick={() => handleNavClick('student-lessons')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Daftar Materi</button>
                   <button onClick={() => handleNavClick('student-quizzes')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Kuis Mandiri</button>
-                  <button onClick={() => handleNavClick('student-quiz-duel')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Duel Cerdas Cermat</button>
                 </div>
 
                 <div className="pt-2 pb-1">
@@ -665,7 +652,6 @@ export const Header: React.FC<HeaderProps> = ({
                   </button>
                   <button onClick={() => handleNavClick('student-typing')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Mengetik MS Word</button>
                   <button onClick={() => handleNavClick('student-typing-hero')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Typing Hero RPG</button>
-                  <button onClick={() => handleNavClick('student-typing-race')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Balap Ketik Mobil</button>
                 </div>
 
                 <div className="pt-2 pb-1">
@@ -704,9 +690,6 @@ export const Header: React.FC<HeaderProps> = ({
 
                 <div className="pt-2 pb-1">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-1">Data Master</p>
-                  {isSuperAdmin && (
-                    <button onClick={() => handleNavClick('admin-pembina')} className="w-full text-left py-2 px-2 text-sm font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700">Manajemen Akun Pembina</button>
-                  )}
                   <button onClick={() => handleNavClick('admin-students')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Manajemen Siswa</button>
                   <button onClick={() => handleNavClick('admin-lessons')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Materi Belajar</button>
                   <button onClick={() => handleNavClick('admin-quizzes')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Bank Kuis</button>
@@ -715,6 +698,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                 <div className="pt-2 pb-1">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-1">Monitoring</p>
+                  <button onClick={() => handleNavClick('admin-typing-league')} className="w-full text-left py-2 px-2 text-sm font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700">Leaderboard Liga Mengetik</button>
                   <button onClick={() => handleNavClick('admin-login-activity')} className="w-full text-left py-2 px-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700">Keaktifan Akun Siswa</button>
                   <button onClick={() => handleNavClick('admin-submissions')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Hasil & Nilai</button>
                   <button onClick={() => handleNavClick('admin-gallery')} className="w-full text-left py-2 px-2 text-sm font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700">Galeri Karya Siswa</button>
@@ -780,27 +764,20 @@ export const Header: React.FC<HeaderProps> = ({
                   setMobileMenuOpen(false);
                   onOpenAuthModal('student-login');
                 }}
-                className="w-full py-2 text-center text-xs font-bold text-slate-800 dark:text-slate-100 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 text-center text-xs font-black text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl shadow-md flex items-center justify-center gap-2"
               >
-                <span>🎓 Login Siswa</span>
-              </button>
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onOpenAuthModal('pembina');
-                }}
-                className="w-full py-2 text-center text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 rounded-lg flex items-center justify-center gap-1.5"
-              >
-                <span>🏫 Login Pembina Sekolah</span>
+                <Rocket className="w-4 h-4 text-amber-300" />
+                <span>Mulai Belajar (Akses Gratis) 🚀</span>
               </button>
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
                   onOpenAuthModal('superadmin');
                 }}
-                className="w-full py-2 text-center text-xs font-bold text-white bg-indigo-600 rounded-lg flex items-center justify-center gap-1.5"
+                className="w-full py-2 text-center text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-center gap-1.5"
               >
-                <span>👑 Login Superadmin</span>
+                <Shield className="w-3.5 h-3.5 text-indigo-500" />
+                <span>Login Super Admin</span>
               </button>
             </div>
           )}

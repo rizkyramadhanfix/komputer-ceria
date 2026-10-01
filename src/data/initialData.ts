@@ -125,7 +125,7 @@ export const DEFAULT_DASHBOARD_CONFIG: DashboardConfig = {
   siteTitle: 'Komputer Ceria - Sistem Pembelajaran Gamifikasi',
   heroHeadline: 'Belajar Komputer Menjadi Ceria & Mengasyikkan dengan Sistem Bintang & Gamifikasi',
   heroSubheadline: 'Tingkatkan keterampilan perangkat keras, penguasaan Microsoft Word, kecepatan mengetik 10 jari, dan taklukkan kuis interaktif untuk mengumpulkan bintang emas serta raih gelar Diamond Champion di Komputer Ceria!',
-  runningAnnouncement: '📢 Selamat datang di Komputer Ceria! Silakan masuk ke akun siswa untuk mengakses materi pelajaran, kuis pilihan ganda, dan latihan mengetik Microsoft Word.',
+  runningAnnouncement: '📢 Selamat datang di Komputer Ceria! Klik Mulai Belajar untuk mengakses materi pelajaran, kuis interaktif, latihan mengetik, dan mengumpulkan bintang prestasi secara gratis!',
   heroBannerUrl: '/src/assets/images/hero_computer_club_1790579622878.jpg',
 };
 

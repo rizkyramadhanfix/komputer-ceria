@@ -67,7 +67,7 @@ import {
   updateUser,
   getUsers,
 } from '../../services/storageService';
-import { GameBattle, Lesson, Quiz, QuizQuestion, TypingPractice, TypingSubmission } from '../../types';
+import { Lesson, Quiz, QuizQuestion, TypingPractice, TypingSubmission } from '../../types';
 import { AchievementsWidget } from '../achievements/AchievementsWidget';
 import { Avatar } from '../common/Avatar';
 import { BadgePill } from '../common/BadgePill';
@@ -78,7 +78,6 @@ import { ShortcutMaster } from '../games/ShortcutMaster';
 import { StudentGallery } from '../gallery/StudentGallery';
 import { HardwareAssemblyGame } from '../games/HardwareAssemblyGame';
 import { BlocklyMazePlayground } from '../games/BlocklyMazePlayground';
-import { TypingRaceGame } from '../games/TypingRaceGame';
 import { CyberSafetyModule } from '../games/CyberSafetyModule';
 import { StarRewardShop } from '../shop/StarRewardShop';
 import { VoiceNarratorButton } from '../common/VoiceNarratorButton';
@@ -89,7 +88,6 @@ import { WordEditor } from './WordEditor';
 import { FileExplorerGame } from '../games/FileExplorerGame';
 import { NetworkBuilderGame } from '../games/NetworkBuilderGame';
 import { TypingHeroGame } from '../games/TypingHeroGame';
-import { QuizDuelGame } from '../games/QuizDuelGame';
 import { DailyQuestsWidget } from './DailyQuestsWidget';
 import { ForumDiskusi } from '../forum/ForumDiskusi';
 import { PcDoctorClinic } from '../games/PcDoctorClinic';
@@ -109,7 +107,6 @@ import { RhythmTypingGame } from '../games/RhythmTypingGame';
 import { StorageMasterGame } from '../games/StorageMasterGame';
 import { MiniPosterStudio } from '../games/MiniPosterStudio';
 import { ActivityCalendarModal } from '../common/ActivityCalendarModal';
-import { acceptChallenge, cancelChallenge, subscribeToBattles } from '../../services/battleService';
 
 interface StudentDashboardProps {
   initialTab?:
@@ -120,7 +117,6 @@ interface StudentDashboardProps {
     | 'games'
     | 'pc-builder'
     | 'coding-lab'
-    | 'typing-race'
     | 'typing-league'
     | 'cyber-safety'
     | 'star-shop'
@@ -131,7 +127,6 @@ interface StudentDashboardProps {
     | 'file-explorer'
     | 'network-builder'
     | 'typing-hero'
-    | 'quiz-duel'
     | 'forum'
     | 'pc-doctor'
     | 'pixel-art'
@@ -163,7 +158,6 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
     | 'games'
     | 'pc-builder'
     | 'coding-lab'
-    | 'typing-race'
     | 'typing-league'
     | 'cyber-safety'
     | 'star-shop'
@@ -174,7 +168,6 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
     | 'file-explorer'
     | 'network-builder'
     | 'typing-hero'
-    | 'quiz-duel'
     | 'forum'
     | 'pc-doctor'
     | 'pixel-art'
@@ -209,48 +202,6 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
     return () => window.removeEventListener('ekskul_data_updated', handleDataUpdated);
   }, []);
   const [showStudentCardModal, setShowStudentCardModal] = useState(false);
-
-  const [incomingBattles, setIncomingBattles] = useState<GameBattle[]>([]);
-  const [activeBattleId, setActiveBattleId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!currentUser) return;
-    const unsubscribe = subscribeToBattles(currentUser.id, (battles) => {
-      setIncomingBattles(battles);
-    });
-    return () => unsubscribe();
-  }, [currentUser]);
-
-  const handleChallengeInitiated = (battleId: string, gameType: 'quiz_duel' | 'typing_race') => {
-    setActiveBattleId(battleId);
-    if (gameType === 'quiz_duel') {
-      setActiveTab('quiz-duel');
-    } else {
-      setActiveTab('typing-race');
-    }
-  };
-
-  const handleAcceptBattle = async (battleId: string, gameType: string) => {
-    try {
-      await acceptChallenge(battleId);
-      setActiveBattleId(battleId);
-      if (gameType === 'quiz_duel') {
-        setActiveTab('quiz-duel');
-      } else if (gameType === 'typing_race') {
-        setActiveTab('typing-race');
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleDeclineBattle = async (battleId: string) => {
-    try {
-      await cancelChallenge(battleId);
-    } catch (err) {
-      console.error(err);
-    }
-  };
 
   const lessons = getLessons();
   const quizzes = getQuizzes();
@@ -747,36 +698,6 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
             </div>
           )}
 
-          {/* Incoming Battle Challenges Alert */}
-          {incomingBattles.length > 0 && (
-            <div className="mb-6 space-y-3">
-              {incomingBattles.map(battle => (
-                <div key={battle.id} className="p-4 bg-purple-600 text-white rounded-2xl shadow-lg shadow-purple-500/20 flex items-center justify-between animate-in slide-in-from-top duration-500">
-                  <div className="flex items-center gap-3">
-                    <Avatar src={battle.challengerAvatar} name={battle.challengerName} size="sm" className="ring-2 ring-white/50" />
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-tight">{battle.challengerName} MENANTANGMU!</p>
-                      <p className="text-[10px] opacity-90">Ayo tanding kuis real-time dan buktikan siapa yang lebih jago!</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={() => handleDeclineBattle(battle.id)}
-                      className="px-3 py-1.5 text-[10px] font-bold bg-white/10 hover:bg-white/20 rounded-lg transition-colors cursor-pointer"
-                    >
-                      Tolak
-                    </button>
-                    <button 
-                      onClick={() => handleAcceptBattle(battle.id, battle.gameType)}
-                      className="px-4 py-1.5 text-[10px] font-bold bg-white text-purple-700 hover:bg-purple-50 rounded-lg shadow-sm transition-colors cursor-pointer"
-                    >
-                      Terima & Duel
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
@@ -1016,11 +937,11 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Rakit PC</span>
                   </button>
                   <button
-                    onClick={() => setActiveTab('typing-race')}
+                    onClick={() => setActiveTab('pc-doctor')}
                     className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-rose-400 transition-all group shadow-xs cursor-pointer"
                   >
-                    <Flame className="w-6 h-6 text-rose-500 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Balap Ketik</span>
+                    <Stethoscope className="w-6 h-6 text-rose-500 mb-2 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Dokter PC</span>
                   </button>
                   <button
                     onClick={() => setActiveTab('typing-hero')}
@@ -1030,11 +951,11 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Typing RPG</span>
                   </button>
                   <button
-                    onClick={() => setActiveTab('quiz-duel')}
+                    onClick={() => setActiveTab('spreadsheet')}
                     className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-emerald-400 transition-all group shadow-xs cursor-pointer"
                   >
-                    <Swords className="w-6 h-6 text-emerald-500 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Kuis Duel</span>
+                    <FileSpreadsheet className="w-6 h-6 text-emerald-500 mb-2 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Excel Cilik</span>
                   </button>
                   <button
                     onClick={() => setActiveTab('coding-lab')}
@@ -1669,9 +1590,6 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
       {/* TAB: LAB CODING BLOK */}
       {activeTab === 'coding-lab' && (isFeatureEnabled('coding-lab') ? <BlocklyMazePlayground /> : renderLockedFeatureScreen('Lab Koding Blockly'))}
 
-      {/* TAB: BALAP KETIK CEPAT */}
-      {activeTab === 'typing-race' && (isFeatureEnabled('typing-race') ? <TypingRaceGame battleId={activeBattleId} onCloseBattle={() => setActiveBattleId(null)} /> : renderLockedFeatureScreen('Balapan Mengetik'))}
-
       {/* TAB: LIGA MENGETIK */}
       {activeTab === 'typing-league' && (isFeatureEnabled('typing-league') ? <TypingLeagueGame onBackToMenu={() => setActiveTab('overview')} /> : renderLockedFeatureScreen('Liga Mengetik'))}
 
@@ -1725,9 +1643,6 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
       {/* TAB: TYPING HERO GAME */}
       {activeTab === 'typing-hero' && (isFeatureEnabled('typing-hero') ? <TypingHeroGame /> : renderLockedFeatureScreen('Typing RPG Quest'))}
-
-      {/* TAB: QUIZ DUEL GAME */}
-      {activeTab === 'quiz-duel' && (isFeatureEnabled('quiz-duel') ? <QuizDuelGame battleId={activeBattleId} onCloseBattle={() => setActiveBattleId(null)} /> : renderLockedFeatureScreen('Cerdas Cermat Duel'))}
 
       {/* TAB 7: LENCANA PRESTASI & PENCAPAIAN */}
       {activeTab === 'achievements' && <AchievementsWidget student={currentUser} />}
@@ -1810,7 +1725,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
             </div>
           </div>
 
-          <LeaderboardWidget showAll={true} showChallenge={true} onChallengeInitiated={handleChallengeInitiated} />
+          <LeaderboardWidget showAll={true} />
         </div>
       )}
         </main>

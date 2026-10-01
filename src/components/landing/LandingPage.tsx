@@ -25,6 +25,7 @@ import {
   Copy,
   Check,
   Wifi,
+  Rocket,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -164,33 +165,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     </button>
                   </div>
                 ) : (
-                  <div className="flex flex-wrap items-center gap-2.5">
+                  <div className="flex flex-wrap items-center gap-3">
                     <button
                       onClick={() => onOpenAuth('student-login')}
-                      className="px-4 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+                      className="px-6 py-3 text-sm font-black text-white bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-2xl shadow-lg hover:shadow-indigo-500/25 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
                     >
-                      <LogIn className="w-4 h-4" />
-                      <span>🎓 Login Siswa</span>
-                    </button>
-                    <button
-                      onClick={() => onOpenAuth('pembina')}
-                      className="px-4 py-2.5 text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/80 border border-purple-200 dark:border-purple-800 hover:bg-purple-200 dark:hover:bg-purple-900 rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
-                    >
-                      <School className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                      <span>🏫 Login Pembina</span>
+                      <Rocket className="w-5 h-5 text-amber-300 animate-bounce" />
+                      <span>Mulai Belajar Sekarang (Akses Gratis) 🚀</span>
                     </button>
                     <button
                       onClick={() => onOpenAuth('superadmin')}
-                      className="px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
+                      className="px-4 py-3 text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-2xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
                     >
                       <Shield className="w-4 h-4 text-indigo-500" />
-                      <span>👑 Login Superadmin</span>
-                    </button>
-                    <button
-                      onClick={() => onOpenAuth('student-register')}
-                      className="px-3 py-2 text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-semibold cursor-pointer"
-                    >
-                      Daftar Akun Siswa Baru
+                      <span>👑 Login Super Admin</span>
                     </button>
                   </div>
                 )}

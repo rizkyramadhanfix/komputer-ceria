@@ -290,10 +290,10 @@ export const SuperadminLoginModal: React.FC<SuperadminLoginModalProps> = ({
             </div>
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/60 px-2 py-0.5 rounded">
-                Portal Super Administrator Pusat
+                Pengelola Website
               </span>
               <h3 className="text-base font-extrabold text-slate-900 dark:text-white mt-0.5">
-                Login Superadmin Pusat
+                Login Super Admin
               </h3>
             </div>
           </div>
@@ -308,9 +308,9 @@ export const SuperadminLoginModal: React.FC<SuperadminLoginModalProps> = ({
 
         <div className="p-6 space-y-4 max-h-[85vh] overflow-y-auto">
           <div className="p-3 rounded-xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/60 text-xs text-indigo-950 dark:text-indigo-200">
-            <p className="font-semibold">👑 Akses Penuh Sistem & Semua Sekolah</p>
+            <p className="font-semibold">👑 Akses Pengelola Website</p>
             <p className="text-[11px] opacity-80 mt-0.5">
-              Mengelola konfigurasi global, manajemen akun pembina seluruh sekolah, bank kuis, dan materi pembelajaran.
+              Login khusus super admin untuk mengatur website, menambah modul materi, bank kuis, soal mengetik, dan konfigurasi tampilan.
             </p>
           </div>
 
@@ -377,27 +377,15 @@ export const SuperadminLoginModal: React.FC<SuperadminLoginModalProps> = ({
           </form>
 
           <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-1.5 text-center text-xs text-slate-500">
-            {onSwitchToPembina && (
-              <p>
-                Merupakan Pembina Sekolah?{' '}
-                <button
-                  type="button"
-                  onClick={onSwitchToPembina}
-                  className="font-bold text-purple-600 dark:text-purple-400 hover:underline cursor-pointer"
-                >
-                  Login Pembina Sekolah di sini
-                </button>
-              </p>
-            )}
             {onSwitchToStudent && (
               <p>
-                Atau login sebagai{' '}
+                Siswa yang ingin belajar?{' '}
                 <button
                   type="button"
                   onClick={onSwitchToStudent}
                   className="font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
                 >
-                  Siswa Pembelajar
+                  Mulai Belajar Sekarang (Gratis) 🚀
                 </button>
               </p>
             )}

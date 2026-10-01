@@ -105,7 +105,7 @@ function setStoredItem<T>(key: string, value: T): void {
 }
 
 // One-time clean reset for all student and pembina accounts & old session logs as requested
-const CLEAN_RESET_KEY = 'ekskul_clean_reset_v4';
+const CLEAN_RESET_KEY = 'ekskul_clean_reset_v5';
 if (typeof window !== 'undefined') {
   try {
     if (localStorage.getItem(CLEAN_RESET_KEY) !== 'true') {
@@ -453,22 +453,89 @@ export function getUserByUsernameOrNisn(identifier: string): User | undefined {
 }
 
 export function createUser(
-  userData: Omit<User, 'id' | 'createdAt' | 'totalPoints' | 'totalStars' | 'completedLessons'> & { id?: string }
+  userData: Partial<User> & { name: string; role: User['role']; username: string }
 ): User {
   const users = getUsers();
   const newUser: User = {
     id: userData.id || `usr-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-    ...userData,
-    totalPoints: 0,
-    totalStars: 0,
-    completedLessons: [],
-    createdAt: new Date().toISOString(),
+    role: userData.role,
+    name: userData.name.trim(),
+    username: userData.username.trim(),
+    password: userData.password || '',
+    grade: userData.grade,
+    school: userData.school,
+    nisn: userData.nisn,
+    avatarUrl: userData.avatarUrl,
+    schoolFaction: userData.schoolFaction,
+    equippedBadge: userData.equippedBadge,
+    equippedFrame: userData.equippedFrame,
+    equippedTitle: userData.equippedTitle,
+    unlockedShopItemIds: userData.unlockedShopItemIds || [],
+    totalPoints: userData.totalPoints ?? 0,
+    totalStars: userData.totalStars ?? 0,
+    completedLessons: userData.completedLessons || [],
+    createdAt: userData.createdAt || new Date().toISOString(),
+    lastActiveAt: userData.lastActiveAt || new Date().toISOString(),
+    lastLoginAt: userData.lastLoginAt,
   };
   users.push(newUser);
   setStoredItem(STORAGE_KEYS.USERS, users);
   syncDocToFirestore('users', newUser.id, newUser);
   notifyDataUpdated();
   return newUser;
+}
+
+export async function findMatchingStudent(
+  nameOrNickname: string,
+  school?: string,
+  grade?: string
+): Promise<User | null> {
+  const cleanQuery = nameOrNickname.trim().toLowerCase();
+  const cleanSchool = (school || '').trim().toLowerCase();
+  const cleanGrade = (grade || '').trim().toLowerCase();
+
+  if (!cleanQuery) return null;
+
+  const matchUser = (u: User) => {
+    if (u.role !== 'student') return false;
+    const uName = (u.name || '').trim().toLowerCase();
+    const uUsername = (u.username || '').trim().toLowerCase();
+    const uSchool = (u.school || '').trim().toLowerCase();
+    const uGrade = (u.grade || '').trim().toLowerCase();
+
+    // Match name, nickname, or username
+    const isNameMatch = uName === cleanQuery || uUsername === cleanQuery;
+    if (!isNameMatch) return false;
+
+    // If school is provided and recorded, check school
+    if (cleanSchool && uSchool && uSchool !== cleanSchool) {
+      return false;
+    }
+
+    return true;
+  };
+
+  // 1. Check local storage
+  const localUsers = getUsers();
+  const localMatch = localUsers.find(matchUser);
+  if (localMatch) return localMatch;
+
+  // 2. Fetch latest from centralized Server DB
+  try {
+    const serverUsers = await fetchCollectionFromServer('users');
+    if (serverUsers && Array.isArray(serverUsers)) {
+      const serverMatch = serverUsers.find(matchUser);
+      if (serverMatch) {
+        setStoredItem(STORAGE_KEYS.USERS, serverUsers);
+        notifyDataUpdated();
+        return serverMatch;
+      }
+    }
+  } catch (err) {
+    console.warn('Server user lookup warning:', err);
+  }
+
+  return null;
 }
 
 export function isStudentOnline(user: User): boolean {
@@ -720,11 +787,9 @@ const DEFAULT_GAMES_CONFIG: GamesConfig = {
     { id: 'file-explorer', name: 'Manajemen Berkas & Folder', category: 'game', isEnabled: true, pointsMultiplier: 1, customSetting: '60' },
     { id: 'network-builder', name: 'Simulator Jaringan Komputer', category: 'simulator', isEnabled: true, pointsMultiplier: 1, customSetting: 'normal' },
     { id: 'typing-hero', name: 'Typing RPG Quest', category: 'game', isEnabled: true, pointsMultiplier: 1, customSetting: '100' },
-    { id: 'quiz-duel', name: 'Cerdas Cermat Duel', category: 'game', isEnabled: true, pointsMultiplier: 1, customSetting: 'normal' },
     { id: 'games', name: 'Game Kata Jatuh', category: 'game', isEnabled: true, pointsMultiplier: 1, customSetting: '1.0' },
     { id: 'pc-builder', name: 'Simulator Merakit PC', category: 'simulator', isEnabled: true, pointsMultiplier: 1 },
     { id: 'coding-lab', name: 'Lab Koding Blockly', category: 'simulator', isEnabled: true, pointsMultiplier: 1 },
-    { id: 'typing-race', name: 'Balapan Mengetik', category: 'game', isEnabled: true, pointsMultiplier: 1 },
     { id: 'cyber-safety', name: 'Edukasi Keamanan Siber', category: 'utility', isEnabled: true, pointsMultiplier: 1 },
     { id: 'shortcuts', name: 'Master Shortcut Keyboard', category: 'utility', isEnabled: true, pointsMultiplier: 1 },
     { id: 'daily-quests', name: 'Misi Harian & Streak Absen', category: 'utility', isEnabled: true, pointsMultiplier: 1 },
@@ -2116,7 +2181,6 @@ export function recordGameScore(
     'Manajemen Berkas': 'file-explorer',
     'Simulasi Jaringan': 'network-builder',
     'Petualangan Mengetik RPG': 'typing-hero',
-    'Kuis Duel Cerdas': 'quiz-duel',
     'Game Kata Jatuh': 'games',
     'Master Colokan & Port Komputer': 'port-master',
     'Detektif Kode Biner (0 dan 1)': 'binary-code',

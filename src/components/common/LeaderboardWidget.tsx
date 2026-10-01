@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-import { Award, Crown, Medal, Sparkles, Star, Trophy, Swords, Search } from 'lucide-react';
+import { Award, Crown, Medal, Sparkles, Star, Trophy, Search } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { useToast } from '../../context/ToastContext';
 import { getBadgeForPoints, isStudentOnline } from '../../services/storageService';
-import { createBattleChallenge } from '../../services/battleService';
 import { User } from '../../types';
 import { Avatar } from './Avatar';
 import { BadgePill } from './BadgePill';
@@ -12,40 +10,15 @@ import { StudentProfileModal } from './StudentProfileModal';
 interface LeaderboardWidgetProps {
   limit?: number;
   showAll?: boolean;
-  showChallenge?: boolean;
-  onChallengeInitiated?: (battleId: string, gameType: 'quiz_duel' | 'typing_race') => void;
 }
 
 export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
   limit = 10,
   showAll = false,
-  showChallenge = false,
-  onChallengeInitiated,
 }) => {
   const { users, currentUser } = useAuth();
-  const { showInfo, showError } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<User | null>(null);
-
-  const handleChallenge = async (student: User, gameType: 'quiz_duel' | 'typing_race' = 'quiz_duel') => {
-    if (!currentUser) return;
-
-    if (!isStudentOnline(student)) {
-      showInfo(`Siswa ${student.name} sedang offline/tidak login saat ini. Anda hanya dapat menantang siswa yang sedang aktif online.`, 'Siswa Offline');
-      return;
-    }
-
-    try {
-      const newBattleId = await createBattleChallenge(currentUser, student, gameType);
-      showInfo(`Tantangan duel ${gameType === 'typing_race' ? 'balap ketik' : 'kuis'} dikirim ke ${student.name}!`, 'Tantangan Dikirim');
-      if (onChallengeInitiated) {
-        onChallengeInitiated(newBattleId, gameType);
-      }
-    } catch (err) {
-      console.error(err);
-      showError('Gagal mengirim tantangan duel.');
-    }
-  };
 
   // Filter students only, sort descending by totalPoints, and apply search
   const students = users
@@ -200,18 +173,6 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
                         </span>
                       </div>
                       <BadgePill tier={currentBadge.tier} size="sm" />
-                      {showChallenge && currentUser?.role === 'student' && !isCurrent && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleChallenge(student);
-                          }}
-                          className="ml-1 p-1.5 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white transition-all cursor-pointer shadow-xs border border-purple-100 dark:border-purple-800"
-                          title={`Tantang ${student.name} Duel Kuis!`}
-                        >
-                          <Swords className="w-3.5 h-3.5" />
-                        </button>
-                      )}
                     </div>
                   </td>
                 </tr>
@@ -233,7 +194,6 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
         <StudentProfileModal
           student={selectedStudent}
           onClose={() => setSelectedStudent(null)}
-          onChallenge={showChallenge ? handleChallenge : undefined}
           isCurrent={currentUser?.id === selectedStudent.id}
         />
       )}

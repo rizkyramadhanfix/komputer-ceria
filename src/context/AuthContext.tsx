@@ -31,6 +31,12 @@ interface AuthContextType {
     school: string;
     password: string;
   }) => { success: boolean; message?: string; user?: User };
+  startLearningSession: (data: {
+    name: string;
+    grade: string;
+    school: string;
+    existingUserId?: string;
+  }) => { success: boolean; user: User };
   logout: () => void;
   refreshUser: () => void;
   sessionNotice: string | null;
@@ -305,6 +311,67 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   };
 
+  const startLearningSession = (data: {
+    name: string;
+    grade: string;
+    school: string;
+    existingUserId?: string;
+  }): { success: boolean; user: User } => {
+    const trimmedName = data.name.trim();
+    const trimmedGrade = data.grade.trim() || 'Kelas 5';
+    const trimmedSchool = data.school.trim() || 'SDN Sukadamai 2';
+
+    const allUsers = getUsers();
+    let user: User | undefined;
+
+    if (data.existingUserId) {
+      user = allUsers.find((u) => u.id === data.existingUserId);
+    }
+
+    if (!user) {
+      // Find if student with same name/username and school already exists to preserve progress
+      user = allUsers.find(
+        (u) =>
+          u.role === 'student' &&
+          (u.name.toLowerCase() === trimmedName.toLowerCase() || u.username.toLowerCase() === trimmedName.toLowerCase()) &&
+          (u.school || '').toLowerCase() === trimmedSchool.toLowerCase()
+      );
+    }
+
+    if (user) {
+      // Keep all totalPoints, totalStars, badges, purchased items, completed lessons!
+      const updated = updateUser(user.id, {
+        name: trimmedName,
+        grade: trimmedGrade,
+        school: trimmedSchool,
+        lastActiveAt: new Date().toISOString(),
+        lastLoginAt: new Date().toISOString(),
+      }) || user;
+      user = updated;
+    } else {
+      // Create new learner profile
+      user = createUser({
+        role: 'student',
+        username: trimmedName.toLowerCase().replace(/[^a-z0-9]/g, '_') || `siswa_${Date.now()}`,
+        password: '',
+        name: trimmedName,
+        grade: trimmedGrade,
+        school: trimmedSchool,
+        totalPoints: 0,
+        totalStars: 0,
+        completedLessons: [],
+        lastActiveAt: new Date().toISOString(),
+        lastLoginAt: new Date().toISOString(),
+      });
+    }
+
+    localStorage.setItem('ekskul_active_user', JSON.stringify(user));
+    setCurrentUser(user);
+    setUsers(getUsers());
+    lastActivityRef.current = Date.now();
+    return { success: true, user };
+  };
+
   const logout = () => {
     if (currentUser?.id) {
       // Clear session token in Firestore & local
@@ -341,6 +408,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         assignedSchool,
         login,
         registerStudent,
+        startLearningSession,
         logout,
         refreshUser,
         sessionNotice,

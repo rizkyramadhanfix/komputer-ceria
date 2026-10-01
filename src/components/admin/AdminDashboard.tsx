@@ -133,14 +133,15 @@ import { useToast } from '../../context/ToastContext';
 import { compressImageFile } from '../../utils/imageCompressor';
 import { ForumDiskusi } from '../forum/ForumDiskusi';
 import { StudentLoginActivityTab } from './StudentLoginActivityTab';
+import { AdminTypingLeagueLeaderboard } from './AdminTypingLeagueLeaderboard';
 
 interface AdminDashboardProps {
   initialTab?:
-    | 'pembina'
     | 'students'
     | 'lessons'
     | 'quizzes'
     | 'typing'
+    | 'typing-league'
     | 'gamification'
     | 'submissions'
     | 'dashboard'
@@ -158,11 +159,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const { currentUser, isSuperAdmin, isPembina, assignedSchool, refreshUser } = useAuth();
   const { showSuccess, showError, showInfo } = useToast();
   const [activeTab, setActiveTab] = useState<
-    | 'pembina'
     | 'students'
     | 'lessons'
     | 'quizzes'
     | 'typing'
+    | 'typing-league'
     | 'gamification'
     | 'submissions'
     | 'dashboard'
@@ -172,11 +173,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     | 'forum'
     | 'login-activity'
     | 'announcements'
-  >(initialTab);
+  >(initialTab === 'typing-league' ? 'typing' : initialTab);
 
   // Sync activeTab when initialTab changes from parent
   React.useEffect(() => {
-    setActiveTab(initialTab);
+    if (initialTab === 'typing-league') {
+      setActiveTab('typing');
+      setTypingSubTab('leaderboard');
+    } else {
+      setActiveTab(initialTab);
+    }
   }, [initialTab]);
 
   // Popup confirmation modal state
@@ -522,7 +528,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [contactForm, setContactForm] = useState<ContactInfoConfig>(() => getContactInfo());
 
   // --- Liga Mengetik States ---
-  const [typingSubTab, setTypingSubTab] = useState<'practice' | 'league'>('practice');
+  const [typingSubTab, setTypingSubTab] = useState<'practice' | 'league' | 'leaderboard'>('practice');
   const [leagueTexts, setLeagueTexts] = useState<TypingLeagueText[]>(() => getTypingLeagueTexts());
   const [showLeagueTextModal, setShowLeagueTextModal] = useState(false);
   const [editingLeagueText, setEditingLeagueText] = useState<TypingLeagueText | null>(null);
@@ -1557,175 +1563,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
 
 
-      {/* ================= TAB: MANAJEMEN PEMBINA SEKOLAH (SUPERADMIN ONLY) ================= */}
-      {activeTab === 'pembina' && (
-        <div className="space-y-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-purple-600 dark:text-purple-400 flex items-center gap-1">
-                    <UserCheck className="w-4 h-4" />
-                    Manajemen Multi-Sekolah
-                  </span>
-                  <span className="text-slate-300 dark:text-slate-700">·</span>
-                  <span className="text-xs text-slate-500">
-                    {pembinaList.length} Akun Pembina Terdaftar
-                  </span>
-                </div>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white mt-1">
-                  Koordinator & Guru Pembina Sekolah
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Setiap pembina hanya dapat melihat dan mengelola data siswa dari sekolah binaannya masing-masing.
-                </p>
-              </div>
-
-              {isSuperAdmin && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingPembina(null);
-                    setPembinaForm({
-                      name: '',
-                      username: '',
-                      password: '',
-                      assignedSchool: '',
-                      pembinaPhone: '',
-                    });
-                    setShowPembinaModal(true);
-                  }}
-                  className="px-4 py-2.5 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-md shadow-purple-500/20 transition-all flex items-center gap-2 cursor-pointer shrink-0"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  <span>+ Tambah Akun Pembina</span>
-                </button>
-              )}
-            </div>
-
-            {/* Search Bar */}
-            <div className="max-w-md">
-              <div className="relative">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-                <input
-                  type="text"
-                  value={pembinaSearch}
-                  onChange={(e) => setPembinaSearch(e.target.value)}
-                  placeholder="Cari nama pembina, username, atau sekolah binaan..."
-                  className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white"
-                />
-              </div>
-            </div>
-
-            {/* Pembina Table */}
-            <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-xl">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-                  <tr>
-                    <th className="p-3">Nama Pembina</th>
-                    <th className="p-3">Username Login</th>
-                    <th className="p-3">Sekolah Binaan</th>
-                    <th className="p-3">Kontak WhatsApp</th>
-                    <th className="p-3 text-center">Siswa Binaan</th>
-                    <th className="p-3 text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {pembinaList
-                    .filter((p) => {
-                      if (!pembinaSearch) return true;
-                      const q = pembinaSearch.toLowerCase();
-                      return (
-                        p.name.toLowerCase().includes(q) ||
-                        p.username.toLowerCase().includes(q) ||
-                        (p.assignedSchool || '').toLowerCase().includes(q)
-                      );
-                    })
-                    .map((p, idx) => {
-                      const studentCount = students.filter(
-                        (s) => (s.school || '').toLowerCase().trim() === (p.assignedSchool || '').toLowerCase().trim()
-                      ).length;
-
-                      return (
-                        <tr key={`${p.id}-${idx}`} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                          <td className="p-3 font-semibold text-slate-900 dark:text-white flex items-center gap-2.5">
-                            <Avatar src={p.avatarUrl} name={p.name} size="sm" />
-                            <div>
-                              <p className="font-bold text-slate-900 dark:text-white">{p.name}</p>
-                              <span className="text-[10px] text-purple-600 dark:text-purple-400 font-semibold">
-                                Pembina Terverifikasi
-                              </span>
-                            </div>
-                          </td>
-                          <td className="p-3 font-mono text-slate-700 dark:text-slate-300">
-                            <span className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded font-bold">
-                              {p.username}
-                            </span>
-                          </td>
-                          <td className="p-3">
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
-                              <School className="w-3.5 h-3.5" />
-                              <span>{p.assignedSchool || 'Belum Ditentukan'}</span>
-                            </span>
-                          </td>
-                          <td className="p-3 text-slate-600 dark:text-slate-400">
-                            {p.pembinaPhone || '-'}
-                          </td>
-                          <td className="p-3 text-center">
-                            <span className="px-2.5 py-0.5 rounded-full font-mono font-bold text-xs bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                              {studentCount} Siswa
-                            </span>
-                          </td>
-                          <td className="p-3 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setEditingPembina(p);
-                                  setPembinaForm({
-                                    name: p.name,
-                                    username: p.username,
-                                    password: p.password,
-                                    assignedSchool: p.assignedSchool || '',
-                                    pembinaPhone: p.pembinaPhone || '',
-                                  });
-                                  setShowPembinaModal(true);
-                                }}
-                                className="p-1.5 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 rounded-lg transition-colors cursor-pointer"
-                                title="Edit Akun Pembina"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  requestConfirm(
-                                    'Hapus Akun Pembina',
-                                    `Apakah Anda yakin ingin menghapus akun pembina "${p.name}" (${p.username}) untuk sekolah "${p.assignedSchool}"?`,
-                                    () => {
-                                      deletePembinaUser(p.id);
-                                      showSuccess(`Akun pembina ${p.name} berhasil dihapus.`);
-                                      reloadAll();
-                                    }
-                                  );
-                                }}
-                                className="p-1.5 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded-lg transition-colors cursor-pointer"
-                                title="Hapus Akun Pembina"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* ================= TAB 1: MANAJEMEN SISWA (CRUD COMPLETE) ================= */}
       {activeTab === 'students' && (
         <div className="space-y-4">
@@ -2171,8 +2008,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
               }`}
             >
-              <Trophy className="w-3.5 h-3.5" />
+              <FileText className="w-3.5 h-3.5" />
               <span>Naskah Liga Mengetik ({leagueTexts.length})</span>
+            </button>
+            <button
+              onClick={() => setTypingSubTab('leaderboard')}
+              className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+                typingSubTab === 'leaderboard'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black shadow-md shadow-amber-500/25'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+              }`}
+            >
+              <Trophy className="w-3.5 h-3.5 text-amber-900" />
+              <span>🏆 Leaderboard Liga Mengetik</span>
             </button>
           </div>
 
@@ -2350,6 +2198,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 )}
               </div>
             </div>
+          )}
+
+          {/* Sub Tab 3: Liga Mengetik Leaderboard & Live Monitoring */}
+          {typingSubTab === 'leaderboard' && (
+            <AdminTypingLeagueLeaderboard
+              onRefresh={reloadAll}
+              onRequestConfirm={requestConfirm}
+            />
           )}
         </div>
       )}
@@ -3419,7 +3275,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <option value="Manajemen Berkas">Manajemen Berkas & Folder</option>
                       <option value="Simulasi Jaringan">Simulator Jaringan Komputer</option>
                       <option value="Petualangan Mengetik RPG">Typing RPG Quest</option>
-                      <option value="Kuis Duel Cerdas">Cerdas Cermat Duel</option>
                       <option value="Game Kata Jatuh">Game Kata Jatuh</option>
                     </select>
                   </div>
@@ -3616,11 +3471,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               {feature.id === 'file-explorer' && 'Siswa merapikan file acak ke dalam folder yang benar.'}
                               {feature.id === 'network-builder' && 'Menghubungkan komputer, router, dan printer bersama.'}
                               {feature.id === 'typing-hero' && 'Bertarung melawan monster siber dengan mengetik naskah secara cepat.'}
-                              {feature.id === 'quiz-duel' && 'Bertanding adu cerdas cermat teknologi komputer melawan CPU.'}
                               {feature.id === 'games' && 'Game klasik menangkap kata jatuh untuk melatih reflek keyboard.'}
                               {feature.id === 'pc-builder' && 'Simulasi belajar merakit komputer desktop secara edukatif.'}
                               {feature.id === 'coding-lab' && 'Lab bermain menyusun logika maze pemrograman sederhana.'}
-                              {feature.id === 'typing-race' && 'Uji kecepatan mengetik naskah paragraf secara lengkap.'}
                               {feature.id === 'cyber-safety' && 'Modul kuis interaktif mengenai etika dan keamanan internet.'}
                               {feature.id === 'shortcuts' && 'Belajar dan uji pintasan kombinasi keyboard yang berguna.'}
                               {feature.id === 'daily-quests' && 'Tugas misi harian dan streak check-in kehadiran siswa.'}
@@ -3688,7 +3541,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                   {feature.id === 'file-explorer' && 'Batas Waktu Bermain:'}
                                   {feature.id === 'network-builder' && 'Tingkat Kesulitan:'}
                                   {feature.id === 'typing-hero' && 'Darah (HP) Monster Boss:'}
-                                  {feature.id === 'quiz-duel' && 'Kecerdasan Bot Lawan:'}
                                   {feature.id === 'games' && 'Kecepatan Kata Jatuh:'}
                                 </label>
 
@@ -3738,22 +3590,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                     <option value="100">100 HP (Normal)</option>
                                     <option value="150">150 HP (Siswa Mahir)</option>
                                     <option value="200">200 HP (Dewa Mengetik)</option>
-                                  </select>
-                                )}
-
-                                {feature.id === 'quiz-duel' && (
-                                  <select
-                                    value={feature.customSetting}
-                                    onChange={(e) => {
-                                      const newFeatures = [...gamesConfig.features];
-                                      newFeatures[idx] = { ...feature, customSetting: e.target.value };
-                                      setGamesConfigState({ features: newFeatures });
-                                    }}
-                                    className="w-full px-2.5 py-1 text-[11px] rounded border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-white"
-                                  >
-                                    <option value="easy">Bot Santai (Sering Salah)</option>
-                                    <option value="normal">Bot Pintar (Standar)</option>
-                                    <option value="hard">Bot Super Genius (Cepat)</option>
                                   </select>
                                 )}
 

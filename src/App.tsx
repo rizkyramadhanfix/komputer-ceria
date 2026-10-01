@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { PembinaLoginModal, SuperadminLoginModal, StudentAuthModal } from './components/auth/AuthModals';
+import { SuperadminLoginModal } from './components/auth/AuthModals';
+import { StartLearningModal } from './components/auth/StartLearningModal';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { Footer } from './components/common/Footer';
 import { Header } from './components/common/Header';
@@ -21,14 +22,14 @@ function MainAppContent() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [authModalState, setAuthModalState] = useState<{
     isOpen: boolean;
-    mode: 'student-login' | 'student-register' | 'pembina' | 'superadmin';
+    mode: 'start-learning' | 'superadmin';
   }>({
     isOpen: false,
-    mode: 'student-login',
+    mode: 'start-learning',
   });
 
-  const handleOpenAuth = (mode: 'admin' | 'superadmin' | 'pembina' | 'student-login' | 'student-register') => {
-    const targetMode = mode === 'admin' ? 'superadmin' : mode;
+  const handleOpenAuth = (mode?: string) => {
+    const targetMode = mode === 'admin' || mode === 'superadmin' ? 'superadmin' : 'start-learning';
     setAuthModalState({ isOpen: true, mode: targetMode });
   };
 
@@ -95,9 +96,6 @@ function MainAppContent() {
         {currentView === 'student-quizzes' && (
           <StudentDashboard initialTab="quizzes" />
         )}
-        {currentView === 'student-quiz-duel' && (
-          <StudentDashboard initialTab="quiz-duel" />
-        )}
         {currentView === 'student-typing-league' && (
           <StudentDashboard initialTab="typing-league" />
         )}
@@ -106,9 +104,6 @@ function MainAppContent() {
         )}
         {currentView === 'student-typing-hero' && (
           <StudentDashboard initialTab="typing-hero" />
-        )}
-        {currentView === 'student-typing-race' && (
-          <StudentDashboard initialTab="typing-race" />
         )}
         {currentView === 'student-games' && (
           <StudentDashboard initialTab="games" />
@@ -177,9 +172,6 @@ function MainAppContent() {
         {currentView === 'admin-dashboard' && (
           <AdminDashboard initialTab="students" />
         )}
-        {currentView === 'admin-pembina' && (
-          <AdminDashboard initialTab="pembina" />
-        )}
         {currentView === 'admin-students' && (
           <AdminDashboard initialTab="students" />
         )}
@@ -191,6 +183,9 @@ function MainAppContent() {
         )}
         {currentView === 'admin-typing' && (
           <AdminDashboard initialTab="typing" />
+        )}
+        {currentView === 'admin-typing-league' && (
+          <AdminDashboard initialTab="typing-league" />
         )}
         {currentView === 'admin-gamification' && (
           <AdminDashboard initialTab="gamification" />
@@ -260,32 +255,20 @@ function MainAppContent() {
 
       <Footer />
 
-      {/* Dedicated Pembina Login Modal */}
-      <PembinaLoginModal
-        isOpen={authModalState.isOpen && authModalState.mode === 'pembina'}
+      {/* Dedicated Start Learning Modal (No Passwords Required) */}
+      <StartLearningModal
+        isOpen={authModalState.isOpen && authModalState.mode === 'start-learning'}
         onClose={() => setAuthModalState((prev) => ({ ...prev, isOpen: false }))}
         onSuccess={handleAuthSuccess}
-        onSwitchToStudent={() => setAuthModalState({ isOpen: true, mode: 'student-login' })}
-        onSwitchToSuperadmin={() => setAuthModalState({ isOpen: true, mode: 'superadmin' })}
+        onOpenSuperadmin={() => setAuthModalState({ isOpen: true, mode: 'superadmin' })}
       />
 
-      {/* Dedicated Superadmin Login Modal */}
+      {/* Dedicated Superadmin Login Modal for Website Management */}
       <SuperadminLoginModal
         isOpen={authModalState.isOpen && authModalState.mode === 'superadmin'}
         onClose={() => setAuthModalState((prev) => ({ ...prev, isOpen: false }))}
         onSuccess={handleAuthSuccess}
-        onSwitchToStudent={() => setAuthModalState({ isOpen: true, mode: 'student-login' })}
-        onSwitchToPembina={() => setAuthModalState({ isOpen: true, mode: 'pembina' })}
-      />
-
-      {/* Dedicated Student Auth Modal */}
-      <StudentAuthModal
-        isOpen={authModalState.isOpen && (authModalState.mode === 'student-login' || authModalState.mode === 'student-register')}
-        initialMode={authModalState.mode === 'student-register' ? 'student-register' : 'student-login'}
-        onClose={() => setAuthModalState((prev) => ({ ...prev, isOpen: false }))}
-        onSuccess={handleAuthSuccess}
-        onSwitchToAdmin={() => setAuthModalState({ isOpen: true, mode: 'superadmin' })}
-        onSwitchToPembina={() => setAuthModalState({ isOpen: true, mode: 'pembina' })}
+        onSwitchToStudent={() => setAuthModalState({ isOpen: true, mode: 'start-learning' })}
       />
 
       {/* Edit Profile Modal for Student */}
