@@ -25,6 +25,7 @@ import {
 } from '../../services/storageService';
 import { StudentGalleryWork } from '../../types';
 import { Avatar } from '../common/Avatar';
+import { ConfirmModal } from '../common/ConfirmModal';
 import { PaintCanvas } from './PaintCanvas';
 import { RichWordPublisher } from './RichWordPublisher';
 
@@ -45,6 +46,11 @@ export const StudentGallery: React.FC<StudentGalleryProps> = ({
   const [activeViewingWork, setActiveViewingWork] = useState<StudentGalleryWork | null>(null);
   const [filterType, setFilterType] = useState<'ALL' | 'paint' | 'word'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    isOpen: boolean;
+    workId: string;
+    workTitle: string;
+  } | null>(null);
 
   const reloadWorks = () => {
     setWorks(getGalleryWorks());
@@ -69,19 +75,28 @@ export const StudentGallery: React.FC<StudentGalleryProps> = ({
     reloadWorks();
   };
 
-  const handleDelete = (workId: string, workTitle: string) => {
-    if (confirm(`Apakah Anda yakin ingin menghapus karya "${workTitle}" dari galeri siswa?`)) {
-      const isDeleted = deleteGalleryWork(workId);
-      if (isDeleted) {
-        showSuccess(`Karya "${workTitle}" berhasil dihapus dari galeri.`);
-      } else {
-        showSuccess('Karya berhasil dihapus.');
-      }
-      setWorks((prev) => prev.filter((w) => w.id !== workId));
-      if (activeViewingWork?.id === workId) {
-        setActiveViewingWork(null);
-      }
+  const handlePromptDelete = (workId: string, workTitle: string) => {
+    setDeleteConfirm({
+      isOpen: true,
+      workId,
+      workTitle: workTitle || 'Karya Siswa',
+    });
+  };
+
+  const handleExecuteDelete = () => {
+    if (!deleteConfirm) return;
+    const { workId, workTitle } = deleteConfirm;
+    const isDeleted = deleteGalleryWork(workId);
+    if (isDeleted) {
+      showSuccess(`Karya "${workTitle}" berhasil dihapus dari galeri.`);
+    } else {
+      showSuccess('Karya berhasil dihapus.');
     }
+    setWorks((prev) => prev.filter((w) => String(w.id) !== String(workId)));
+    if (activeViewingWork?.id === workId) {
+      setActiveViewingWork(null);
+    }
+    setDeleteConfirm(null);
   };
 
   const filteredWorks = works.filter((w) => {
@@ -226,7 +241,13 @@ export const StudentGallery: React.FC<StudentGalleryProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {filteredWorks.map((work) => {
                 const isLiked = currentUser && work.likedByStudentIds.includes(currentUser.id);
-                const canDelete = isAdmin || isAdminView;
+                const isOwner = Boolean(
+                  currentUser &&
+                    (currentUser.id === work.studentId ||
+                      currentUser.name === work.studentName ||
+                      (currentUser.username && currentUser.username === work.studentName))
+                );
+                const canDelete = isAdmin || isAdminView || isOwner;
 
                 return (
                   <div
@@ -339,16 +360,16 @@ export const StudentGallery: React.FC<StudentGalleryProps> = ({
                           <span>Buka</span>
                         </button>
 
-                        {/* Admin-Only Delete Button */}
+                        {/* Delete Button for Admin & Owner */}
                         {canDelete && (
                           <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDelete(work.id, work.title);
+                              handlePromptDelete(work.id, work.title);
                             }}
                             className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-rose-200 dark:hover:border-rose-900"
-                            title="Hapus Karya Siswa (Admin)"
+                            title="Hapus Karya Siswa"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -395,12 +416,12 @@ export const StudentGallery: React.FC<StudentGalleryProps> = ({
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
-                {(isAdmin || isAdminView) && (
+                {(isAdmin || isAdminView || (currentUser && (currentUser.id === activeViewingWork.studentId || currentUser.name === activeViewingWork.studentName))) && (
                   <button
                     type="button"
-                    onClick={() => handleDelete(activeViewingWork.id, activeViewingWork.title)}
+                    onClick={() => handlePromptDelete(activeViewingWork.id, activeViewingWork.title)}
                     className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded-xl flex items-center gap-1.5 text-xs font-bold transition-colors cursor-pointer border border-transparent hover:border-rose-200 dark:hover:border-rose-900"
-                    title="Hapus Karya Siswa (Admin)"
+                    title="Hapus Karya Siswa"
                   >
                     <Trash2 className="w-4 h-4" />
                     <span className="hidden sm:inline">Hapus</span>
@@ -535,6 +556,18 @@ export const StudentGallery: React.FC<StudentGalleryProps> = ({
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal for Deleting Work */}
+      <ConfirmModal
+        isOpen={Boolean(deleteConfirm?.isOpen)}
+        title="Hapus Karya Galeri Siswa"
+        message={`Apakah Anda yakin ingin menghapus karya "${deleteConfirm?.workTitle || ''}" secara permanen dari galeri siswa?`}
+        confirmText="Ya, Hapus Karya"
+        cancelText="Batal"
+        isDanger={true}
+        onConfirm={handleExecuteDelete}
+        onClose={() => setDeleteConfirm(null)}
+      />
     </div>
   );
 };

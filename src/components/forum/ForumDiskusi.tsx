@@ -19,6 +19,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Avatar } from '../common/Avatar';
+import { ConfirmModal } from '../common/ConfirmModal';
 import {
   getForumThreads,
   saveForumThread,
@@ -80,6 +81,16 @@ export const ForumDiskusi: React.FC = () => {
 
   // Reply state
   const [replyContent, setReplyContent] = useState('');
+
+  // Delete confirmation modal state
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    isOpen: boolean;
+    type: 'thread' | 'reply';
+    thread?: ForumThread;
+    reply?: ForumReply;
+    title: string;
+    message: string;
+  } | null>(null);
 
   // Fetch threads function
   const fetchThreads = async () => {
@@ -229,23 +240,60 @@ export const ForumDiskusi: React.FC = () => {
     }
   };
 
-  const handleDeleteThread = async (thread: ForumThread) => {
+  const handlePromptDeleteThread = (thread: ForumThread) => {
     if (!currentUser) return;
     const isAuthor = currentUser.id === thread.authorId;
     if (!isAdmin && !isAuthor) return;
 
-    if (!window.confirm('Apakah Anda yakin ingin menghapus diskusi ini secara permanen?')) return;
+    setDeleteConfirm({
+      isOpen: true,
+      type: 'thread',
+      thread,
+      title: 'Hapus Topik Diskusi',
+      message: `Apakah Anda yakin ingin menghapus topik "${thread.title}" secara permanen? Semua balasan di dalamnya juga akan terhapus.`,
+    });
+  };
+
+  const handlePromptDeleteReply = (reply: ForumReply) => {
+    if (!currentUser || !activeThread) return;
+    const isAuthor = currentUser.id === reply.authorId;
+    if (!isAdmin && !isAuthor) return;
+
+    setDeleteConfirm({
+      isOpen: true,
+      type: 'reply',
+      reply,
+      title: 'Hapus Komentar Balasan',
+      message: `Apakah Anda yakin ingin menghapus komentar dari "${reply.authorName}" secara permanen?`,
+    });
+  };
+
+  const handleExecuteDelete = () => {
+    if (!deleteConfirm) return;
 
     try {
-      deleteForumThread(thread.id);
-      setThreads((prev) => prev.filter((t) => t.id !== thread.id));
-      if (activeThread?.id === thread.id) {
-        setActiveThread(null);
+      if (deleteConfirm.type === 'thread' && deleteConfirm.thread) {
+        const threadId = deleteConfirm.thread.id;
+        deleteForumThread(threadId);
+        setThreads((prev) => prev.filter((t) => t.id !== threadId));
+        if (activeThread?.id === threadId) {
+          setActiveThread(null);
+        }
+        showToast('Topik diskusi berhasil dihapus secara permanen.', 'success');
+      } else if (deleteConfirm.type === 'reply' && deleteConfirm.reply && activeThread) {
+        const replyId = deleteConfirm.reply.id;
+        deleteForumReply(activeThread.id, replyId);
+        setReplies((prev) => prev.filter((r) => r.id !== replyId));
+        setActiveThread((prev) =>
+          prev ? { ...prev, repliesCount: Math.max(0, prev.repliesCount - 1) } : null
+        );
+        showToast('Komentar berhasil dihapus.', 'success');
       }
-      showToast('Diskusi berhasil dihapus secara permanen.', 'success');
     } catch (err) {
-      console.error(err);
-      showToast('Gagal menghapus diskusi.', 'error');
+      console.error('Error deleting forum item:', err);
+      showToast('Gagal menghapus data forum. Coba lagi.', 'error');
+    } finally {
+      setDeleteConfirm(null);
     }
   };
 
@@ -263,24 +311,6 @@ export const ForumDiskusi: React.FC = () => {
     } catch (err) {
       console.error(err);
       showToast('Gagal moderasi balasan.', 'error');
-    }
-  };
-
-  const handleDeleteReply = async (reply: ForumReply) => {
-    if (!currentUser || !activeThread) return;
-    const isAuthor = currentUser.id === reply.authorId;
-    if (!isAdmin && !isAuthor) return;
-
-    if (!window.confirm('Hapus komentar ini secara permanen?')) return;
-
-    try {
-      deleteForumReply(activeThread.id, reply.id);
-      setReplies((prev) => prev.filter((r) => r.id !== reply.id));
-      setActiveThread((prev) => (prev ? { ...prev, repliesCount: Math.max(0, prev.repliesCount - 1) } : null));
-      showToast('Komentar berhasil dihapus.', 'success');
-    } catch (err) {
-      console.error(err);
-      showToast('Gagal menghapus komentar.', 'error');
     }
   };
 
@@ -461,7 +491,7 @@ export const ForumDiskusi: React.FC = () => {
                   )}
                   <button
                     type="button"
-                    onClick={() => handleDeleteThread(activeThread)}
+                    onClick={() => handlePromptDeleteThread(activeThread)}
                     className="p-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 rounded-lg flex items-center gap-1 cursor-pointer"
                     title="Hapus Permanen"
                   >
@@ -538,8 +568,9 @@ export const ForumDiskusi: React.FC = () => {
                           )}
                           <button
                             type="button"
-                            onClick={() => handleDeleteReply(reply)}
-                            className="p-1 text-[10px] font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded cursor-pointer flex items-center gap-0.5"
+                            onClick={() => handlePromptDeleteReply(reply)}
+                            className="p-1 text-[10px] font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded cursor-pointer flex items-center gap-0.5"
+                            title="Hapus Komentar"
                           >
                             <Trash2 className="w-3 h-3" />
                             <span>Hapus</span>
@@ -770,7 +801,7 @@ export const ForumDiskusi: React.FC = () => {
                         )}
                       </div>
 
-                      {/* Likes and replies status stats */}
+                      {/* Likes, replies, and actions status stats */}
                       <div className="flex items-center gap-2">
                         <span className="flex items-center gap-1 px-2 py-0.5 bg-slate-50 dark:bg-slate-800 rounded-md">
                           <ThumbsUp className="w-3 h-3 text-rose-500" />
@@ -780,6 +811,20 @@ export const ForumDiskusi: React.FC = () => {
                           <MessageSquare className="w-3 h-3 text-indigo-500" />
                           <span>{thread.repliesCount} Balasan</span>
                         </span>
+
+                        {(isAdmin || (currentUser && currentUser.id === thread.authorId)) && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePromptDeleteThread(thread);
+                            }}
+                            className="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded-md transition-colors"
+                            title="Hapus Topik Diskusi"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -879,6 +924,18 @@ export const ForumDiskusi: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal for Deleting Thread or Reply */}
+      <ConfirmModal
+        isOpen={Boolean(deleteConfirm?.isOpen)}
+        title={deleteConfirm?.title || 'Hapus Data Forum'}
+        message={deleteConfirm?.message || 'Apakah Anda yakin ingin menghapus data ini?'}
+        confirmText="Ya, Hapus Permanen"
+        cancelText="Batal"
+        isDanger={true}
+        onConfirm={handleExecuteDelete}
+        onClose={() => setDeleteConfirm(null)}
+      />
     </div>
   );
 };

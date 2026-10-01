@@ -1,0 +1,54 @@
+[
+  {
+    "id": "tp-1",
+    "title": "Surat Izin Resmi Sekolah (Format Standar)",
+    "category": "Format Word",
+    "difficulty": "Mudah",
+    "allocatedPoints": 80,
+    "minAccuracy": 75,
+    "targetWpm": 25,
+    "instructions": "Ketik ulang naskah surat izin sekolah berikut ini dengan format perataan teks yang rapi dan benar.",
+    "targetPlainText": "Bogor, 12 Oktober 2026\n\nHal: Permohonan Izin Tidak Masuk Sekolah\n\nKepada Yth.\nBapak/Ibu Guru Wali Kelas 5\nSD Negeri Sukadamai 2 Bogor\n\nDengan hormat,\n\nDengan surat ini, saya orang tua/wali murid dari:\nNama: Budi Pratama\nKelas: 5 (Lima)\n\nMemberitahukan bahwa anak kami tidak dapat mengikuti kegiatan belajar mengajar pada hari ini karena sedang kurang sehat dan beristirahat di rumah.\n\nDemikian surat permohonan izin ini kami sampaikan. Atas perhatian Bapak/Ibu Guru, kami ucapkan terima kasih.\n\nHormat kami,\nOrang Tua Murid",
+    "targetDocument": "<p align=\"right\"><b>Bogor, 12 Oktober 2026</b></p><br/><p><b>Hal:</b> Permohonan Izin Tidak Masuk Sekolah</p><p>Kepada Yth.<br/><b>Bapak/Ibu Guru Wali Kelas 5</b><br/>SD Negeri Sukadamai 2 Bogor</p><br/><p>Dengan hormat,</p><p style=\"text-indent: 30px;\">Dengan surat ini, saya orang tua/wali murid dari:</p><p style=\"margin-left: 30px;\"><b>Nama:</b> Budi Pratama<br/><b>Kelas:</b> 5 (Lima)</p><p style=\"text-indent: 30px;\">Memberitahukan bahwa anak kami tidak dapat mengikuti kegiatan belajar mengajar pada hari ini karena sedang kurang sehat dan beristirahat di rumah.</p><p style=\"text-indent: 30px;\">Demikian surat permohonan izin ini kami sampaikan. Atas perhatian Bapak/Ibu Guru, kami ucapkan terima kasih.</p><br/><p align=\"right\">Hormat kami,<br/><br/><br/><b>( Orang Tua Murid )</b></p>",
+    "createdAt": "2026-10-01T00:00:00.000Z"
+  },
+  {
+    "id": "tp-2",
+    "title": "Tabel Jadwal Pelajaran Mingguan Ceria",
+    "category": "Aplikasi Kantor",
+    "difficulty": "Sedang",
+    "allocatedPoints": 90,
+    "minAccuracy": 80,
+    "targetWpm": 30,
+    "instructions": "Ketik naskah jadwal pelajaran berikut dengan format judul tebal di tengah dan daftar mata pelajaran yang teratur.",
+    "targetPlainText": "JADWAL EKSTRAKURIKULER & PELAJARAN KOMPUTER CERIA\nTAHUN AJARAN 2026/2027\n\n1. Hari Senin (08.00 - 09.30) : Pengenalan Perangkat Keras Komputer\n2. Hari Selasa (08.00 - 09.30) : Latihan Mengetik Cepat 10 Jari\n3. Hari Rabu (08.00 - 09.30) : Pemformatan Teks Microsoft Word\n4. Hari Kamis (08.00 - 09.30) : Tabel dan Gambar Microsoft Word\n5. Hari Jumat (08.00 - 09.30) : Cyber Safety dan Kuis Interaktif\n6. Hari Sabtu (08.00 - 10.00) : Praktikum Mandiri dan Liga Mengetik\n\nCatatan Penting:\n- Seluruh siswa wajib hadir tepat waktu di laboratorium komputer.\n- Dilarang membawa makanan dan minuman ke meja komputer.\n- Matikan komputer sesuai prosedur sebelum meninggalkan ruangan.",
+    "targetDocument": "<h2 align=\"center\"><b>JADWAL EKSTRAKURIKULER & PELAJARAN KOMPUTER CERIA</b></h2><p align=\"center\"><i>Tahun Ajaran 2026/2027</i></p><hr/><br/><ol><li><b>Hari Senin (08.00 - 09.30)</b> : Pengenalan Perangkat Keras Komputer</li><li><b>Hari Selasa (08.00 - 09.30)</b> : Latihan Mengetik Cepat 10 Jari</li><li><b>Hari Rabu (08.00 - 09.30)</b> : Pemformatan Teks Microsoft Word</li><li><b>Hari Kamis (08.00 - 09.30)</b> : Tabel dan Gambar Microsoft Word</li><li><b>Hari Jumat (08.00 - 09.30)</b> : Cyber Safety dan Kuis Interaktif</li><li><b>Hari Sabtu (08.00 - 10.00)</b> : Praktikum Mandiri dan Liga Mengetik</li></ol><br/><h4><b>Catatan Penting:</b></h4><ul><li>Seluruh siswa wajib hadir tepat waktu di laboratorium komputer.</li><li>Dilarang membawa makanan dan minuman ke meja komputer.</li><li>Matikan komputer sesuai prosedur sebelum meninggalkan ruangan.</li></ul>",
+    "createdAt": "2026-10-01T00:00:00.000Z"
+  },
+  {
+    "id": "tp-3",
+    "title": "Cerita Inspiratif: \"Petualangan Kucing Robot Di Dunia Koding\"",
+    "category": "Format Word",
+    "difficulty": "Sedang",
+    "allocatedPoints": 90,
+    "minAccuracy": 80,
+    "targetWpm": 30,
+    "instructions": "Ketik naskah cerita fiksi berikut dengan format paragraf menjorok dan perataan Justify (Rata Kiri-Kanan).",
+    "targetPlainText": "PETUALANGAN KUCING ROBOT DI DUNIA KODING\nKarya: Sahabat Komputer Ceria\n\nDi sebuah kota digital bernama Byteville, hiduplah seekor kucing robot bernama Pixel. Pixel memiliki bulu bercahaya biru neon dan ekor antena yang dapat menangkap sinyal Wi-Fi tercepat di dunia.\n\nSetiap pagi, Pixel membantu anak-anak sekolah menyusun algoritma logika. \"Koding itu seperti menyusun balok lego,\" kata Pixel sambil tersenyum ramah. \"Kita hanya perlu meletakkan instruksi langkah demi langkah dengan urutan yang benar.\"\n\nSuatu hari, server utama perpustakaan Byteville mengalami error karena tanda titik koma yang hilang. Dengan ketelitian dan ketangkasan mengetik sepuluh jari, Pixel dan kawan-kawan berhasil memperbaiki kode program tersebut.\n\nSejak saat itu, seluruh penduduk kota belajar mengetik dengan tekun dan gembira. Mereka menyadari bahwa teknologi adalah sahabat terbaik manusia jika digunakan dengan cerdas dan penuh kebaikan.",
+    "targetDocument": "<h3 align=\"center\"><b>PETUALANGAN KUCING ROBOT DI DUNIA KODING</b></h3><p align=\"center\"><i>Karya: Sahabat Komputer Ceria</i></p><br/><p style=\"text-indent: 30px; text-align: justify;\">Di sebuah kota digital bernama Byteville, hiduplah seekor kucing robot bernama <b>Pixel</b>. Pixel memiliki bulu bercahaya biru neon dan ekor antena yang dapat menangkap sinyal Wi-Fi tercepat di dunia.</p><p style=\"text-indent: 30px; text-align: justify;\">Setiap pagi, Pixel membantu anak-anak sekolah menyusun algoritma logika. <i>\"Koding itu seperti menyusun balok lego,\"</i> kata Pixel sambil tersenyum ramah. <i>\"Kita hanya perlu meletakkan instruksi langkah demi langkah dengan urutan yang benar.\"</i></p><p style=\"text-indent: 30px; text-align: justify;\">Suatu hari, server utama perpustakaan Byteville mengalami error karena tanda titik koma yang hilang. Dengan ketelitian dan ketangkasan mengetik sepuluh jari, Pixel dan kawan-kawan berhasil memperbaiki kode program tersebut.</p><p style=\"text-indent: 30px; text-align: justify;\">Sejak saat itu, seluruh penduduk kota belajar mengetik dengan tekun dan gembira. Mereka menyadari bahwa teknologi adalah sahabat terbaik manusia jika digunakan dengan cerdas dan penuh kebaikan.</p>",
+    "createdAt": "2026-10-01T00:00:00.000Z"
+  },
+  {
+    "id": "tp-4",
+    "title": "Laporan Sains: Bagian-Bagian Komputer & Fungsinya",
+    "category": "Dasar Komputer",
+    "difficulty": "Mahir",
+    "allocatedPoints": 100,
+    "minAccuracy": 85,
+    "targetWpm": 35,
+    "instructions": "Ketik laporan pengamatan komputer dengan format subjudul, huruf tebal, dan daftar poin terstruktur.",
+    "targetPlainText": "LAPORAN PENGAMATAN LABORATORIUM KOMPUTER\nTopik: Anatomi dan Arsitektur Komputer Modern\n\n1. UNIT PEMROSESAN (PROCESSOR & MOTHERBOARD)\nCPU berfungsi sebagai unit pengolah pusat yang menerjemahkan instruksi biner. Motherboard menjadi jembatan penghubung utama bagi memori RAM dan media penyimpanan berkecepatan tinggi.\n\n2. UNIT MEMORI & PENYIMPANAN (STORAGE)\nSolid State Drive (SSD) menggunakan chip memori flash semikonduktor yang memungkinkan booting sistem operasi dalam hitungan detik tanpa suara bising piringan magnetik.\n\n3. UNIT INPUT DAN OUTPUT\nKeyboard mekanikal dan mouse optik memberikan presisi tinggi bagi pengguna dalam memberikan komando input secara akurat dan responsif.\n\nKesimpulan Praktikum:\nIntegrasi harmonis antara perangkat keras berkualitas dan sistem operasi yang terawat menjamin kinerja komputasi yang optimal bagi pelajar di era modern.",
+    "targetDocument": "<h3 align=\"center\"><b>LAPORAN PENGAMATAN LABORATORIUM KOMPUTER</b></h3><p align=\"center\"><u>Topik: Anatomi dan Arsitektur Komputer Modern</u></p><br/><h4><b>1. UNIT PEMROSESAN (PROCESSOR & MOTHERBOARD)</b></h4><p style=\"text-align: justify;\">CPU berfungsi sebagai unit pengolah pusat yang menerjemahkan instruksi biner. Motherboard menjadi jembatan penghubung utama bagi memori RAM dan media penyimpanan berkecepatan tinggi.</p><h4><b>2. UNIT MEMORI & PENYIMPANAN (STORAGE)</b></h4><p style=\"text-align: justify;\">Solid State Drive (SSD) menggunakan chip memori flash semikonduktor yang memungkinkan booting sistem operasi dalam hitungan detik tanpa suara bising piringan magnetik.</p><h4><b>3. UNIT INPUT DAN OUTPUT</b></h4><p style=\"text-align: justify;\">Keyboard mekanikal dan mouse optik memberikan presisi tinggi bagi pengguna dalam memberikan komando input secara akurat dan responsif.</p><br/><p><b>Kesimpulan Praktikum:</b><br/><i>Integrasi harmonis antara perangkat keras berkualitas dan sistem operasi yang terawat menjamin kinerja komputasi yang optimal bagi pelajar di era modern.</i></p>",
+    "createdAt": "2026-10-01T00:00:00.000Z"
+  }
+]

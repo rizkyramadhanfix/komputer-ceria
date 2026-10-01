@@ -1,0 +1,62 @@
+[
+  {
+    "id": "tl-1",
+    "title": "Keajaiban Komputer di Sekitarku",
+    "category": "Dasar",
+    "difficulty": "Mudah",
+    "durationSeconds": 60,
+    "content": "Komputer adalah sahabat setia yang membantu kita belajar dan berkarya setiap hari. Dengan jari yang lincah dan pikiran yang fokus, kita dapat mengetik kalimat indah dengan cepat dan tepat.",
+    "author": "Komputer Ceria",
+    "createdAt": "2026-10-01T00:00:00.000Z"
+  },
+  {
+    "id": "tl-2",
+    "title": "Menjelajahi Ruang Angkasa Digital",
+    "category": "Dasar",
+    "difficulty": "Mudah",
+    "durationSeconds": 60,
+    "content": "Jaringan internet bagaikan jembatan cahaya yang menghubungkan seluruh benua di bumi. Kita dapat bertukar pesan, mencari ilmu pengetahuan baru, dan bersahabat dengan teman di berbagai penjuru dunia.",
+    "author": "Komputer Ceria",
+    "createdAt": "2026-10-01T00:00:00.000Z"
+  },
+  {
+    "id": "tl-3",
+    "title": "Kisah Penemu Komputer Pertama",
+    "category": "Sejarah Teknologi",
+    "difficulty": "Sedang",
+    "durationSeconds": 90,
+    "content": "Charles Babbage dan Ada Lovelace adalah tokoh legendaris yang merancang cikal bakal mesin komputasi mekanik pertama di dunia. Ketekunan mereka membuktikan bahwa impian besar berawal dari rasa ingin tahu yang tak pernah padam.",
+    "author": "Komputer Ceria",
+    "createdAt": "2026-10-01T00:00:00.000Z"
+  },
+  {
+    "id": "tl-4",
+    "title": "Kiat Aman Berselancar di Dunia Maya",
+    "category": "Cyber Safety",
+    "difficulty": "Sedang",
+    "durationSeconds": 90,
+    "content": "Gunakan kata sandi yang kuat dan jangan pernah membagikan rahasia pribadimu kepada orang asing di internet. Bersikaplah sopan dan bijak saat berkomentar agar ruang digital menjadi tempat yang nyaman dan menyenangkan bagi semua.",
+    "author": "Komputer Ceria",
+    "createdAt": "2026-10-01T00:00:00.000Z"
+  },
+  {
+    "id": "tl-5",
+    "title": "Rahasia Kecepatan Mengetik 10 Jari",
+    "category": "Tantangan Cepat",
+    "difficulty": "Sulit",
+    "durationSeconds": 120,
+    "content": "Kunci utama penguasaan sepuluh jari adalah membiarkan memori otot bekerja secara otomatis. Letakkan kedua jari telunjuk pada tonjolan tombol F dan J, lalu biarkan setiap jemari menjangkau wilayah tombolnya masing-masing dengan ritme yang stabil dan harmonis tanpa perlu menundukkan pandangan ke papan ketik.",
+    "author": "Komputer Ceria",
+    "createdAt": "2026-10-01T00:00:00.000Z"
+  },
+  {
+    "id": "tl-6",
+    "title": "Algoritma dan Masa Depan Kecerdasan Buatan",
+    "category": "Pemrograman",
+    "difficulty": "Sulit",
+    "durationSeconds": 120,
+    "content": "Algoritma komputasional adalah susunan instruksi logis yang memandu mesin menyelesaikan perhitungan rumit dalam hitungan milidetik. Dengan memahami dasar-dasar logika koding sejak dini, generasi muda Indonesia siap menjadi inovator teknologi kelas dunia yang memajukan peradaban bangsa.",
+    "author": "Komputer Ceria",
+    "createdAt": "2026-10-01T00:00:00.000Z"
+  }
+]

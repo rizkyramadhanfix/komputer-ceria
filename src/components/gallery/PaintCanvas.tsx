@@ -400,7 +400,7 @@ export const PaintCanvas: React.FC<PaintCanvasProps> = ({ onPublished, onCancel 
 
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const dataUrl = canvas.toDataURL('image/png');
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
 
     createGalleryWork({
       studentId: currentUser.id,
@@ -412,7 +412,6 @@ export const PaintCanvas: React.FC<PaintCanvasProps> = ({ onPublished, onCancel 
       category: category,
       type: 'paint',
       imageUrl: dataUrl,
-      contentHtml: `<div style="text-align: center;"><img src="${dataUrl}" alt="${title}" style="max-width: 100%; border-radius: 8px; border: 1px solid #e2e8f0; shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);" /></div>`,
       previewText: `Lukisan kreatif digital bertema ${category} oleh ${currentUser.name}.`,
     });
 

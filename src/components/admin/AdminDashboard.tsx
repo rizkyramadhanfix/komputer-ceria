@@ -21,6 +21,7 @@ import {
   Plus,
   Printer,
   FileSpreadsheet,
+  Globe,
   Save,
   Search,
   Settings,
@@ -135,6 +136,7 @@ import { ForumDiskusi } from '../forum/ForumDiskusi';
 import { StudentLoginActivityTab } from './StudentLoginActivityTab';
 import { AdminTypingLeagueLeaderboard } from './AdminTypingLeagueLeaderboard';
 import { CloudSyncStatusButton } from '../common/CloudSyncStatusButton';
+import { VercelDeployGuideModal } from './VercelDeployGuideModal';
 
 interface AdminDashboardProps {
   initialTab?:
@@ -185,6 +187,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setActiveTab(initialTab);
     }
   }, [initialTab]);
+
+  const [showVercelGuideModal, setShowVercelGuideModal] = useState(false);
 
   // Popup confirmation modal state
   const [confirmModalConfig, setConfirmModalConfig] = useState<{
@@ -1309,6 +1313,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <FileSpreadsheet className="w-4 h-4" />
                   <span className="hidden sm:inline">Rekap Nilai Siswa</span>
                   <span className="sm:hidden">Rekap</span>
+                </button>
+
+                <button
+                  onClick={() => setShowVercelGuideModal(true)}
+                  className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 rounded-xl hover:bg-purple-100 transition-colors shadow-sm cursor-pointer"
+                  title="Panduan Upload ke GitHub & Vercel"
+                >
+                  <Globe className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  <span className="hidden sm:inline">Deploy Vercel</span>
+                  <span className="sm:hidden">Vercel</span>
                 </button>
 
                 <CloudSyncStatusButton />
@@ -5479,6 +5493,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </div>
       )}
+      {/* Vercel Deployment Guide Interactive Modal */}
+      <VercelDeployGuideModal
+        isOpen={showVercelGuideModal}
+        onClose={() => setShowVercelGuideModal(false)}
+      />
     </div>
   );
 };

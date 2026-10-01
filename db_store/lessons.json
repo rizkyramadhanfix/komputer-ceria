@@ -1,0 +1,93 @@
+[
+  {
+    "id": "les-1",
+    "title": "Pengenalan Komputer & Perangkat Keras (Hardware)",
+    "category": "Hardware",
+    "summary": "Mengenal bagian utama komputer: Monitor, CPU, RAM, Keyboard, Mouse, Motherboard, dan Media Penyimpanan.",
+    "readingTimeMinutes": 6,
+    "points": 60,
+    "tags": ["Dasar", "Hardware", "Komputer"],
+    "imageUrl": "",
+    "videoUrl": "",
+    "createdAt": "2026-10-01T00:00:00.000Z",
+    "content": "## A. Apa Itu Komputer?\nKomputer adalah perangkat elektronik yang dapat menerima data (input), memproses data sesuai instruksi (process), menyimpan data (storage), dan menampilkan hasilnya kepada pengguna (output).\n\nKomputer sangat membantu kegiatan sehari-hari, mulai dari mengetik tugas sekolah, menggambar, belajar, bermain game edukatif, hingga mencari informasi di internet.\n\n---\n\n## B. 4 Komponen Utama Komputer\nSebuah komputer desktop umumnya terdiri dari 4 perangkat inti:\n\n1. **Monitor (Layar Tampilan)**\n   - Berfungsi menampilkan tulisan, gambar, dan video dari komputer ke mata pengguna.\n   - Merupakan perangkat keluaran (**Output Device**).\n\n2. **CPU (Central Processing Unit)**\n   - Merupakan otak utama pemroses seluruh instruksi dan perhitungan dalam komputer.\n   - Terletak di dalam casing komputer dan terpasang pada Motherboard.\n\n3. **Keyboard (Papan Ketik)**\n   - Berfungsi memasukkan huruf, angka, simbol, dan tombol fungsi perintah ke komputer.\n   - Merupakan perangkat masukan (**Input Device**).\n\n4. **Mouse (Tetikus)**\n   - Berfungsi menggerakkan kursor (pointer), memilih menu, mengklik objek, serta drag and drop.\n\n---\n\n## C. Komponen Hardware di Dalam Casing PC\n- **Motherboard (Papan Induk)**: Papan sirkuit utama tempat semua komponen saling terhubung.\n- **Processor (CPU)**: Otak pemikir komputer.\n- **RAM (Random Access Memory)**: Memori kerja sementara berkecepatan tinggi saat aplikasi sedang dibuka.\n- **Harddisk / SSD (Solid State Drive)**: Media penyimpanan permanen tempat Windows, dokumen, dan game disimpan.\n- **Power Supply Unit (PSU)**: Mengalirkan daya listrik stabil ke seluruh komponen komputer."
+  },
+  {
+    "id": "les-2",
+    "title": "Sistem Operasi Windows & Manajemen File Folder",
+    "category": "Dasar Komputer",
+    "summary": "Cara mengelola file, membuat folder rapi, melakukan copy-paste, rename, serta menjaga kerapian dokumen di Windows.",
+    "readingTimeMinutes": 5,
+    "points": 50,
+    "tags": ["Windows", "File Explorer", "Folder"],
+    "imageUrl": "",
+    "videoUrl": "",
+    "createdAt": "2026-10-01T00:00:00.000Z",
+    "content": "## A. Mengenal Sistem Operasi Windows\nSistem Operasi (Operating System / OS) adalah perangkat lunak utama yang mengontrol seluruh kerja perangkat keras dan memungkinkan kita menjalankan program aplikasi seperti Microsoft Word, Paint, dan Web Browser.\n\n---\n\n## B. Mengelola File dan Folder dengan File Explorer\n- **File**: Berkas data individual yang disimpan di komputer (misal: dokumen teks, foto, lagu, video).\n- **Folder**: Wadah atau map digital tempat mengelompokkan dan menyimpan banyak file agar tersusun rapi dan mudah dicari.\n\n### Langkah Membuat Folder Baru:\n1. Buka **File Explorer** (atau tekan tombol **Windows + E**).\n2. Masuk ke folder **Documents** atau lokasi yang diinginkan.\n3. Klik kanan pada area kosong -> Pilih **New** -> Klik **Folder**.\n4. Ketik nama folder (contoh: *Tugas Komputer Kelas 5*) lalu tekan **Enter**.\n\n---\n\n## C. Operasi Dasar Pengelolaan File\n- **Copy (Salin - Ctrl + C)**: Menggandakan file tanpa menghapus aslinya.\n- **Paste (Tempel - Ctrl + V)**: Meletakkan file hasil salinan di lokasi baru.\n- **Cut (Potong - Ctrl + X)**: Memindahkan file dari lokasi lama ke lokasi baru.\n- **Rename (Ubah Nama - Tekan F2)**: Mengubah nama file atau folder.\n- **Delete (Hapus - Tombol Delete)**: Memindahkan file ke *Recycle Bin*."
+  },
+  {
+    "id": "les-3",
+    "title": "Panduan Praktis Mengetik Cepat 10 Jari",
+    "category": "Format Word",
+    "summary": "Kuasai posisi jari Home Row (A S D F - J K L ;) dan teknik mengetik cepat tanpa melihat keyboard.",
+    "readingTimeMinutes": 7,
+    "points": 70,
+    "tags": ["Mengetik", "10 Jari", "Keyboard"],
+    "imageUrl": "",
+    "videoUrl": "",
+    "createdAt": "2026-10-01T00:00:00.000Z",
+    "content": "## A. Mengapa Perlu Belajar Mengetik 10 Jari?\nMengetik dengan 10 jari (*Touch Typing*) membuat pengetikan menjadi jauh lebih cepat, tidak mudah lelah, dan akurasi tinggi karena mata kita fokus menatap layar monitor, bukan mencari-cari tombol keyboard!\n\n---\n\n## B. Posisi Jari Rumah (Home Row Position)\nPada baris tengah keyboard terdapat tonjolan kecil di tombol **F** dan **J**. Tonjolan ini adalah tanda jangkar untuk kedua jari telunjukmu:\n\n### 1. Tangan Kiri:\n- **Kelingking Kiri**: Tombol **A**\n- **Jari Manis Kiri**: Tombol **S**\n- **Jari Tengah Kiri**: Tombol **D**\n- **Telunjuk Kiri**: Tombol **F** (dan menjangkau G, R, T, V, B)\n\n### 2. Tangan Kanan:\n- **Telunjuk Kanan**: Tombol **J** (dan menjangkau H, U, Y, N, M)\n- **Jari Tengah Kanan**: Tombol **K**\n- **Jari Manis Kanan**: Tombol **L**\n- **Kelingking Kanan**: Tombol **; (Titik Koma)** dan tombol **Enter / Shift Kanan**\n\n### 3. Ibu Jari (Kedua Jempol):\n- Bertugas menekan tombol **Spacebar (Spasi)**.\n\n---\n\n## C. Postur Duduk yang Ergonomis & Sehat\n1. Duduk tegak dengan punggung bersandar nyaman di kursi.\n2. Posisi siku membentuk sudut 90 derajat sejajar dengan meja keyboard.\n3. Jarak pandang mata ke layar monitor sekitar 45 - 60 cm.\n4. Istirahatkan mata setiap 30 menit menatap layar."
+  },
+  {
+    "id": "les-4",
+    "title": "Mahir Microsoft Word: Pemformatan Teks & Paragraf",
+    "category": "Aplikasi Kantor",
+    "summary": "Menguasai gaya huruf (Font), ukuran, warna, efek Bold, Italic, Underline, dan perataan paragraf (Alignment).",
+    "readingTimeMinutes": 6,
+    "points": 60,
+    "tags": ["Word", "Format Teks", "Paragraf"],
+    "imageUrl": "",
+    "videoUrl": "",
+    "createdAt": "2026-10-01T00:00:00.000Z",
+    "content": "## A. Mengenal Microsoft Word\nMicrosoft Word adalah aplikasi pengolah kata (*word processor*) paling populer di dunia yang digunakan untuk membuat surat, cerita, makalah, tabel, dan dokumen resmi.\n\n---\n\n## B. Pemformatan Karakter dan Huruf (Font Formatting)\nPada tab **Home**, terdapat grup menu **Font**:\n- **Font Family**: Memilih jenis tulisan (misal: *Calibri, Arial, Times New Roman*).\n- **Font Size**: Mengatur besar kecilnya ukuran huruf (misal: 12pt untuk isi, 14-16pt untuk judul).\n- **Bold (Ctrl + B)**: Menebalkan tulisan untuk judul atau kata penting.\n- **Italic (Ctrl + I)**: Memiringkan tulisan (biasanya untuk istilah asing).\n- **Underline (Ctrl + U)**: Memberikan garis bawah pada teks.\n- **Font Color**: Mengubah warna tulisan.\n\n---\n\n## C. Perataan Paragraf (Paragraph Alignment)\n- **Align Left (Ctrl + L)**: Rata Kiri — standar pengetikan teks biasa.\n- **Center (Ctrl + E)**: Rata Tengah — ideal untuk judul dokumen atau puisi.\n- **Align Right (Ctrl + R)**: Rata Kanan — untuk tanggal surat atau tanda tangan.\n- **Justify (Ctrl + J)**: Rata Kanan & Kiri — membuat paragraf tampak rapi dan formal seperti di buku pelajaran."
+  },
+  {
+    "id": "les-5",
+    "title": "Mahir Microsoft Word: Tabel, Gambar, dan Hiasan Dokumen",
+    "category": "Aplikasi Kantor",
+    "summary": "Menyisipkan tabel data, gambar, shapes, page borders, dan penomoran halaman (Page Number).",
+    "readingTimeMinutes": 7,
+    "points": 70,
+    "tags": ["Word", "Tabel", "Desain Dokumen"],
+    "imageUrl": "",
+    "videoUrl": "",
+    "createdAt": "2026-10-01T00:00:00.000Z",
+    "content": "## A. Membuat Tabel Data di Microsoft Word\nTabel sangat berguna untuk menyusun jadwal pelajaran, daftar nilai, dan biodata agar tertata rapi dalam baris dan kolom.\n\n### Langkah Membuat Tabel:\n1. Klik tab **Insert** pada menu ribbon atas.\n2. Klik ikon **Table**.\n3. Gerakkan kursor untuk memilih jumlah kolom (ke samping) dan baris (ke bawah).\n4. Klik mouse untuk menempelkan tabel ke lembar kerja.\n5. Untuk menggabungkan dua kotak atau lebih menjadi satu, pilih kotak lalu klik kanan -> **Merge Cells**.\n\n---\n\n## B. Menyisipkan Gambar & Ilustrasi\n1. Klik tab **Insert** -> pilih **Pictures**.\n2. Pilih file foto atau gambar yang ingin dimasukkan.\n3. Agar gambar bisa digeser bebas di samping tulisan, klik gambar -> klik ikon **Wrap Text** -> pilih **In Front of Text** atau **Square**.\n\n---\n\n## C. Memberi Bingkai Halaman (Page Borders)\n1. Klik tab **Design** -> klik **Page Borders** di pojok kanan atas.\n2. Pilih model garis atau gambar hiasan seni (**Art**) yang ceria.\n3. Klik **OK** untuk menerapkan bingkai ke seluruh halaman."
+  },
+  {
+    "id": "les-6",
+    "title": "Internet Sehat & Etika Keamanan Siber (Cyber Safety)",
+    "category": "Internet & Etika",
+    "summary": "Panduan aman berselancar di internet, menjaga password akun, menghindari link penipuan, dan etika bersosial media.",
+    "readingTimeMinutes": 6,
+    "points": 60,
+    "tags": ["Internet", "Cyber Safety", "Etika Digital"],
+    "imageUrl": "",
+    "videoUrl": "",
+    "createdAt": "2026-10-01T00:00:00.000Z",
+    "content": "## A. Dunia Internet yang Menakjubkan\nInternet menghubungkan jutaan komputer di seluruh dunia sehingga kita dapat belajar dan berkomunikasi dengan cepat. Namun seperti di dunia nyata, kita harus berhati-hati saat berada di dunia maya.\n\n---\n\n## B. 5 Aturan Emas Keamanan Akun (Cyber Safety)\n1. **Rahasiakan Password**: Jangan pernah membagikan kata sandi akunmu kepada siapa pun kecuali orang tua.\n2. **Kombinasi Password Kuat**: Buat password unik yang terdiri dari huruf besar, huruf kecil, angka, dan simbol.\n3. **Waspada Link Phishing**: Jangan klik tautan mencurigakan atau pop-up yang mengklaim kamu memenangkan hadiah uang/gadget.\n4. **Lindungi Data Pribadi**: Jangan menyebarkan alamat rumah, nomor telepon, atau data penting di forum publik.\n5. **Logout Akun di Komputer Bersama**: Selalu klik *Keluar (Logout)* saat menggunakan komputer lab sekolah atau warnet.\n\n---\n\n## C. Sopan Santun & Netiket Digital\n- Gunakan bahasa yang santun saat berkomentar di media sosial.\n- Hargai teman dan tolak segala bentuk perundungan siber (*anti-cyberbullying*).\n- Saring informasi sebelum membagikan ulang (*Stop Hoaks*)."
+  },
+  {
+    "id": "les-7",
+    "title": "Logika Pemrograman & Berpikir Komputasional",
+    "category": "Pemrograman",
+    "summary": "Mengenal algoritma, urutan langkah logis, percabangan kondisi (If-Else), dan perulangan (Looping).",
+    "readingTimeMinutes": 7,
+    "points": 70,
+    "tags": ["Koding", "Logika", "Algoritma"],
+    "imageUrl": "",
+    "videoUrl": "",
+    "createdAt": "2026-10-01T00:00:00.000Z",
+    "content": "## A. Apa Itu Berpikir Komputasional?\nBerpikir komputasional adalah metode menyelesaikan masalah kompleks dengan memecahnya menjadi langkah-langkah sederhana yang teratur dan logis.\n\n---\n\n## B. 4 Pilar Berpikir Komputasional:\n1. **Dekomposisi**: Memecah masalah besar menjadi bagian-bagian kecil yang lebih mudah dikerjakan.\n2. **Pengenalan Pola**: Melihat kesamaan atau keteraturan pada masalah sebelumnya.\n3. **Abstraksi**: Fokus pada informasi penting dan mengabaikan hal yang tidak relevan.\n4. **Algoritma**: Menyusun urutan langkah-langkah sistematis untuk mencapai tujuan.\n\n---\n\n## C. Konsep Logika Dasar Koding\n- **Urutan (Sequence)**: Langkah dijalankan dari atas ke bawah secara berurutan.\n  - *Contoh: Nyalakan Komputer -> Buka Aplikasi -> Mulai Mengetik.*\n- **Kondisi (Branching / If-Else)**: Komputer mengambil keputusan berdasarkan suatu syarat.\n  - *Contoh: JIKA nilai >= 75 MAKA lulus, JIKA TIDAK MAKA remidi.*\n- **Perulangan (Looping)**: Mengulang perintah yang sama berkali-kali secara otomatis.\n  - *Contoh: Ulangi melangkah maju sebanyak 5 kali.*"
+  }
+]

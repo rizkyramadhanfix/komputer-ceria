@@ -1,0 +1,287 @@
+[
+  {
+    "id": "quiz-1",
+    "title": "Jago Shortcut Microsoft Word",
+    "category": "Aplikasi Kantor",
+    "description": "Uji kecepatan jarimu menghafal tombol shortcut ajaib di Microsoft Word agar tugas selesai secepat kilat!",
+    "allocatedPoints": 100,
+    "timeLimitMinutes": 10,
+    "createdAt": "2026-10-01T00:00:00.000Z",
+    "questions": [
+      {
+        "id": "q1-1",
+        "questionText": "Kombinasi tombol keyboard yang digunakan untuk membuat tulisan menjadi tebal (Bold) adalah...",
+        "options": ["Ctrl + B", "Ctrl + D", "Ctrl + T", "Ctrl + I"],
+        "correctAnswerIndex": 0,
+        "explanation": "Hebat! Ctrl + B (Bold) digunakan untuk menebalkan teks yang dipilih.",
+        "weight": 20
+      },
+      {
+        "id": "q1-2",
+        "questionText": "Shortcut apakah yang digunakan untuk menyimpan dokumen (Save) yang sedang kamu ketik?",
+        "options": ["Ctrl + O", "Ctrl + S", "Ctrl + P", "Ctrl + A"],
+        "correctAnswerIndex": 1,
+        "explanation": "Tepat sekali! Ctrl + S (Save) digunakan untuk menyimpan perubahan dokumen.",
+        "weight": 20
+      },
+      {
+        "id": "q1-3",
+        "questionText": "Apa fungsi dari shortcut Ctrl + Z pada komputer?",
+        "options": ["Membatalkan perintah terakhir (Undo)", "Menutup aplikasi", "Memotong teks", "Menyimpan dokumen"],
+        "correctAnswerIndex": 0,
+        "explanation": "Pintar! Ctrl + Z adalah fungsi Undo untuk membatalkan kesalahan perintah sebelumnya.",
+        "weight": 20
+      },
+      {
+        "id": "q1-4",
+        "questionText": "Untuk menyalin teks tanpa menghapus aslinya, tombol yang ditekan adalah...",
+        "options": ["Ctrl + X", "Ctrl + V", "Ctrl + C", "Ctrl + K"],
+        "correctAnswerIndex": 2,
+        "explanation": "Keren! Ctrl + C (Copy) berfungsi menyalin teks ke papan klip.",
+        "weight": 20
+      },
+      {
+        "id": "q1-5",
+        "questionText": "Pasangan dari tombol Copy (Ctrl + C) untuk menempelkan hasil salinan adalah...",
+        "options": ["Ctrl + V", "Ctrl + P", "Ctrl + L", "Ctrl + A"],
+        "correctAnswerIndex": 0,
+        "explanation": "Mantap! Ctrl + V (Paste) digunakan untuk menempelkan teks atau gambar yang disalin.",
+        "weight": 20
+      }
+    ]
+  },
+  {
+    "id": "quiz-2",
+    "title": "Detektif Perangkat Keras (Hardware Master)",
+    "category": "Hardware",
+    "description": "Buktikan kemampuanmu mengenali komponen otak komputer, memori, perangkat input, dan perangkat output!",
+    "allocatedPoints": 100,
+    "timeLimitMinutes": 10,
+    "createdAt": "2026-10-01T00:00:00.000Z",
+    "questions": [
+      {
+        "id": "q2-1",
+        "questionText": "Perangkat keras yang berfungsi sebagai otak utama pengolah data pada komputer adalah...",
+        "options": ["CPU (Processor)", "Monitor", "Keyboard", "Speaker"],
+        "correctAnswerIndex": 0,
+        "explanation": "Luar biasa! CPU (Central Processing Unit) adalah otak pemroses seluruh data komputer.",
+        "weight": 20
+      },
+      {
+        "id": "q2-2",
+        "questionText": "Berikut ini yang termasuk ke dalam kelompok Perangkat Keluaran (Output Device) adalah...",
+        "options": ["Keyboard dan Mouse", "Monitor dan Printer", "Microphone dan Scanner", "Flashdisk dan RAM"],
+        "correctAnswerIndex": 1,
+        "explanation": "Benar! Monitor dan Printer menampilkan dan mencetak informasi hasil kerja komputer.",
+        "weight": 20
+      },
+      {
+        "id": "q2-3",
+        "questionText": "Memori komputer yang bersifat sementara dan akan terhapus saat komputer dimatikan adalah...",
+        "options": ["Harddisk", "Flashdisk", "RAM (Random Access Memory)", "CD-ROM"],
+        "correctAnswerIndex": 2,
+        "explanation": "Tepat! RAM adalah memori volatile yang bekerja saat aplikasi sedang aktif dibuka.",
+        "weight": 20
+      },
+      {
+        "id": "q2-4",
+        "questionText": "Papan sirkuit elektronik utama tempat semua komponen CPU, RAM, dan kabel terhubung disebut...",
+        "options": ["Motherboard", "Keyboard", "Harddisk", "Monitor"],
+        "correctAnswerIndex": 0,
+        "explanation": "Pintar! Motherboard adalah papan induk sirkuit utama komputer.",
+        "weight": 20
+      },
+      {
+        "id": "q2-5",
+        "questionText": "Perangkat yang digunakan untuk mencetak teks atau gambar dari komputer ke kertas fisik adalah...",
+        "options": ["Scanner", "Printer", "Webcam", "Plotter"],
+        "correctAnswerIndex": 1,
+        "explanation": "Betul! Printer mencetak dokumen digital ke lembaran kertas nyata.",
+        "weight": 20
+      }
+    ]
+  },
+  {
+    "id": "quiz-3",
+    "title": "Petualang Windows & Manajemen File Folder",
+    "category": "Dasar Komputer",
+    "description": "Uji keahlianmu mengelola file, folder, Recycle Bin, dan navigasi antarmuka Windows.",
+    "allocatedPoints": 100,
+    "timeLimitMinutes": 10,
+    "createdAt": "2026-10-01T00:00:00.000Z",
+    "questions": [
+      {
+        "id": "q3-1",
+        "questionText": "Kombinasi tombol shortcut keyboard untuk membuka File Explorer di Windows secara cepat adalah...",
+        "options": ["Windows + E", "Windows + D", "Windows + R", "Windows + L"],
+        "correctAnswerIndex": 0,
+        "explanation": "Hebat! Tombol Windows + E (Explorer) langsung membuka jendela File Explorer.",
+        "weight": 20
+      },
+      {
+        "id": "q3-2",
+        "questionText": "Tempat penampungan digital untuk file yang baru saja dihapus sementara di Windows adalah...",
+        "options": ["Recycle Bin", "Control Panel", "Task Manager", "Downloads"],
+        "correctAnswerIndex": 0,
+        "explanation": "Tepat! Recycle Bin menyimpan file terhapus sehingga masih bisa dipulihkan (Restore).",
+        "weight": 20
+      },
+      {
+        "id": "q3-3",
+        "questionText": "Ekstensi file (.extension) standar untuk dokumen Microsoft Word modern adalah...",
+        "options": [".docx", ".mp3", ".jpg", ".xlsx"],
+        "correctAnswerIndex": 0,
+        "explanation": "Benar! File dokumen Microsoft Word memiliki ekstensi .docx.",
+        "weight": 20
+      },
+      {
+        "id": "q3-4",
+        "questionText": "Tombol keyboard pintas yang digunakan untuk mengganti nama (Rename) file yang dipilih adalah...",
+        "options": ["F1", "F2", "F5", "F12"],
+        "correctAnswerIndex": 1,
+        "explanation": "Keren! Menekan tombol fungsi F2 langsung mengaktifkan mode ganti nama file.",
+        "weight": 20
+      },
+      {
+        "id": "q3-5",
+        "questionText": "Langkah yang benar saat ingin mematikan komputer desktop adalah...",
+        "options": [
+          "Langsung mencabut kabel colokan listrik",
+          "Klik Start -> Power -> Shut down",
+          "Menekan tombol power monitor saja",
+          "Membiarkannya menyala semalaman"
+        ],
+        "correctAnswerIndex": 1,
+        "explanation": "Bagus sekali! Selalu gunakan menu Start -> Shut down agar sistem dan file tetap aman.",
+        "weight": 20
+      }
+    ]
+  },
+  {
+    "id": "quiz-4",
+    "title": "Jawara Mengetik 10 Jari & Posisi Keyboard",
+    "category": "Format Word",
+    "description": "Tunjukkan pemahamanmu mengenai posisi jari Home Row, tombol khusus, dan teknik mengetik cepat.",
+    "allocatedPoints": 100,
+    "timeLimitMinutes": 10,
+    "createdAt": "2026-10-01T00:00:00.000Z",
+    "questions": [
+      {
+        "id": "q4-1",
+        "questionText": "Dua tombol pada keyboard yang memiliki tanda tonjolan kecil sebagai jangkar telunjuk adalah...",
+        "options": ["Tombol F dan J", "Tombol A dan L", "Tombol G dan H", "Tombol C dan M"],
+        "correctAnswerIndex": 0,
+        "explanation": "Pintar! Tombol F (telunjuk kiri) dan J (telunjuk kanan) adalah penanda posisi dasar Home Row.",
+        "weight": 20
+      },
+      {
+        "id": "q4-2",
+        "questionText": "Jari apakah yang bertugas menekan tombol Spacebar (Spasi)?",
+        "options": ["Jari Telunjuk", "Jari Kelingking", "Kedua Ibu Jari (Jempol)", "Jari Manis"],
+        "correctAnswerIndex": 2,
+        "explanation": "Tepat! Kedua ibu jari bertugas menekan tombol spasi panjang di bagian bawah.",
+        "weight": 20
+      },
+      {
+        "id": "q4-3",
+        "questionText": "Untuk membuat SATU huruf kapital saat mengetik tanpa menyalakan Caps Lock, kita menahan tombol...",
+        "options": ["Tombol Shift", "Tombol Tab", "Tombol Alt", "Tombol Ctrl"],
+        "correctAnswerIndex": 0,
+        "explanation": "Benar! Menahan tombol Shift bersamaan dengan huruf akan menghasilkan satu huruf kapital.",
+        "weight": 20
+      },
+      {
+        "id": "q4-4",
+        "questionText": "Tombol yang berfungsi membuat baris baru ke bawah atau mengeksekusi perintah adalah...",
+        "options": ["Backspace", "Enter", "Spacebar", "Escape"],
+        "correctAnswerIndex": 1,
+        "explanation": "Keren! Tombol Enter memindahkan kursor ke baris baru di bawahnya.",
+        "weight": 20
+      },
+      {
+        "id": "q4-5",
+        "questionText": "Perbedaan tombol Backspace dan Delete dalam menghapus teks adalah...",
+        "options": [
+          "Backspace menghapus karakter di sebelah kiri kursor, Delete di sebelah kanan kursor",
+          "Delete menghapus seluruh dokumen sekaligus",
+          "Backspace hanya menghapus angka",
+          "Keduanya tidak memiliki perbedaan"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Tepat sekali! Backspace menghapus karakter di kiri kursor, sedangkan Delete menghapus di kanan kursor.",
+        "weight": 20
+      }
+    ]
+  },
+  {
+    "id": "quiz-5",
+    "title": "Polisi Siber & Internet Sehat Ceria",
+    "category": "Internet & Etika",
+    "description": "Kuis kesadaran keamanan digital: cara melindungi kata sandi, mengenali bahaya phishing, dan netiket online.",
+    "allocatedPoints": 100,
+    "timeLimitMinutes": 10,
+    "createdAt": "2026-10-01T00:00:00.000Z",
+    "questions": [
+      {
+        "id": "q5-1",
+        "questionText": "Sikap yang benar jika menerima pesan WhatsApp dari nomor tak dikenal yang menyatakan kamu menang uang 100 juta adalah...",
+        "options": [
+          "Langsung klik link tautan yang diberikan",
+          "Kirimkan foto kartu identitas dan nomor rekening",
+          "Abaikan dan laporkan pesan mencurigakan tersebut ke orang tua/guru",
+          "Bagikan pesan ke seluruh grup teman sekelas"
+        ],
+        "correctAnswerIndex": 2,
+        "explanation": "Sangat bijak! Itu adalah modus penipuan phishing. Jangan pernah membuka link mencurigakan!",
+        "weight": 20
+      },
+      {
+        "id": "q5-2",
+        "questionText": "Manakah contoh kata sandi (password) yang paling aman dan kuat?",
+        "options": ["12345678", "namasaya", "K0mput3r_C3r1a!#26", "password123"],
+        "correctAnswerIndex": 2,
+        "explanation": "Hebat! Password yang kuat menggabungkan huruf besar, huruf kecil, angka, dan simbol unik.",
+        "weight": 20
+      },
+      {
+        "id": "q5-3",
+        "questionText": "Etika yang baik saat berkomunikasi dan berteman di ruang digital atau media sosial adalah...",
+        "options": [
+          "Menulis komentar kasar dan mengejek teman",
+          "Menggunakan bahasa santun, saling menghargai, dan tidak menyebarkan hoaks",
+          "Membagikan password akun teman ke publik",
+          "Mengambil foto orang lain tanpa izin"
+        ],
+        "correctAnswerIndex": 1,
+        "explanation": "Pintar! Bersikap santun dan saling menghargai menciptakan lingkungan internet yang positif dan ceria.",
+        "weight": 20
+      },
+      {
+        "id": "q5-4",
+        "questionText": "Ikon gembok terkunci pada bilah alamat browser web (HTTPS) menandakan bahwa...",
+        "options": [
+          "Website tersebut rusak",
+          "Koneksi komunikasi data terenkripsi dan aman",
+          "Komputer sedang kehabisan baterai",
+          "Website tidak memiliki internet"
+        ],
+        "correctAnswerIndex": 1,
+        "explanation": "Tepat! Protokol HTTPS dengan ikon gembok memastikan data terlindungi secara aman.",
+        "weight": 20
+      },
+      {
+        "id": "q5-5",
+        "questionText": "Apa yang wajib dilakukan setelah selesai menggunakan komputer di laboratorium sekolah atau warnet?",
+        "options": [
+          "Membiarkan akun email dan media sosial tetap login",
+          "Melakukan Logout (Keluar) dari semua akun pribadi",
+          "Menghapus sistem operasi komputer",
+          "Mengubah wallpaper komputer tanpa izin"
+        ],
+        "correctAnswerIndex": 1,
+        "explanation": "Bagus! Selalu logout dari akunmu agar tidak disalahgunakan oleh pengguna berikutnya.",
+        "weight": 20
+      }
+    ]
+  }
+]
