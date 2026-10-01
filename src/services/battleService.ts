@@ -93,55 +93,42 @@ export const createBattleChallenge = async (
 export const acceptChallenge = async (battleId: string) => {
   const battles = getLocalBattles();
   const idx = battles.findIndex((b) => b.id === battleId);
-  let updatedBattle: GameBattle | null = null;
 
   if (idx !== -1) {
     battles[idx].status = 'active';
     battles[idx].updatedAt = new Date().toISOString();
     saveLocalBattles(battles);
-    updatedBattle = battles[idx];
   }
 
-  // Get from server if not found locally, then update
-  if (!updatedBattle) {
-    const serverBattles = await fetchBattlesFromServer();
-    const serverB = serverBattles.find((b) => b.id === battleId);
-    if (serverB) {
-      serverB.status = 'active';
-      serverB.updatedAt = new Date().toISOString();
-      updatedBattle = serverB;
-    }
-  }
-
-  if (updatedBattle) {
-    await saveBattleToServer(updatedBattle);
+  try {
+    await fetch(`/api/db/gameBattles/${battleId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'active', updatedAt: new Date().toISOString() }),
+    });
+  } catch (err) {
+    console.warn('acceptChallenge PATCH warning:', err);
   }
 };
 
 export const cancelChallenge = async (battleId: string) => {
   const battles = getLocalBattles();
   const idx = battles.findIndex((b) => b.id === battleId);
-  let updatedBattle: GameBattle | null = null;
 
   if (idx !== -1) {
     battles[idx].status = 'cancelled';
     battles[idx].updatedAt = new Date().toISOString();
     saveLocalBattles(battles);
-    updatedBattle = battles[idx];
   }
 
-  if (!updatedBattle) {
-    const serverBattles = await fetchBattlesFromServer();
-    const serverB = serverBattles.find((b) => b.id === battleId);
-    if (serverB) {
-      serverB.status = 'cancelled';
-      serverB.updatedAt = new Date().toISOString();
-      updatedBattle = serverB;
-    }
-  }
-
-  if (updatedBattle) {
-    await saveBattleToServer(updatedBattle);
+  try {
+    await fetch(`/api/db/gameBattles/${battleId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'cancelled', updatedAt: new Date().toISOString() }),
+    });
+  } catch (err) {
+    console.warn('cancelChallenge PATCH warning:', err);
   }
 };
 
@@ -157,24 +144,30 @@ export const updateBattleState = async (battleId: string, updates: Partial<GameB
 
   const battles = getLocalBattles();
   const idx = battles.findIndex((b) => b.id === battleId);
-  let updatedBattle: GameBattle | null = null;
 
   if (idx !== -1) {
     battles[idx] = { ...battles[idx], ...cleanUpdates, updatedAt: new Date().toISOString() };
     saveLocalBattles(battles);
-    updatedBattle = battles[idx];
   }
 
-  if (!updatedBattle) {
-    const serverBattles = await fetchBattlesFromServer();
-    const serverB = serverBattles.find((b) => b.id === battleId);
-    if (serverB) {
-      updatedBattle = { ...serverB, ...cleanUpdates, updatedAt: new Date().toISOString() };
+  // Atomic PATCH to server so we NEVER overwrite the other player's selections or scores!
+  try {
+    const res = await fetch(`/api/db/gameBattles/${battleId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...cleanUpdates, updatedAt: new Date().toISOString() }),
+    });
+    const json = await res.json();
+    if (json.success && json.data) {
+      const current = getLocalBattles();
+      const bIdx = current.findIndex((b) => b.id === battleId);
+      if (bIdx !== -1) {
+        current[bIdx] = json.data;
+        saveLocalBattles(current);
+      }
     }
-  }
-
-  if (updatedBattle) {
-    await saveBattleToServer(updatedBattle);
+  } catch (err) {
+    console.warn('updateBattleState PATCH warning:', err);
   }
 };
 
@@ -207,11 +200,11 @@ export const subscribeToBattles = (
     window.addEventListener('ekskul_battle_updated', handleLocalUpdate);
   }
 
-  // Set up polling interval to fetch battles from server every 1.5 seconds for instant duels!
+  // Set up polling interval to fetch battles from server every 1 second for instant challenge alerts
   const pollInterval = setInterval(async () => {
     const serverBattles = await fetchBattlesFromServer();
     triggerUpdate(serverBattles);
-  }, 1500);
+  }, 1000);
 
   return () => {
     if (typeof window !== 'undefined') {
@@ -243,14 +236,14 @@ export const subscribeToActiveBattle = (
     window.addEventListener('ekskul_battle_updated', handleLocalUpdate);
   }
 
-  // Poll server for live updates of active duel game states every 1.5 seconds!
+  // Fast polling (800ms) for real-time multiplayer duel reactions
   const pollInterval = setInterval(async () => {
     const serverBattles = await fetchBattlesFromServer();
     const activeB = serverBattles.find((b) => b.id === battleId);
     if (activeB) {
       triggerUpdate(activeB);
     }
-  }, 1500);
+  }, 800);
 
   return () => {
     if (typeof window !== 'undefined') {

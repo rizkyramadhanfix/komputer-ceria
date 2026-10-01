@@ -1,0 +1,13 @@
+[
+  {
+    "id": "usr-superadmin-default",
+    "role": "superadmin",
+    "username": "Administrator",
+    "password": "Admin@123",
+    "name": "Super Administrator Pusat",
+    "totalPoints": 0,
+    "totalStars": 0,
+    "completedLessons": [],
+    "createdAt": "2026-10-01T00:00:00.000Z"
+  }
+]

@@ -208,13 +208,20 @@ export const QuizDuelGame: React.FC<QuizDuelGameProps> = ({
       
       const isChallenger = battle.challengerId === currentUser.id;
       
-      // Update local state from Firestore
-      setCurrentRound(battle.currentRound);
+      // Update local state and detect round advancement across both players
+      if (battle.currentRound !== currentRound && battle.status === 'active') {
+        setCurrentRound(battle.currentRound);
+        setRoundTimer(15);
+        setGameState('playing');
+        setPlayerSelected(isChallenger ? (battle.challengerSelection ?? null) : (battle.opponentSelection ?? null));
+        setOpponentSelected(isChallenger ? (battle.opponentSelection ?? null) : (battle.challengerSelection ?? null));
+      } else {
+        setOpponentSelected(isChallenger ? (battle.opponentSelection ?? null) : (battle.challengerSelection ?? null));
+        setPlayerSelected(isChallenger ? (battle.challengerSelection ?? null) : (battle.opponentSelection ?? null));
+      }
+
       setPlayerScore(isChallenger ? battle.challengerScore : battle.opponentScore);
       setOpponentScore(isChallenger ? battle.opponentScore : battle.challengerScore);
-      
-      setOpponentSelected(isChallenger ? (battle.opponentSelection ?? null) : (battle.challengerSelection ?? null));
-      setPlayerSelected(isChallenger ? (battle.challengerSelection ?? null) : (battle.opponentSelection ?? null));
 
       if (battle.status === 'active' && (gameState === 'intro' || gameState === 'waiting_opponent')) {
         setGameState('playing');
@@ -317,21 +324,17 @@ export const QuizDuelGame: React.FC<QuizDuelGameProps> = ({
 
     if (currentRound + 1 < sessionQuestions.length) {
       const nextRound = currentRound + 1;
-      if (isMultiplayer && effectiveBattleId && currentUser) {
-        const isChallenger = activeBattle?.challengerId === currentUser.id;
-        // Challenger resets selection for both for next round
-        if (isChallenger) {
-          await updateBattleState(effectiveBattleId, {
-            currentRound: nextRound,
-            challengerSelection: null as any,
-            opponentSelection: null as any,
-          });
-        }
+      if (isMultiplayer && effectiveBattleId) {
+        await updateBattleState(effectiveBattleId, {
+          currentRound: nextRound,
+          challengerSelection: null as any,
+          opponentSelection: null as any,
+        });
       }
       setCurrentRound(nextRound);
       setGameState('playing');
     } else {
-      if (isMultiplayer && effectiveBattleId && activeBattle?.challengerId === currentUser?.id) {
+      if (isMultiplayer && effectiveBattleId) {
         await updateBattleState(effectiveBattleId, { status: 'finished' });
       }
       handleGameCompleted();

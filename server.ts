@@ -257,6 +257,24 @@ app.post('/api/db/:collection/batch', (req, res) => {
   res.json({ success: true, count: data.length });
 });
 
+// Partial update (PATCH) for atomic multiplayer duel updates
+app.patch('/api/db/:collection/:id', (req, res) => {
+  const { collection, id } = req.params;
+  const updates = req.body || {};
+  const list = readCollection(collection);
+  const idx = list.findIndex((item: any) => item.id === id);
+  if (idx !== -1) {
+    list[idx] = { ...list[idx], ...updates, updatedAt: new Date().toISOString() };
+    writeCollection(collection, list);
+    return res.json({ success: true, data: list[idx] });
+  } else {
+    const newDoc = { id, ...updates, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    list.push(newDoc);
+    writeCollection(collection, list);
+    return res.json({ success: true, data: newDoc });
+  }
+});
+
 // Delete a document from a collection
 app.delete('/api/db/:collection/:id', (req, res) => {
   const { collection, id } = req.params;
@@ -265,6 +283,8 @@ app.delete('/api/db/:collection/:id', (req, res) => {
   writeCollection(collection, filtered);
   res.json({ success: true });
 });
+
+export default app;
 
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
@@ -285,4 +305,6 @@ async function startServer() {
   });
 }
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}

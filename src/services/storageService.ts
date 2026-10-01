@@ -104,6 +104,27 @@ function setStoredItem<T>(key: string, value: T): void {
   }
 }
 
+// One-time clean reset for all student and pembina accounts & old session logs as requested
+const CLEAN_RESET_KEY = 'ekskul_clean_reset_v4';
+if (typeof window !== 'undefined') {
+  try {
+    if (localStorage.getItem(CLEAN_RESET_KEY) !== 'true') {
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(INITIAL_USERS));
+      localStorage.removeItem(STORAGE_KEYS.LOGIN_LOGS);
+      localStorage.removeItem(STORAGE_KEYS.QUIZ_SUBMISSIONS);
+      localStorage.removeItem(STORAGE_KEYS.TYPING_SUBMISSIONS);
+      localStorage.removeItem(STORAGE_KEYS.GAME_SCORES);
+      localStorage.removeItem('ekskul_game_battles');
+      localStorage.removeItem(STORAGE_KEYS.REWARD_REDEMPTIONS);
+      localStorage.removeItem(STORAGE_KEYS.GALLERY_WORKS);
+      localStorage.removeItem('ekskul_active_user');
+      localStorage.setItem(CLEAN_RESET_KEY, 'true');
+    }
+  } catch (err) {
+    console.warn('Reset migration notice:', err);
+  }
+}
+
 // --- Server-DB Sync Helpers (Replacements for Firestore) ---
 export async function fetchCollectionFromServer(collectionName: string): Promise<any[]> {
   try {
