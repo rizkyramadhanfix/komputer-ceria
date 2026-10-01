@@ -8,7 +8,7 @@ import {
   recordLoginLog,
 } from '../services/storageService';
 import { User } from '../types';
-import { doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { ShieldAlert, LogOut, Clock, AlertTriangle } from 'lucide-react';
 
@@ -24,7 +24,7 @@ interface AuthContextType {
     identifier: string,
     password: string,
     roleRequired?: 'admin' | 'superadmin' | 'pembina' | 'student'
-  ) => { success: boolean; message?: string };
+  ) => Promise<{ success: boolean; message?: string }>;
   registerStudent: (data: {
     name: string;
     nisn: string;
@@ -175,39 +175,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [currentUser]);
 
-  const login = (
+  const login = async (
     identifier: string,
     password: string,
     roleRequired?: 'admin' | 'superadmin' | 'pembina' | 'student'
-  ): { success: boolean; message?: string } => {
+  ): Promise<{ success: boolean; message?: string }> => {
     const cleanId = identifier.trim().toLowerCase();
     const cleanPass = password.trim();
 
     try {
-      // Use local storageService to avoid Firestore read quota
-      const allUsers = getUsers();
+      let allUsers = getUsers();
       let user: User | undefined;
 
-      if (roleRequired === 'student') {
-        user = allUsers.find(
-          (u) =>
-            u.role === 'student' &&
-            (u.nisn?.toLowerCase() === cleanId || u.username.toLowerCase() === cleanId || u.name.toLowerCase() === cleanId)
-        );
-      } else if (roleRequired === 'pembina') {
-        user = allUsers.find(
-          (u) =>
-            (u.role === 'pembina' || u.role === 'admin') &&
-            (u.username.toLowerCase() === cleanId || u.name.toLowerCase() === cleanId)
-        );
-      } else if (roleRequired === 'superadmin') {
-        user = allUsers.find(
-          (u) =>
-            (u.role === 'superadmin' || u.role === 'admin') &&
-            (u.username.toLowerCase() === cleanId || u.name.toLowerCase() === cleanId)
-        );
-      } else {
-        user = allUsers.find(u => u.username.toLowerCase() === cleanId || u.nisn?.toLowerCase() === cleanId || u.name.toLowerCase() === cleanId);
+      const findUserInList = (list: User[]) => {
+        if (roleRequired === 'student') {
+          return list.find(
+            (u) =>
+              u.role === 'student' &&
+              (u.nisn?.toLowerCase() === cleanId || u.username.toLowerCase() === cleanId || u.name.toLowerCase() === cleanId)
+          );
+        } else if (roleRequired === 'pembina') {
+          return list.find(
+            (u) =>
+              (u.role === 'pembina' || u.role === 'admin') &&
+              (u.username.toLowerCase() === cleanId || u.name.toLowerCase() === cleanId)
+          );
+        } else if (roleRequired === 'superadmin') {
+          return list.find(
+            (u) =>
+              (u.role === 'superadmin' || u.role === 'admin') &&
+              (u.username.toLowerCase() === cleanId || u.name.toLowerCase() === cleanId)
+          );
+        } else {
+          return list.find(u => u.username.toLowerCase() === cleanId || u.nisn?.toLowerCase() === cleanId || u.name.toLowerCase() === cleanId);
+        }
+      };
+
+      user = findUserInList(allUsers);
+
+      // Fallback: If user not found in local storage, query Firestore directly across devices/Vercel
+      if (!user) {
+        try {
+          const snapshot = await getDocs(collection(db, 'users'));
+          if (!snapshot.empty) {
+            const fetchedUsers: User[] = [];
+            snapshot.forEach((docSnap) => {
+              fetchedUsers.push(docSnap.data() as User);
+            });
+            // Update local storage & state with fresh Firestore users
+            localStorage.setItem('ekskul_users', JSON.stringify(fetchedUsers));
+            setUsers(fetchedUsers);
+            user = findUserInList(fetchedUsers);
+          }
+        } catch (fErr) {
+          console.warn('Firestore user fetch on login warning:', fErr);
+        }
       }
       
       if (!user) {

@@ -147,13 +147,14 @@ function initFirestoreListeners() {
   listenersInitialized = true;
 
   try {
-    // 1. Subscribe to Users (All users to ensure complete login access)
-    onSnapshot(query(collection(db, 'users'), orderBy('totalPoints', 'desc')), (snapshot) => {
+    // 1. Subscribe to Users (All users to ensure complete login access across devices)
+    onSnapshot(collection(db, 'users'), (snapshot) => {
       if (!snapshot.empty) {
         const firestoreUsers: User[] = [];
         snapshot.forEach((docSnap) => {
           firestoreUsers.push(docSnap.data() as User);
         });
+        firestoreUsers.sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
         setStoredItem(STORAGE_KEYS.USERS, firestoreUsers);
 
         // Sync active user if present

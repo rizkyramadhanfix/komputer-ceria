@@ -61,7 +61,7 @@ export const PembinaLoginModal: React.FC<PembinaLoginModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -70,7 +70,7 @@ export const PembinaLoginModal: React.FC<PembinaLoginModalProps> = ({
       return;
     }
 
-    const res = login(username, password, 'pembina');
+    const res = await login(username, password, 'pembina');
     if (!res.success) {
       setErrorMsg(res.message || 'Login Pembina gagal. Periksa kembali username dan password.');
       showError(res.message || 'Login Pembina gagal.');
@@ -258,7 +258,7 @@ export const SuperadminLoginModal: React.FC<SuperadminLoginModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -267,7 +267,7 @@ export const SuperadminLoginModal: React.FC<SuperadminLoginModalProps> = ({
       return;
     }
 
-    const res = login(username, password, 'superadmin');
+    const res = await login(username, password, 'superadmin');
     if (!res.success) {
       setErrorMsg(res.message || 'Login Superadmin gagal. Periksa username dan password.');
       showError(res.message || 'Login Superadmin gagal.');
@@ -515,7 +515,7 @@ export const StudentAuthModal: React.FC<StudentAuthModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -524,7 +524,7 @@ export const StudentAuthModal: React.FC<StudentAuthModalProps> = ({
       return;
     }
 
-    const res = login(identifier, password, 'student');
+    const res = await login(identifier, password, 'student');
     if (!res.success) {
       setErrorMsg(res.message || 'Login siswa gagal. Periksa kembali NISN dan password Anda.');
       showError(res.message || 'Login siswa gagal.');
