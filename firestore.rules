@@ -1,0 +1,128 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net: default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128;
+    }
+
+    // Test connection endpoint for SDK validation
+    match /test/connection {
+      allow read, write: if true;
+    }
+
+    // User accounts & student profiles
+    match /users/{userId} {
+      allow read: if true;
+      allow create, update: if isValidId(userId);
+      allow delete: if isValidId(userId);
+    }
+
+    // Lessons and curriculum modules
+    match /lessons/{lessonId} {
+      allow read: if true;
+      allow write: if isValidId(lessonId);
+    }
+
+    // Quizzes
+    match /quizzes/{quizId} {
+      allow read: if true;
+      allow write: if isValidId(quizId);
+    }
+
+    // Quiz submissions
+    match /quizSubmissions/{submissionId} {
+      allow read: if true;
+      allow write: if isValidId(submissionId);
+    }
+
+    // Typing practices
+    match /typingPractices/{practiceId} {
+      allow read: if true;
+      allow write: if isValidId(practiceId);
+    }
+
+    // Typing submissions
+    match /typingSubmissions/{submissionId} {
+      allow read: if true;
+      allow write: if isValidId(submissionId);
+    }
+
+    // Typing drafts (Simpan tugas sementara)
+    match /typingDrafts/{draftId} {
+      allow read: if true;
+      allow write: if isValidId(draftId);
+    }
+
+    // Typing League texts & scores
+    match /typingLeagueTexts/{textId} {
+      allow read: if true;
+      allow write: if isValidId(textId);
+    }
+
+    match /typingLeagueScores/{scoreId} {
+      allow read: if true;
+      allow write: if isValidId(scoreId);
+    }
+
+    match /typingTournaments/{tournamentId} {
+      allow read: if true;
+      allow write: if isValidId(tournamentId);
+    }
+
+    // Gallery works (student drawings and Word documents)
+    match /galleryWorks/{workId} {
+      allow read: if true;
+      allow write: if isValidId(workId);
+    }
+
+    // Forum discussions and replies
+    match /forumThreads/{threadId} {
+      allow read: if true;
+      allow write: if isValidId(threadId);
+    }
+
+    match /forumReplies/{replyId} {
+      allow read: if true;
+      allow write: if isValidId(replyId);
+    }
+
+    // School rewards & redemptions
+    match /schoolRewards/{rewardId} {
+      allow read: if true;
+      allow write: if isValidId(rewardId);
+    }
+
+    match /rewardRedemptions/{redemptionId} {
+      allow read: if true;
+      allow write: if isValidId(redemptionId);
+    }
+
+    // Announcements
+    match /announcements/{announcementId} {
+      allow read: if true;
+      allow write: if isValidId(announcementId);
+    }
+
+    // Game scores & login logs
+    match /gameScores/{scoreId} {
+      allow read: if true;
+      allow write: if isValidId(scoreId);
+    }
+
+    match /loginLogs/{logId} {
+      allow read: if true;
+      allow write: if isValidId(logId);
+    }
+
+    // App configurations
+    match /config/{configId} {
+      allow read: if true;
+      allow write: if isValidId(configId);
+    }
+  }
+}

@@ -35,8 +35,17 @@ import {
   TypingTournament,
   TypingLeagueText,
   TypingLeagueScore,
+  TypingDraft,
 } from '../types';
-// Firebase is completely disabled per user request -> 100% online Express Server-DB
+import {
+  collection,
+  doc,
+  setDoc,
+  deleteDoc,
+  getDocs,
+  onSnapshot,
+} from 'firebase/firestore';
+import { db, handleFirestoreError, OperationType } from './firebase';
 
 const STORAGE_KEYS = {
   USERS: 'ekskul_users',
@@ -44,6 +53,7 @@ const STORAGE_KEYS = {
   QUIZZES: 'ekskul_quizzes',
   TYPING_PRACTICES: 'ekskul_typing_practices',
   TYPING_SUBMISSIONS: 'ekskul_typing_submissions',
+  TYPING_DRAFTS: 'ekskul_typing_drafts',
   QUIZ_SUBMISSIONS: 'ekskul_quiz_submissions',
   GAMIFICATION_CONFIG: 'ekskul_gamification_config',
   DASHBOARD_CONFIG: 'ekskul_dashboard_config',
@@ -203,6 +213,14 @@ export async function pullFullSyncFromServer(): Promise<{ success: boolean; coun
             else if (cfg.id === 'games_config') setStoredItem(STORAGE_KEYS.GAMES_CONFIG, cfg);
           });
           updatedCount += items.length;
+        } else if (colName === 'typingDrafts' && Array.isArray(items)) {
+          const draftsMap: Record<string, any> = {};
+          items.forEach((item: any) => {
+            const key = item.id || `${item.studentId}_${item.practiceId}`;
+            draftsMap[key] = item;
+          });
+          setStoredItem(STORAGE_KEYS.TYPING_DRAFTS, draftsMap);
+          updatedCount += items.length;
         } else if (keyMap[colName] && Array.isArray(items) && items.length > 0) {
           setStoredItem(keyMap[colName], items);
           updatedCount += items.length;
@@ -263,25 +281,48 @@ export async function syncCollectionFromServer(collectionName: string, storageKe
 }
 
 async function syncDocToFirestore(collectionName: string, id: string, data: any): Promise<void> {
+  const docPath = `${collectionName}/${id}`;
+  try {
+    const docRef = doc(db, collectionName, id);
+    // Sanitize undefined fields which Firestore rejects
+    const cleanData = JSON.parse(JSON.stringify({ ...data, id }));
+    await setDoc(docRef, cleanData, { merge: true });
+    updateCloudSyncState({ status: 'online', isOnline: true, lastSyncTime: new Date() });
+  } catch (err) {
+    console.warn(`Firestore sync error for ${docPath}:`, err);
+    try {
+      handleFirestoreError(err, OperationType.WRITE, docPath);
+    } catch {}
+  }
+
+  // Also sync to server proxy if available
   try {
     await fetch(`/api/db/${collectionName}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...data, id }),
     });
-  } catch (err) {
-    console.warn(`Server DB sync failed for ${collectionName}/${id}:`, err);
-  }
+  } catch {}
 }
 
 async function removeDocFromFirestore(collectionName: string, id: string): Promise<void> {
+  const docPath = `${collectionName}/${id}`;
+  try {
+    const docRef = doc(db, collectionName, id);
+    await deleteDoc(docRef);
+    updateCloudSyncState({ status: 'online', isOnline: true, lastSyncTime: new Date() });
+  } catch (err) {
+    console.warn(`Firestore delete error for ${docPath}:`, err);
+    try {
+      handleFirestoreError(err, OperationType.DELETE, docPath);
+    } catch {}
+  }
+
   try {
     await fetch(`/api/db/${collectionName}/${id}`, {
       method: 'DELETE',
     });
-  } catch (err) {
-    console.warn(`Server DB delete failed for ${collectionName}/${id}:`, err);
-  }
+  } catch {}
 }
 
 let notifyTimer: any = null;
@@ -295,7 +336,7 @@ function notifyDataUpdated() {
   }, 500);
 }
 
-// --- Real-time Server-DB Sync Loop ---
+// --- Real-time Firestore & Server-DB Sync Loop ---
 let listenersInitialized = false;
 let serverSyncInterval: any = null;
 
@@ -303,65 +344,146 @@ function initFirestoreListeners() {
   if (listenersInitialized) return;
   listenersInitialized = true;
 
-  // Perform highly-optimized instant single-request bulk sync on startup
+  // Real-time Firestore onSnapshot listeners for instant multi-device synchronization
+  const collectionsMap: { name: string; key: string }[] = [
+    { name: 'users', key: STORAGE_KEYS.USERS },
+    { name: 'lessons', key: STORAGE_KEYS.LESSONS },
+    { name: 'quizzes', key: STORAGE_KEYS.QUIZZES },
+    { name: 'typingPractices', key: STORAGE_KEYS.TYPING_PRACTICES },
+    { name: 'typingSubmissions', key: STORAGE_KEYS.TYPING_SUBMISSIONS },
+    { name: 'quizSubmissions', key: STORAGE_KEYS.QUIZ_SUBMISSIONS },
+    { name: 'galleryWorks', key: STORAGE_KEYS.GALLERY_WORKS },
+    { name: 'gameScores', key: STORAGE_KEYS.GAME_SCORES },
+    { name: 'loginLogs', key: STORAGE_KEYS.LOGIN_LOGS },
+    { name: 'typingLeagueTexts', key: STORAGE_KEYS.TYPING_LEAGUE_TEXTS },
+    { name: 'typingLeagueScores', key: STORAGE_KEYS.TYPING_LEAGUE_SCORES },
+    { name: 'typingTournaments', key: STORAGE_KEYS.TYPING_TOURNAMENTS },
+    { name: 'schoolRewards', key: STORAGE_KEYS.SCHOOL_REWARDS },
+    { name: 'rewardRedemptions', key: STORAGE_KEYS.REWARD_REDEMPTIONS },
+    { name: 'announcements', key: STORAGE_KEYS.ANNOUNCEMENTS },
+    { name: 'forumThreads', key: 'ekskul_forum_threads' },
+    { name: 'forumReplies', key: 'ekskul_forum_replies' },
+    { name: 'typingDrafts', key: STORAGE_KEYS.TYPING_DRAFTS },
+  ];
+
+  collectionsMap.forEach(({ name, key }) => {
+    try {
+      onSnapshot(
+        collection(db, name),
+        (snapshot) => {
+          if (!snapshot.empty) {
+            if (name === 'typingDrafts') {
+              const draftsMap: Record<string, any> = {};
+              snapshot.docs.forEach((d) => {
+                draftsMap[d.id] = d.data();
+              });
+              setStoredItem(key, draftsMap);
+              notifyDataUpdated();
+            } else {
+              const items = snapshot.docs.map((d) => d.data());
+              const currentRaw = localStorage.getItem(key);
+              const newRaw = JSON.stringify(items);
+              if (currentRaw !== newRaw) {
+                setStoredItem(key, items);
+                notifyDataUpdated();
+              }
+            }
+            updateCloudSyncState({ status: 'online', isOnline: true, lastSyncTime: new Date() });
+          }
+        },
+        (error) => {
+          handleFirestoreError(error, OperationType.GET, name);
+        }
+      );
+    } catch (e) {
+      console.warn(`Firestore onSnapshot setup error for ${name}:`, e);
+    }
+  });
+
+  // Listener for config documents
+  try {
+    onSnapshot(
+      collection(db, 'config'),
+      (snapshot) => {
+        if (!snapshot.empty) {
+          snapshot.docs.forEach((d) => {
+            const cfg = d.data();
+            if (d.id === 'dashboard') setStoredItem(STORAGE_KEYS.DASHBOARD_CONFIG, cfg);
+            else if (d.id === 'certificate') setStoredItem(STORAGE_KEYS.CERTIFICATE_CONFIG, cfg);
+            else if (d.id === 'gamification') setStoredItem(STORAGE_KEYS.GAMIFICATION_CONFIG, cfg);
+            else if (d.id === 'games_config') setStoredItem(STORAGE_KEYS.GAMES_CONFIG, cfg);
+          });
+          notifyDataUpdated();
+        }
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.GET, 'config');
+      }
+    );
+  } catch (e) {
+    console.warn('Firestore onSnapshot setup error for config:', e);
+  }
+
+  // Perform initial bulk sync on startup
   pullFullSyncFromServer();
 
-  // Polling bulk data in a single request every 3 seconds to keep all browsers/devices synchronized instantly!
+  // Secondary polling safety net
   if (!serverSyncInterval) {
     serverSyncInterval = setInterval(async () => {
       await pullFullSyncFromServer();
-    }, 3000);
+    }, 4000);
   }
 }
 
-// --- Seed Server DB if Empty ---
+// --- Seed Firestore & Server DB if Empty ---
 async function seedServerDbIfEmpty() {
   try {
-    const serverUsers = await fetchCollectionFromServer('users');
-    if (serverUsers.length === 0) {
-      console.log('🌱 Seeding initial users to Server DB...');
+    // Check if Firestore users collection is empty
+    const usersSnapshot = await getDocs(collection(db, 'users'));
+    if (usersSnapshot.empty) {
+      console.log('🌱 Seeding initial users to Firestore...');
       const initialUsers = getUsers();
       for (const u of initialUsers) {
         await syncDocToFirestore('users', u.id, u);
       }
     }
 
-    const serverLessons = await fetchCollectionFromServer('lessons');
-    if (serverLessons.length === 0) {
-      console.log('🌱 Seeding initial lessons to Server DB...');
+    const lessonsSnapshot = await getDocs(collection(db, 'lessons'));
+    if (lessonsSnapshot.empty) {
+      console.log('🌱 Seeding initial lessons to Firestore...');
       const initialLessons = getLessons();
       for (const l of initialLessons) {
         await syncDocToFirestore('lessons', l.id, l);
       }
     }
 
-    const serverQuizzes = await fetchCollectionFromServer('quizzes');
-    if (serverQuizzes.length === 0) {
-      console.log('🌱 Seeding initial quizzes to Server DB...');
+    const quizzesSnapshot = await getDocs(collection(db, 'quizzes'));
+    if (quizzesSnapshot.empty) {
+      console.log('🌱 Seeding initial quizzes to Firestore...');
       const initialQuizzes = getQuizzes();
       for (const q of initialQuizzes) {
         await syncDocToFirestore('quizzes', q.id, q);
       }
     }
 
-    const serverTyping = await fetchCollectionFromServer('typingPractices');
-    if (serverTyping.length === 0) {
-      console.log('🌱 Seeding initial typing practices to Server DB...');
+    const typingSnapshot = await getDocs(collection(db, 'typingPractices'));
+    if (typingSnapshot.empty) {
+      console.log('🌱 Seeding initial typing practices to Firestore...');
       const initialTyping = getTypingPractices();
       for (const tp of initialTyping) {
         await syncDocToFirestore('typingPractices', tp.id, tp);
       }
     }
 
-    const configs = await fetchCollectionFromServer('config');
-    if (configs.length === 0) {
+    const configSnapshot = await getDocs(collection(db, 'config'));
+    if (configSnapshot.empty) {
       await syncDocToFirestore('config', 'dashboard', getDashboardConfig());
       await syncDocToFirestore('config', 'certificate', getCertificateConfig());
       await syncDocToFirestore('config', 'gamification', getGamificationConfig());
       await syncDocToFirestore('config', 'games_config', getGamesConfig());
     }
   } catch (err) {
-    console.warn('Server DB seeding warning:', err);
+    console.warn('Firestore seeding notice:', err);
   }
 }
 
@@ -1405,6 +1527,57 @@ export function recordTypingSubmission(
   syncDocToFirestore('typingSubmissions', newSubmission.id, newSubmission);
   notifyDataUpdated();
   return newSubmission;
+}
+
+// --- Typing Drafts Management (Fitur Simpan Tugas Mengetik Sementara) ---
+export function getTypingDrafts(): Record<string, TypingDraft> {
+  return getStoredItem<Record<string, TypingDraft>>(STORAGE_KEYS.TYPING_DRAFTS, {});
+}
+
+export function getTypingDraft(practiceId: string, studentId: string): TypingDraft | null {
+  const drafts = getTypingDrafts();
+  const draftKey = `${studentId}_${practiceId}`;
+  return drafts[draftKey] || null;
+}
+
+export function saveTypingDraft(
+  draftData: Omit<TypingDraft, 'id' | 'lastSavedAt'> & { id?: string; lastSavedAt?: string }
+): TypingDraft {
+  const drafts = getTypingDrafts();
+  const draftKey = draftData.id || `${draftData.studentId}_${draftData.practiceId}`;
+  const draft: TypingDraft = {
+    ...draftData,
+    id: draftKey,
+    lastSavedAt: draftData.lastSavedAt || new Date().toISOString(),
+  };
+
+  drafts[draftKey] = draft;
+  setStoredItem(STORAGE_KEYS.TYPING_DRAFTS, drafts);
+  syncDocToFirestore('typingDrafts', draft.id, draft);
+  notifyDataUpdated();
+  return draft;
+}
+
+export function deleteTypingDraft(practiceId: string, studentId: string): void {
+  const drafts = getTypingDrafts();
+  const draftKey = `${studentId}_${practiceId}`;
+  if (drafts[draftKey]) {
+    delete drafts[draftKey];
+    setStoredItem(STORAGE_KEYS.TYPING_DRAFTS, drafts);
+    removeDocFromFirestore('typingDrafts', draftKey);
+    notifyDataUpdated();
+  }
+}
+
+export function getStudentDrafts(studentId: string): Record<string, TypingDraft> {
+  const drafts = getTypingDrafts();
+  const result: Record<string, TypingDraft> = {};
+  for (const [key, draft] of Object.entries(drafts)) {
+    if (draft.studentId === studentId) {
+      result[draft.practiceId] = draft;
+    }
+  }
+  return result;
 }
 
 export function getQuizSubmissions(): QuizSubmission[] {
@@ -2830,6 +3003,16 @@ export async function pullLatestDataFromCloud(): Promise<boolean> {
       else if (cfg.id === 'gamification') setStoredItem(STORAGE_KEYS.GAMIFICATION_CONFIG, cfg);
       else if (cfg.id === 'games_config') setStoredItem(STORAGE_KEYS.GAMES_CONFIG, cfg);
     });
+
+    const rawDrafts = await fetchCollectionFromServer('typingDrafts');
+    if (rawDrafts && rawDrafts.length > 0) {
+      const draftsMap: Record<string, any> = {};
+      rawDrafts.forEach((item: any) => {
+        const key = item.id || `${item.studentId}_${item.practiceId}`;
+        draftsMap[key] = item;
+      });
+      setStoredItem(STORAGE_KEYS.TYPING_DRAFTS, draftsMap);
+    }
 
     notifyDataUpdated();
     return true;

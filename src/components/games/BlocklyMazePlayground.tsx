@@ -113,6 +113,8 @@ export const BlocklyMazePlayground: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [activeStepIdx, setActiveStepIdx] = useState<number | null>(null);
   const [isWon, setIsWon] = useState(false);
+  const [showFinalVictory, setShowFinalVictory] = useState(false);
+  const [completedLevels, setCompletedLevels] = useState<number[]>([]);
 
   // Reset to level initial state
   const resetLevel = (lvl = currentLevel) => {
@@ -121,6 +123,27 @@ export const BlocklyMazePlayground: React.FC = () => {
     setIsRunning(false);
     setActiveStepIdx(null);
     setIsWon(false);
+  };
+
+  const handleNextLevel = () => {
+    setIsWon(false);
+    if (currentLevelIdx < LEVELS.length - 1) {
+      const nextIdx = currentLevelIdx + 1;
+      setCurrentLevelIdx(nextIdx);
+      setCodeSequence([]);
+      resetLevel(LEVELS[nextIdx]);
+    } else {
+      setShowFinalVictory(true);
+    }
+  };
+
+  const handleRestartFromBeginning = () => {
+    setShowFinalVictory(false);
+    setIsWon(false);
+    setCurrentLevelIdx(0);
+    setCodeSequence([]);
+    setCompletedLevels([]);
+    resetLevel(LEVELS[0]);
   };
 
   useEffect(() => {
@@ -525,6 +548,105 @@ export const BlocklyMazePlayground: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal Level Selesai & Lanjut Level */}
+      {isWon && !showFinalVictory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-md w-full border-2 border-emerald-500/40 shadow-2xl text-center space-y-5 animate-in zoom-in-95">
+            <div className="w-20 h-20 bg-linear-to-tr from-amber-400 via-amber-500 to-yellow-500 rounded-3xl mx-auto flex items-center justify-center text-white shadow-xl shadow-amber-500/30">
+              <Trophy className="w-10 h-10 animate-bounce" />
+            </div>
+
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300">
+                <CheckCircle2 className="w-4 h-4" />
+                Level {currentLevel.id} Selesai!
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white pt-1">
+                Luar Biasa, Robot Tiba di Portal!
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+                Algoritma koding yang kamu rancang sukses memandu robot melintasi rintangan labirin!
+              </p>
+            </div>
+
+            {/* Stars & Points Grid */}
+            <div className="grid grid-cols-2 gap-3 p-3.5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <div className="text-center">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Bintang Dikumpulkan</span>
+                <div className="flex items-center justify-center gap-1 mt-1 text-amber-500">
+                  {Array.from({ length: Math.max(1, collectedStars.length) }).map((_, i) => (
+                    <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-500" />
+                  ))}
+                  {Array.from({ length: Math.max(0, currentLevel.stars.length - collectedStars.length) }).map((_, i) => (
+                    <Star key={i} className="w-5 h-5 text-slate-300 dark:text-slate-700" />
+                  ))}
+                </div>
+              </div>
+              <div className="text-center">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Poin Diraih</span>
+                <span className="text-xl font-black font-mono text-emerald-600 dark:text-emerald-400">
+                  +{50 + collectedStars.length * 10} pt
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-1">
+              <button
+                type="button"
+                onClick={() => resetLevel()}
+                className="w-full sm:w-1/3 py-3 px-4 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all cursor-pointer"
+              >
+                Ulangi Level
+              </button>
+              <button
+                type="button"
+                onClick={handleNextLevel}
+                className="w-full sm:w-2/3 py-3 px-5 rounded-xl bg-linear-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all"
+              >
+                <span>{currentLevelIdx < LEVELS.length - 1 ? 'Lanjut ke Level Berikutnya' : 'Lihat Gelar Tamat!'}</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Tamat Semua Level */}
+      {showFinalVictory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-md w-full border-2 border-indigo-500/50 shadow-2xl text-center space-y-5 animate-in zoom-in-95">
+            <div className="w-20 h-20 bg-linear-to-tr from-indigo-500 via-purple-500 to-pink-500 rounded-3xl mx-auto flex items-center justify-center text-white shadow-xl shadow-indigo-500/30">
+              <Award className="w-10 h-10 animate-bounce" />
+            </div>
+
+            <div className="space-y-1">
+              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">
+                Gelar Kehormatan Komputer Ceria
+              </span>
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white pt-1">
+                🏆 Master Koding Labirin Tamat!
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
+                Selamat! Kamu telah menuntaskan seluruh 5 level tantangan algoritma, perulangan (loop), dan logika robot sekuensial!
+              </p>
+            </div>
+
+            <div className="p-4 bg-indigo-50 dark:bg-indigo-950/50 rounded-2xl border border-indigo-200 dark:border-indigo-800 text-xs text-indigo-900 dark:text-indigo-200 space-y-1">
+              <span className="font-extrabold block">Poin Bintang & Lencana Algoritma Telah Diberikan</span>
+              <p className="text-[11px] opacity-80">Terus kembangkan kemampuan berpikir komputasionalmu!</p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleRestartFromBeginning}
+              className="w-full py-3 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-lg shadow-indigo-500/20 cursor-pointer transition-all"
+            >
+              Mainkan Lagi dari Level 1
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

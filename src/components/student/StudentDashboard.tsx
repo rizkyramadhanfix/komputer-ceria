@@ -49,6 +49,9 @@ import {
   Bot,
   Music,
   HardDrive,
+  Play,
+  Save,
+  Trash2,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -66,8 +69,11 @@ import {
   getTypingSubmissions,
   updateUser,
   getUsers,
+  getStudentDrafts,
+  deleteTypingDraft,
 } from '../../services/storageService';
-import { Lesson, Quiz, QuizQuestion, TypingPractice, TypingSubmission } from '../../types';
+import { Lesson, Quiz, QuizQuestion, TypingPractice, TypingSubmission, TypingDraft } from '../../types';
+import { ConfirmModal } from '../common/ConfirmModal';
 import { AchievementsWidget } from '../achievements/AchievementsWidget';
 import { Avatar } from '../common/Avatar';
 import { BadgePill } from '../common/BadgePill';
@@ -190,17 +196,32 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [showActivityCalendar, setShowActivityCalendar] = useState(false);
 
+  // Typing Drafts state
+  const [studentDrafts, setStudentDrafts] = useState<Record<string, TypingDraft>>(() =>
+    currentUser ? getStudentDrafts(currentUser.id) : {}
+  );
+  const [draftToDelete, setDraftToDelete] = useState<{ practiceId: string; practiceTitle: string } | null>(null);
+
   useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);
 
   useEffect(() => {
+    if (currentUser) {
+      setStudentDrafts(getStudentDrafts(currentUser.id));
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
     const handleDataUpdated = () => {
       setGamesConfig(getGamesConfig());
+      if (currentUser) {
+        setStudentDrafts(getStudentDrafts(currentUser.id));
+      }
     };
     window.addEventListener('ekskul_data_updated', handleDataUpdated);
     return () => window.removeEventListener('ekskul_data_updated', handleDataUpdated);
-  }, []);
+  }, [currentUser]);
   const [showStudentCardModal, setShowStudentCardModal] = useState(false);
 
   const lessons = getLessons();
@@ -453,11 +474,26 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
       );
     }
 
+    if (activeTyping && currentUser) {
+      deleteTypingDraft(activeTyping.id, currentUser.id);
+      setStudentDrafts(getStudentDrafts(currentUser.id));
+    }
+
     setTypingSuccess({
       accuracy: sanitizedAccuracy,
       wpm: sanitizedWpm,
       pointsEarned: safePointsEarned,
     });
+  };
+
+  // Confirm and delete typing draft
+  const handleConfirmDeleteDraft = () => {
+    if (!draftToDelete || !currentUser) return;
+    deleteTypingDraft(draftToDelete.practiceId, currentUser.id);
+    setStudentDrafts(getStudentDrafts(currentUser.id));
+    const title = draftToDelete.practiceTitle;
+    setDraftToDelete(null);
+    showInfo(`Draf untuk "${title}" telah dihapus.`, 'Draf Dihapus');
   };
 
   return (
@@ -1467,48 +1503,164 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {typingPractices.map((practice) => (
-                  <div
-                    key={practice.id}
-                    className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs space-y-4 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all flex flex-col justify-between"
-                  >
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-xs text-slate-500">
-                        <span className="font-semibold text-indigo-600 dark:text-indigo-400">
-                          {practice.category}
-                        </span>
-                        <span>Tingkat: {practice.difficulty}</span>
+              {/* FITUR SIMPAN TUGAS MENGETIK: DAFTAR DRAF SEDANG BERJALAN */}
+              {Object.keys(studentDrafts).length > 0 && (
+                <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/5 dark:from-amber-950/40 dark:via-orange-950/30 dark:to-amber-950/20 border-2 border-amber-300 dark:border-amber-700/60 rounded-2xl p-5 space-y-3 shadow-xs animate-in fade-in">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-xs">
+                        <Save className="w-5 h-5" />
                       </div>
-                      <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                        {practice.title}
-                      </h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {practice.instructions}
-                      </p>
-                    </div>
-
-                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                      <span className="text-xs font-mono font-semibold text-emerald-600 dark:text-emerald-400">
-                        Hingga +{practice.allocatedPoints || 80} Poin
-                      </span>
-                      <button
-                        onClick={() => handleStartTyping(practice)}
-                        className="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-xs transition-colors cursor-pointer"
-                      >
-                        Mulai Latihan Mengetik
-                      </button>
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                          <span>Tugas Mengetik Sedang Berjalan (Draf Tersimpan)</span>
+                          <span className="px-2 py-0.5 text-[10px] font-extrabold bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-200 rounded-full">
+                            {Object.keys(studentDrafts).length} Belum Selesai
+                          </span>
+                        </h3>
+                        <p className="text-xs text-slate-600 dark:text-slate-300">
+                          Tugas Anda tersimpan aman di cloud. Klik "Lanjutkan" untuk meneruskan naskah tanpa mengulang dari awal.
+                        </p>
+                      </div>
                     </div>
                   </div>
-                ))}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    {Object.values(studentDrafts).map((draft) => {
+                      const matchedPractice = typingPractices.find((p) => p.id === draft.practiceId);
+                      if (!matchedPractice) return null;
+
+                      return (
+                        <div
+                          key={draft.id}
+                          className="p-3.5 bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-900/50 rounded-xl shadow-xs flex items-center justify-between gap-3 hover:border-amber-300 transition-all"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider block">
+                              {matchedPractice.category} · {matchedPractice.difficulty}
+                            </span>
+                            <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                              {matchedPractice.title}
+                            </h4>
+                            <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                              <span>{draft.wordCount} kata</span>
+                              <span>·</span>
+                              <span>Akurasi {draft.accuracy}%</span>
+                              <span>·</span>
+                              <span>{new Date(draft.lastSavedAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => setDraftToDelete({ practiceId: matchedPractice.id, practiceTitle: matchedPractice.title })}
+                              className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors cursor-pointer"
+                              title="Hapus Draf"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleStartTyping(matchedPractice)}
+                              className="px-3.5 py-1.5 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                              <Play className="w-3.5 h-3.5 fill-current" />
+                              <span>Lanjutkan</span>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {typingPractices.map((practice) => {
+                  const draft = studentDrafts[practice.id];
+
+                  return (
+                    <div
+                      key={practice.id}
+                      className={`p-6 bg-white dark:bg-slate-900 border rounded-xl shadow-xs space-y-4 transition-all flex flex-col justify-between ${
+                        draft
+                          ? 'border-amber-400 dark:border-amber-600 ring-1 ring-amber-400/30'
+                          : 'border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700'
+                      }`}
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs text-slate-500">
+                          <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+                            {practice.category}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            {draft && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                                <Save className="w-3 h-3" />
+                                Ada Draf ({draft.wordCount} kata)
+                              </span>
+                            )}
+                            <span>Tingkat: {practice.difficulty}</span>
+                          </div>
+                        </div>
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                          {practice.title}
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {practice.instructions}
+                        </p>
+                      </div>
+
+                      <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <span className="text-xs font-mono font-semibold text-emerald-600 dark:text-emerald-400">
+                          Hingga +{practice.allocatedPoints || 80} Poin
+                        </span>
+                        {draft ? (
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setDraftToDelete({ practiceId: practice.id, practiceTitle: practice.title })}
+                              className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors cursor-pointer"
+                              title="Hapus draf dan ketik dari awal"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleStartTyping(practice)}
+                              className="px-4 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
+                            >
+                              <Play className="w-3.5 h-3.5 fill-current" />
+                              <span>Lanjutkan Mengetik</span>
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleStartTyping(practice)}
+                            className="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-xs transition-colors cursor-pointer"
+                          >
+                            Mulai Latihan Mengetik
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </>
           ) : (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <button
-                  onClick={() => setActiveTyping(null)}
-                  className="px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  onClick={() => {
+                    setActiveTyping(null);
+                    if (currentUser) {
+                      setStudentDrafts(getStudentDrafts(currentUser.id));
+                    }
+                  }}
+                  className="px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
                 >
                   ← Kembali ke Pilihan Tugas Mengetik
                 </button>
@@ -1551,6 +1703,9 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     onClick={() => {
                       setActiveTyping(null);
                       setTypingSuccess(null);
+                      if (currentUser) {
+                        setStudentDrafts(getStudentDrafts(currentUser.id));
+                      }
                     }}
                     className="px-6 py-2.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-xs"
                   >
@@ -1562,6 +1717,12 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   practice={activeTyping}
                   allocatedPoints={activeTyping.allocatedPoints || 80}
                   onSubmit={handleTypingSubmit}
+                  onBack={() => {
+                    setActiveTyping(null);
+                    if (currentUser) {
+                      setStudentDrafts(getStudentDrafts(currentUser.id));
+                    }
+                  }}
                 />
               )}
             </div>
@@ -1760,6 +1921,18 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
         contentHtml={generateStudentCardsHtml([currentUser])}
         paperOrientation="portrait"
         itemCount={1}
+      />
+
+      {/* Confirmation Modal for Deleting Draft */}
+      <ConfirmModal
+        isOpen={Boolean(draftToDelete)}
+        title="Hapus Draf Tugas Mengetik"
+        message={`Apakah Anda yakin ingin menghapus draf naskah tersimpan untuk "${draftToDelete?.practiceTitle}"? Perubahan yang belum dikirim akan hilang dan Anda dapat mulai mengetik dari lembar baru.`}
+        confirmText="Ya, Hapus Draf"
+        cancelText="Batal"
+        isDanger={true}
+        onConfirm={handleConfirmDeleteDraft}
+        onClose={() => setDraftToDelete(null)}
       />
     </div>
   );

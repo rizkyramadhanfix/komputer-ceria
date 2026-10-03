@@ -267,6 +267,7 @@ app.get('/api/db/sync/all', (_req, res) => {
     'quizSubmissions',
     'typingPractices',
     'typingSubmissions',
+    'typingDrafts',
     'typingLeagueTexts',
     'typingLeagueScores',
     'typingTournaments',

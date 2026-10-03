@@ -8,6 +8,7 @@ import {
   Bold,
   Check,
   CheckCircle2,
+  Clock,
   Columns,
   Eraser,
   FileText,
@@ -17,12 +18,15 @@ import {
   Italic,
   List,
   ListOrdered,
+  LogOut,
   Minus,
   Palette,
   Plus,
   Printer,
   RotateCcw,
+  Save,
   Send,
+  Sparkles,
   Strikethrough,
   Table as TableIcon,
   Trash2,
@@ -35,6 +39,9 @@ import {
 import { TypingPractice } from '../../types';
 import { compressImageFile } from '../../utils/imageCompressor';
 import { PrintPreviewModal } from '../common/PrintPreviewModal';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+import { getTypingDraft, saveTypingDraft, deleteTypingDraft } from '../../services/storageService';
 
 interface WordEditorProps {
   practice: TypingPractice;
@@ -45,13 +52,18 @@ interface WordEditorProps {
     pointsEarned: number;
   }) => void;
   allocatedPoints: number;
+  onBack?: () => void;
 }
 
 export const WordEditor: React.FC<WordEditorProps> = ({
   practice,
   onSubmit,
   allocatedPoints,
+  onBack,
 }) => {
+  const { currentUser } = useAuth();
+  const { showSuccess, showWarning, showInfo } = useToast();
+
   const editorRef = useRef<HTMLDivElement | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const [activeRibbonTab, setActiveRibbonTab] = useState<'home' | 'insert' | 'view'>('home');
@@ -66,6 +78,13 @@ export const WordEditor: React.FC<WordEditorProps> = ({
   const [tableCols, setTableCols] = useState(3);
   const [startTime, setStartTime] = useState<number | null>(null);
   const savedRangeRef = useRef<Range | null>(null);
+
+  // Draft management states
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const [isDraftRestored, setIsDraftRestored] = useState(false);
+  const [draftBannerDismissed, setDraftBannerDismissed] = useState(false);
 
   // Live metrics
   const [wordCount, setWordCount] = useState(0);
@@ -109,6 +128,7 @@ export const WordEditor: React.FC<WordEditorProps> = ({
   // Execute formatting command on contenteditable
   const executeCommand = (command: string, value: string | undefined = undefined) => {
     document.execCommand(command, false, value);
+    setHasUnsavedChanges(true);
     if (editorRef.current) {
       editorRef.current.focus();
       updateMetrics();
@@ -406,6 +426,13 @@ export const WordEditor: React.FC<WordEditorProps> = ({
 
   // Keyboard navigation inside table & Block Copy-Paste to prevent cheating
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    // Save draft shortcut: Ctrl+S or Cmd+S
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+      e.preventDefault();
+      handleSaveDraft(true);
+      return;
+    }
+
     // Strictly block Ctrl+C / Ctrl+V / Ctrl+X / Cmd+C / Cmd+V / Cmd+X
     if (
       (e.ctrlKey || e.metaKey) &&
@@ -494,6 +521,27 @@ export const WordEditor: React.FC<WordEditorProps> = ({
     return estimated;
   };
 
+  // Restore existing draft on mount if available
+  useEffect(() => {
+    if (!currentUser) return;
+    const draft = getTypingDraft(practice.id, currentUser.id);
+    if (draft && draft.contentHtml) {
+      if (editorRef.current) {
+        editorRef.current.innerHTML = draft.contentHtml;
+        const text = editorRef.current.innerText || '';
+        const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+        setWordCount(words);
+        setCharCount(text.length);
+        const currentAcc = calculateSimilarity(text, practice.targetPlainText);
+        setAccuracy(draft.accuracy || currentAcc);
+        setWpm(draft.wpm || 0);
+      }
+      setLastSavedAt(draft.lastSavedAt);
+      setIsDraftRestored(true);
+      setHasUnsavedChanges(false);
+    }
+  }, [practice.id, currentUser]);
+
   const updateMetrics = () => {
     if (!editorRef.current) return;
     const text = editorRef.current.innerText || '';
@@ -513,6 +561,88 @@ export const WordEditor: React.FC<WordEditorProps> = ({
 
     const currentAcc = calculateSimilarity(text, practice.targetPlainText);
     setAccuracy(currentAcc);
+    setHasUnsavedChanges(true);
+  };
+
+  // Save current typing draft to local & cloud storage
+  const handleSaveDraft = (isManual = true) => {
+    if (!currentUser) {
+      if (isManual) showWarning('Silakan masuk terlebih dahulu untuk menyimpan tugas.', 'Belum Masuk');
+      return;
+    }
+    if (!editorRef.current) return;
+
+    const contentHtml = editorRef.current.innerHTML;
+    const text = (editorRef.current.innerText || '').trim();
+
+    if (text.length === 0 || text === 'Mulai mengetik di sini sesuai naskah acuan di atas...') {
+      if (isManual) {
+        showWarning('Lembar kerja belum diisi teks naskah untuk disimpan.', 'Lembar Kosong');
+      }
+      return;
+    }
+
+    setIsSavingDraft(true);
+    const nowIso = new Date().toISOString();
+
+    try {
+      saveTypingDraft({
+        practiceId: practice.id,
+        practiceTitle: practice.title,
+        studentId: currentUser.id,
+        studentName: currentUser.name,
+        contentHtml,
+        wpm: Math.max(wpm, 0),
+        accuracy: Math.max(accuracy, 0),
+        charCount,
+        wordCount,
+        lastSavedAt: nowIso,
+      });
+
+      setLastSavedAt(nowIso);
+      setHasUnsavedChanges(false);
+
+      if (isManual) {
+        showSuccess('Tugas mengetik berhasil disimpan! Anda bisa melanjutkannya kapan saja.', 'Draf Tersimpan');
+      }
+    } catch (err) {
+      console.error('Error saving typing draft:', err);
+      if (isManual) {
+        showWarning('Gagal menyimpan draf ke database.', 'Gagal Simpan');
+      }
+    } finally {
+      setTimeout(() => setIsSavingDraft(false), 300);
+    }
+  };
+
+  // Auto-save draft every 25 seconds if changes occurred
+  useEffect(() => {
+    if (!hasUnsavedChanges || !currentUser) return;
+
+    const timer = setInterval(() => {
+      if (hasUnsavedChanges && editorRef.current) {
+        const text = (editorRef.current.innerText || '').trim();
+        if (text.length > 5 && text !== 'Mulai mengetik di sini sesuai naskah acuan di atas...') {
+          handleSaveDraft(false);
+        }
+      }
+    }, 25000);
+
+    return () => clearInterval(timer);
+  }, [hasUnsavedChanges, currentUser, wpm, accuracy, charCount, wordCount]);
+
+  // Handle Save and Exit to Dashboard
+  const handleSaveAndExit = () => {
+    if (editorRef.current) {
+      const text = (editorRef.current.innerText || '').trim();
+      if (text.length > 5 && text !== 'Mulai mengetik di sini sesuai naskah acuan di atas...') {
+        handleSaveDraft(false);
+        showSuccess('Tugas berhasil disimpan dengan aman sebelum keluar.', 'Tersimpan & Keluar');
+      }
+    }
+    if (onBack) {
+      onBack();
+    }
   };
 
   const handleSubmit = () => {
@@ -523,6 +653,11 @@ export const WordEditor: React.FC<WordEditorProps> = ({
     // Calculate final points based on accuracy and allocated points
     const finalAccuracy = Math.max(accuracy, 15);
     const calculatedPoints = Math.round((finalAccuracy / 100) * allocatedPoints);
+
+    // Delete draft since the task is completed and submitted
+    if (currentUser) {
+      deleteTypingDraft(practice.id, currentUser.id);
+    }
 
     setTimeout(() => {
       onSubmit({
@@ -536,18 +671,54 @@ export const WordEditor: React.FC<WordEditorProps> = ({
   };
 
   const handleReset = () => {
-    if (confirm('Kosongkan lembar kerja untuk mengetik ulang dari awal?')) {
+    if (confirm('Kosongkan lembar kerja untuk mengetik ulang dari awal? Draf tersimpan naskah ini akan dihapus.')) {
       if (editorRef.current) {
         editorRef.current.innerHTML = '<p><br></p>';
         updateMetrics();
         setStartTime(null);
         setWpm(0);
+        setHasUnsavedChanges(false);
+        setLastSavedAt(null);
+        if (currentUser) {
+          deleteTypingDraft(practice.id, currentUser.id);
+        }
+        showInfo('Lembar kerja telah dikosongkan dan draf dibatalkan.', 'Lembar Dikosongkan');
       }
     }
   };
 
   return (
     <div className="space-y-4">
+      {/* Restored Draft Banner Notification */}
+      {isDraftRestored && !draftBannerDismissed && (
+        <div className="p-3.5 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 border border-blue-200 dark:border-blue-800 rounded-xl flex items-center justify-between text-xs animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="font-bold text-blue-950 dark:text-blue-100 flex items-center gap-1.5">
+                <span>Draf Tugas Tersimpan Berhasil Dimuat!</span>
+                <span className="px-2 py-0.5 text-[10px] font-semibold bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full">
+                  Lanjutan Tugas
+                </span>
+              </p>
+              <p className="text-[11px] text-blue-700 dark:text-blue-300">
+                Pekerjaan mengetik Anda dari sesi sebelumnya telah dipulihkan otomatis ({lastSavedAt ? new Date(lastSavedAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : 'tersimpan'}). Anda dapat langsung melanjutkan mengetik.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setDraftBannerDismissed(true)}
+            className="p-1 text-blue-500 hover:text-blue-700 dark:text-blue-300 rounded-md hover:bg-blue-100/50 dark:hover:bg-blue-900/50"
+            aria-label="Tutup Banner"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Top Banner & Control Deck */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -569,8 +740,50 @@ export const WordEditor: React.FC<WordEditorProps> = ({
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Save Draft Button */}
             <button
+              type="button"
+              onClick={() => handleSaveDraft(true)}
+              disabled={isSavingDraft || charCount < 3}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg border transition-all cursor-pointer shadow-xs ${
+                isSavingDraft
+                  ? 'bg-amber-100 border-amber-300 text-amber-800 dark:bg-amber-950/60 dark:border-amber-700 dark:text-amber-200'
+                  : hasUnsavedChanges
+                  ? 'bg-amber-500 hover:bg-amber-600 text-white border-amber-600 shadow-sm'
+                  : lastSavedAt
+                  ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100'
+                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50'
+              }`}
+              title="Simpan sementara pekerjaan mengetik ke cloud agar bisa dilanjutkan nanti (Ctrl+S)"
+            >
+              <Save className="w-3.5 h-3.5" />
+              <span>
+                {isSavingDraft
+                  ? 'Menyimpan...'
+                  : hasUnsavedChanges
+                  ? 'Simpan Draf *'
+                  : lastSavedAt
+                  ? '✓ Draf Tersimpan'
+                  : 'Simpan Draf'}
+              </span>
+            </button>
+
+            {/* Save and Exit */}
+            {onBack && (
+              <button
+                type="button"
+                onClick={handleSaveAndExit}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                title="Simpan tugas dan kembali ke pilihan naskah"
+              >
+                <LogOut className="w-3.5 h-3.5 rotate-180" />
+                <span className="hidden sm:inline">Simpan & Keluar</span>
+              </button>
+            )}
+
+            <button
+              type="button"
               onClick={() => setShowReference(!showReference)}
               className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
             >
@@ -578,6 +791,7 @@ export const WordEditor: React.FC<WordEditorProps> = ({
             </button>
 
             <button
+              type="button"
               onClick={handleSubmit}
               disabled={isSubmitting || charCount < 10}
               className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg shadow-xs transition-colors cursor-pointer"
@@ -614,6 +828,20 @@ export const WordEditor: React.FC<WordEditorProps> = ({
               +{allocatedPoints} Poin
             </span>
           </div>
+
+          {/* Cloud Auto-Save Status Bar */}
+          {lastSavedAt && (
+            <div className="col-span-2 sm:col-span-4 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+              <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+                <Clock className="w-3.5 h-3.5" />
+                Terakhir disimpan: {new Date(lastSavedAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                {hasUnsavedChanges ? ' (Ada ketikan baru yang belum disimpan)' : ' (Aman di cloud)'}
+              </span>
+              <span className="text-[10px] text-slate-400">
+                Tekan <kbd className="px-1 py-0.5 bg-slate-100 dark:bg-slate-800 border rounded font-mono text-[9px]">Ctrl+S</kbd> untuk simpan cepat
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -688,7 +916,17 @@ export const WordEditor: React.FC<WordEditorProps> = ({
                 </div>
                 <span className="tracking-wide uppercase">Microsoft Word</span>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleSaveDraft(true)}
+                  disabled={isSavingDraft || charCount < 3}
+                  className="px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-md text-[9px] font-bold flex items-center gap-1.5 cursor-pointer transition-all border border-white/10 text-white"
+                  title="Simpan Draf Naskah (Ctrl+S)"
+                >
+                  <Save className="w-3 h-3" />
+                  <span>SIMPAN DRAF</span>
+                </button>
                 <button
                   type="button"
                   onClick={() => setShowPrintPreview(true)}

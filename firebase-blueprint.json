@@ -1,0 +1,241 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User account and profile for students, admins, and supervisors.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique user ID" },
+        "name": { "type": "string", "description": "Full name of the user" },
+        "username": { "type": "string", "description": "Unique username" },
+        "role": { "type": "string", "enum": ["student", "admin", "superadmin", "pembina"], "description": "Role of the user" },
+        "grade": { "type": "string", "description": "Grade / class level" },
+        "school": { "type": "string", "description": "School origin" },
+        "nisn": { "type": "string", "description": "Student NISN number if available" },
+        "avatarUrl": { "type": "string", "description": "Avatar URL or preset identifier" },
+        "totalPoints": { "type": "number", "description": "Accumulated gamification points" },
+        "totalStars": { "type": "number", "description": "Accumulated stars" },
+        "completedLessons": { "type": "array", "description": "List of completed lesson IDs" },
+        "unlockedShopItemIds": { "type": "array", "description": "Unlocked avatar/store items" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Account creation timestamp" },
+        "lastActiveAt": { "type": "string", "format": "date-time", "description": "Last active timestamp" }
+      },
+      "required": ["id", "name", "username", "role"]
+    },
+    "Lesson": {
+      "title": "Lesson",
+      "description": "Educational material or module.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique lesson ID" },
+        "title": { "type": "string", "description": "Title of the lesson" },
+        "category": { "type": "string", "description": "Category or topic" },
+        "content": { "type": "string", "description": "Markdown or text content" },
+        "points": { "type": "number", "description": "Points awarded for completing" },
+        "order": { "type": "number", "description": "Display order" }
+      },
+      "required": ["id", "title", "content"]
+    },
+    "Quiz": {
+      "title": "Quiz",
+      "description": "Interactive multiple choice quiz.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique quiz ID" },
+        "title": { "type": "string", "description": "Title of the quiz" },
+        "category": { "type": "string", "description": "Quiz category" },
+        "questions": { "type": "array", "description": "List of quiz questions" },
+        "allocatedPoints": { "type": "number", "description": "Points reward" }
+      },
+      "required": ["id", "title", "questions"]
+    },
+    "QuizSubmission": {
+      "title": "QuizSubmission",
+      "description": "Student quiz submission record.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Submission ID" },
+        "quizId": { "type": "string", "description": "Quiz ID" },
+        "studentId": { "type": "string", "description": "Student ID" },
+        "score": { "type": "number", "description": "Final score" },
+        "submittedAt": { "type": "string", "format": "date-time", "description": "Submission time" }
+      },
+      "required": ["id", "quizId", "studentId", "score"]
+    },
+    "TypingPractice": {
+      "title": "TypingPractice",
+      "description": "Typing task with Word formatting instruction.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique typing practice ID" },
+        "title": { "type": "string", "description": "Title of the task" },
+        "targetText": { "type": "string", "description": "Text to type" }
+      },
+      "required": ["id", "title", "targetText"]
+    },
+    "TypingSubmission": {
+      "title": "TypingSubmission",
+      "description": "Result of typing practice task.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Submission ID" },
+        "practiceId": { "type": "string", "description": "Practice ID" },
+        "studentId": { "type": "string", "description": "Student ID" },
+        "wpm": { "type": "number", "description": "Words per minute" },
+        "accuracy": { "type": "number", "description": "Accuracy percentage" }
+      },
+      "required": ["id", "practiceId", "studentId", "wpm", "accuracy"]
+    },
+    "TypingLeagueText": {
+      "title": "TypingLeagueText",
+      "description": "Competition text for typing league.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Text ID" },
+        "title": { "type": "string", "description": "Text title" },
+        "content": { "type": "string", "description": "Competition text content" }
+      },
+      "required": ["id", "title", "content"]
+    },
+    "TypingLeagueScore": {
+      "title": "TypingLeagueScore",
+      "description": "Student typing league score.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Score ID" },
+        "studentId": { "type": "string", "description": "Student ID" },
+        "studentName": { "type": "string", "description": "Student name" },
+        "wpm": { "type": "number", "description": "WPM score" },
+        "accuracy": { "type": "number", "description": "Accuracy percentage" }
+      },
+      "required": ["id", "studentId", "wpm", "accuracy"]
+    },
+    "GalleryWork": {
+      "title": "GalleryWork",
+      "description": "Student drawing or rich document showcase.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Artwork ID" },
+        "studentId": { "type": "string", "description": "Student author ID" },
+        "studentName": { "type": "string", "description": "Student author name" },
+        "title": { "type": "string", "description": "Artwork title" },
+        "type": { "type": "string", "enum": ["paint", "word"], "description": "Type of artwork" },
+        "imageUrl": { "type": "string", "description": "Image data or URL" },
+        "previewText": { "type": "string", "description": "Short preview" },
+        "starLikes": { "type": "number", "description": "Number of likes" },
+        "likedByStudentIds": { "type": "array", "description": "IDs of students who gave stars" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Publication timestamp" }
+      },
+      "required": ["id", "studentName", "title", "type"]
+    },
+    "ForumThread": {
+      "title": "ForumThread",
+      "description": "Discussion question or topic.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Thread ID" },
+        "title": { "type": "string", "description": "Thread title" },
+        "content": { "type": "string", "description": "Thread body content" },
+        "authorId": { "type": "string", "description": "Author user ID" },
+        "authorName": { "type": "string", "description": "Author name" },
+        "category": { "type": "string", "description": "Category" },
+        "likes": { "type": "number", "description": "Likes count" },
+        "repliesCount": { "type": "number", "description": "Replies count" },
+        "isModerated": { "type": "boolean", "description": "Moderation status" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
+      },
+      "required": ["id", "title", "content", "authorName"]
+    },
+    "ForumReply": {
+      "title": "ForumReply",
+      "description": "Reply to a forum topic.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Reply ID" },
+        "threadId": { "type": "string", "description": "Parent thread ID" },
+        "content": { "type": "string", "description": "Reply text" },
+        "authorId": { "type": "string", "description": "Author user ID" },
+        "authorName": { "type": "string", "description": "Author name" },
+        "isModerated": { "type": "boolean", "description": "Moderation status" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
+      },
+      "required": ["id", "threadId", "content", "authorName"]
+    },
+    "AppConfig": {
+      "title": "AppConfig",
+      "description": "Global application configuration item.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Config identifier (e.g. dashboard, certificate)" }
+      },
+      "required": ["id"]
+    },
+    "TypingDraft": {
+      "title": "TypingDraft",
+      "description": "Saved typing exercise draft for students to resume later.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Draft ID" },
+        "practiceId": { "type": "string", "description": "Practice task ID" },
+        "studentId": { "type": "string", "description": "Student owner ID" },
+        "contentHtml": { "type": "string", "description": "Saved HTML content" },
+        "lastSavedAt": { "type": "string", "format": "date-time", "description": "Timestamp when draft was saved" }
+      },
+      "required": ["id", "practiceId", "studentId", "contentHtml"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Collection of registered student and admin profiles"
+    },
+    "/lessons/{lessonId}": {
+      "schema": { "$ref": "#/entities/Lesson" },
+      "description": "Curriculum lessons and tutorials"
+    },
+    "/quizzes/{quizId}": {
+      "schema": { "$ref": "#/entities/Quiz" },
+      "description": "Interactive multiple choice quizzes"
+    },
+    "/quizSubmissions/{submissionId}": {
+      "schema": { "$ref": "#/entities/QuizSubmission" },
+      "description": "Student quiz submission records"
+    },
+    "/typingPractices/{practiceId}": {
+      "schema": { "$ref": "#/entities/TypingPractice" },
+      "description": "Typing practice materials"
+    },
+    "/typingSubmissions/{submissionId}": {
+      "schema": { "$ref": "#/entities/TypingSubmission" },
+      "description": "Student typing results"
+    },
+    "/typingDrafts/{draftId}": {
+      "schema": { "$ref": "#/entities/TypingDraft" },
+      "description": "Saved student typing assignment drafts to resume later"
+    },
+    "/typingLeagueTexts/{textId}": {
+      "schema": { "$ref": "#/entities/TypingLeagueText" },
+      "description": "Typing league competition texts"
+    },
+    "/typingLeagueScores/{scoreId}": {
+      "schema": { "$ref": "#/entities/TypingLeagueScore" },
+      "description": "Typing league scores"
+    },
+    "/galleryWorks/{workId}": {
+      "schema": { "$ref": "#/entities/GalleryWork" },
+      "description": "Student gallery drawings and documents"
+    },
+    "/forumThreads/{threadId}": {
+      "schema": { "$ref": "#/entities/ForumThread" },
+      "description": "Forum topics and questions"
+    },
+    "/forumReplies/{replyId}": {
+      "schema": { "$ref": "#/entities/ForumReply" },
+      "description": "Forum reply comments"
+    },
+    "/config/{configId}": {
+      "schema": { "$ref": "#/entities/AppConfig" },
+      "description": "Application settings and certificates config"
+    }
+  }
+}

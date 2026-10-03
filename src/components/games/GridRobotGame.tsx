@@ -119,6 +119,9 @@ export const GridRobotGame: React.FC = () => {
   const [statusMessage, setStatusMessage] = useState<string>('');
   const [score, setScore] = useState(0);
   const [showHint, setShowHint] = useState(false);
+  const [showLevelSuccessModal, setShowLevelSuccessModal] = useState(false);
+  const [showAllCompletedModal, setShowAllCompletedModal] = useState(false);
+  const [completedLevels, setCompletedLevels] = useState<number[]>([]);
 
   const currentLevel = LEVELS[levelIdx % LEVELS.length];
 
@@ -292,6 +295,10 @@ export const GridRobotGame: React.FC = () => {
       const earned = 30 + bonusStars;
       setScore((prev) => prev + earned);
       setStatusMessage(`Misi Berhasil! Robot tiba di portal telepor! (+${earned} Poin)`);
+      if (!completedLevels.includes(currentLevel.id)) {
+        setCompletedLevels((prev) => [...prev, currentLevel.id]);
+      }
+      setTimeout(() => setShowLevelSuccessModal(true), 600);
     } else {
       setGameStatus('CRASH');
       setStatusMessage('Robot berhenti, tetapi belum mencapai portal bintang tujuan. Coba perbaiki urutan blokmu!');
@@ -299,12 +306,12 @@ export const GridRobotGame: React.FC = () => {
   };
 
   const handleNextLevel = () => {
+    setShowLevelSuccessModal(false);
     if (levelIdx + 1 >= LEVELS.length) {
       if (currentUser?.id) {
-        recordGameScore('Grid Robot Navigator', currentUser.id, score + 40);
+        recordGameScore('Grid Robot Navigator', currentUser.id, score + 40, 50);
       }
-      alert('Selamat! Kamu telah menyelesaikan seluruh 5 Level Grid Robot Navigator!');
-      setLevelIdx(0);
+      setShowAllCompletedModal(true);
     } else {
       setLevelIdx((prev) => prev + 1);
     }
@@ -594,6 +601,104 @@ export const GridRobotGame: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal Level Selesai */}
+      {showLevelSuccessModal && !showAllCompletedModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-md w-full border-2 border-cyan-500/50 shadow-2xl text-center space-y-5 animate-in zoom-in-95">
+            <div className="w-20 h-20 bg-linear-to-tr from-cyan-400 via-blue-500 to-indigo-600 rounded-3xl mx-auto flex items-center justify-center text-white shadow-xl shadow-cyan-500/30">
+              <Trophy className="w-10 h-10 animate-bounce" />
+            </div>
+
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-cyan-100 dark:bg-cyan-950/80 text-cyan-800 dark:text-cyan-300">
+                <CheckCircle2 className="w-4 h-4" />
+                Level {currentLevel.id} Selesai!
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white pt-1">
+                Navigasi Robot Berhasil!
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+                Robot sukses melompati rintangan dan tiba di portal tujuan sesuai susunan instruksimu!
+              </p>
+            </div>
+
+            {/* Stars & Points Grid */}
+            <div className="grid grid-cols-2 gap-3 p-3.5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <div className="text-center">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Bintang Diambil</span>
+                <span className="text-lg font-black text-amber-500 font-mono mt-1 block">
+                  ⭐ {collectedStars.length}/{currentLevel.stars.length}
+                </span>
+              </div>
+              <div className="text-center">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Poin</span>
+                <span className="text-lg font-black text-cyan-600 dark:text-cyan-400 font-mono mt-1 block">
+                  {score} pt
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-1">
+              <button
+                type="button"
+                onClick={resetLevel}
+                className="w-full sm:w-1/3 py-3 px-4 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all cursor-pointer"
+              >
+                Ulangi
+              </button>
+              <button
+                type="button"
+                onClick={handleNextLevel}
+                className="w-full sm:w-2/3 py-3 px-5 rounded-xl bg-linear-to-r from-cyan-600 via-blue-600 to-indigo-600 hover:opacity-90 text-white font-black text-xs shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all"
+              >
+                <span>{levelIdx < LEVELS.length - 1 ? 'Lanjut ke Level Berikutnya' : 'Lihat Gelar Tamat!'}</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Tamat Semua Level */}
+      {showAllCompletedModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-md w-full border-2 border-indigo-500/50 shadow-2xl text-center space-y-5 animate-in zoom-in-95">
+            <div className="w-20 h-20 bg-linear-to-tr from-cyan-500 via-indigo-600 to-purple-600 rounded-3xl mx-auto flex items-center justify-center text-white shadow-xl shadow-indigo-500/30">
+              <Trophy className="w-10 h-10 animate-bounce" />
+            </div>
+
+            <div className="space-y-1">
+              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-cyan-100 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-300">
+                Gelar Master Navigator Robot
+              </span>
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white pt-1">
+                🏆 Semua 5 Level Selesai!
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
+                Luar biasa! Kamu telah menuntaskan seluruh tantangan algoritma, perulangan, dan lompat rintangan Grid Robot!
+              </p>
+            </div>
+
+            <div className="p-4 bg-cyan-50 dark:bg-cyan-950/50 rounded-2xl border border-cyan-200 dark:border-cyan-800 text-xs text-cyan-900 dark:text-cyan-200 space-y-1">
+              <span className="font-extrabold block">Skor Akhir: {score} Poin (+50 Bonus Poin)</span>
+              <p className="text-[11px] opacity-80">Terus asah logika berpikir komputasimu!</p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowAllCompletedModal(false);
+                setLevelIdx(0);
+                resetLevel();
+              }}
+              className="w-full py-3 px-6 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-xs shadow-lg shadow-cyan-500/20 cursor-pointer transition-all"
+            >
+              Mainkan Lagi dari Level 1
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

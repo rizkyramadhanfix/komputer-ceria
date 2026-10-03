@@ -7,6 +7,7 @@ import {
   RotateCcw,
   Sparkles,
   Trophy,
+  ChevronRight,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -21,132 +22,172 @@ interface ShortcutChallenge {
   icon: string;
 }
 
-const CHALLENGES: ShortcutChallenge[] = [
+interface ShortcutLevel {
+  id: number;
+  title: string;
+  subtitle: string;
+  description: string;
+  points: number;
+  challenges: ShortcutChallenge[];
+}
+
+const SHORTCUT_LEVELS: ShortcutLevel[] = [
   {
-    id: 'sc-copy',
-    name: 'Menyalin Teks (Copy)',
-    description: 'Pintasan paling penting untuk menyalin teks atau gambar yang dipilih.',
-    keys: ['Control', 'c'],
-    displayCombo: 'Ctrl + C',
-    icon: '📋',
+    id: 1,
+    title: 'Level 1: Olah Teks & Dokumen Esensial',
+    subtitle: 'Salin, Tempel, Simpan, & Batalkan',
+    description: 'Pintasan paling wajib dikuasai untuk mengetik tugas sekolah dan menyimpan file.',
+    points: 40,
+    challenges: [
+      {
+        id: 'sc-copy',
+        name: 'Menyalin Teks (Copy)',
+        description: 'Pintasan paling penting untuk menyalin teks atau gambar yang dipilih ke clipboard.',
+        keys: ['Control', 'c'],
+        displayCombo: 'Ctrl + C',
+        icon: '📋',
+      },
+      {
+        id: 'sc-paste',
+        name: 'Menempel Teks (Paste)',
+        description: 'Menempelkan teks yang sudah disalin sebelumnya ke lembar kerja dokumen.',
+        keys: ['Control', 'v'],
+        displayCombo: 'Ctrl + V',
+        icon: '📌',
+      },
+      {
+        id: 'sc-cut',
+        name: 'Memotong Teks (Cut)',
+        description: 'Menghapus teks dari tempat asal dan menyimpannya untuk dipindahkan ke tempat baru.',
+        keys: ['Control', 'x'],
+        displayCombo: 'Ctrl + X',
+        icon: '✂️',
+      },
+      {
+        id: 'sc-save',
+        name: 'Menyimpan Dokumen (Save)',
+        description: 'Wajib ditekan secara rutin agar hasil ketikan tidak hilang saat listrik padam.',
+        keys: ['Control', 's'],
+        displayCombo: 'Ctrl + S',
+        icon: '💾',
+      },
+      {
+        id: 'sc-undo',
+        name: 'Batalkan Perintah (Undo)',
+        description: 'Jika kamu salah mengetik atau terhapus, gunakan pintasan ini untuk kembali ke keadaan sebelumnya.',
+        keys: ['Control', 'z'],
+        displayCombo: 'Ctrl + Z',
+        icon: '↩️',
+      },
+    ],
   },
   {
-    id: 'sc-paste',
-    name: 'Menempel Teks (Paste)',
-    description: 'Menempelkan teks yang sudah disalin sebelumnya ke lembar kerja.',
-    keys: ['Control', 'v'],
-    displayCombo: 'Ctrl + V',
-    icon: '📌',
+    id: 2,
+    title: 'Level 2: Seleksi, Pencarian & Cetak',
+    subtitle: 'Pilih Semua, Cari Kata, Cetak, & Dokumen Baru',
+    description: 'Kuasai pintasan produktivitas untuk mengolah naskah panjang dan mencetak berkas.',
+    points: 60,
+    challenges: [
+      {
+        id: 'sc-select-all',
+        name: 'Pilih Semua (Select All)',
+        description: 'Menandai seluruh teks dalam dokumen atau seluruh file dalam satu folder.',
+        keys: ['Control', 'a'],
+        displayCombo: 'Ctrl + A',
+        icon: '🟦',
+      },
+      {
+        id: 'sc-find',
+        name: 'Mencari Kata (Find)',
+        description: 'Mencari kata kunci tertentu di dalam naskah dokumen yang sangat panjang.',
+        keys: ['Control', 'f'],
+        displayCombo: 'Ctrl + F',
+        icon: '🔍',
+      },
+      {
+        id: 'sc-print',
+        name: 'Mencetak Lembar Kerja (Print)',
+        description: 'Membuka dialog cetak untuk mengirim dokumen ke mesin printer lab.',
+        keys: ['Control', 'p'],
+        displayCombo: 'Ctrl + P',
+        icon: '🖨️',
+      },
+      {
+        id: 'sc-redo',
+        name: 'Ulangi Perintah (Redo)',
+        description: 'Kebalikan dari Undo, untuk memulihkan kembali apa yang baru saja dibatalkan.',
+        keys: ['Control', 'y'],
+        displayCombo: 'Ctrl + Y',
+        icon: '↪️',
+      },
+      {
+        id: 'sc-new',
+        name: 'Dokumen Baru (New Document)',
+        description: 'Membuka lembar kerja dokumen kosong baru secara instan.',
+        keys: ['Control', 'n'],
+        displayCombo: 'Ctrl + N',
+        icon: '📄',
+      },
+    ],
   },
   {
-    id: 'sc-cut',
-    name: 'Memotong Teks (Cut)',
-    description: 'Menghapus teks dari tempat asal dan menyimpannya untuk dipindahkan.',
-    keys: ['Control', 'x'],
-    displayCombo: 'Ctrl + X',
-    icon: '✂️',
+    id: 3,
+    title: 'Level 3: Sistem Windows & Navigasi Cepat',
+    subtitle: 'Task Manager, Desktop, & File Explorer',
+    description: 'Trik tombol cepat keyboard para teknisi komputer profesional.',
+    points: 80,
+    challenges: [
+      {
+        id: 'sc-desktop',
+        name: 'Tampilkan Layar Desktop (Win+D)',
+        description: 'Meminimize seluruh jendela aplikasi yang terbuka dan langsung melihat layar desktop utama.',
+        keys: ['Meta', 'd'],
+        displayCombo: 'Win + D',
+        icon: '🖥️',
+      },
+      {
+        id: 'sc-explorer',
+        name: 'Buka File Explorer (Win+E)',
+        description: 'Membuka jendela penjelajah berkas untuk mencari folder tugas di drive komputer.',
+        keys: ['Meta', 'e'],
+        displayCombo: 'Win + E',
+        icon: '📂',
+      },
+      {
+        id: 'sc-task-mgr',
+        name: 'Buka Task Manager (Ctrl+Shift+Esc)',
+        description: 'Melihat program apa saja yang sedang berjalan di sistem dan menutup aplikasi macet.',
+        keys: ['Control', 'Shift', 'Escape'],
+        displayCombo: 'Ctrl + Shift + Esc',
+        icon: '📊',
+      },
+    ],
   },
-  {
-    id: 'sc-save',
-    name: 'Menyimpan Dokumen (Save)',
-    description: 'Wajib dilakukan agar pekerjaan tidak hilang saat komputer mati.',
-    keys: ['Control', 's'],
-    displayCombo: 'Ctrl + S',
-    icon: '💾',
-  },
-  {
-    id: 'sc-undo',
-    name: 'Batalkan Perintah (Undo)',
-    description: 'Jika kamu melakukan kesalahan, gunakan ini untuk kembali ke sebelumnya.',
-    keys: ['Control', 'z'],
-    displayCombo: 'Ctrl + Z',
-    icon: '↩️',
-  },
-  {
-    id: 'sc-redo',
-    name: 'Ulangi Perintah (Redo)',
-    description: 'Kebalikan dari Undo, untuk mengulangi apa yang baru saja dibatalkan.',
-    keys: ['Control', 'y'],
-    displayCombo: 'Ctrl + Y',
-    icon: '↪️',
-  },
-  {
-    id: 'sc-print',
-    name: 'Mencetak (Print)',
-    description: 'Membuka jendela cetak untuk mengirim dokumen ke printer.',
-    keys: ['Control', 'p'],
-    displayCombo: 'Ctrl + P',
-    icon: '🖨️',
-  },
-  {
-    id: 'sc-select-all',
-    name: 'Pilih Semua (Select All)',
-    description: 'Menandai seluruh teks atau file di dalam satu folder/halaman.',
-    keys: ['Control', 'a'],
-    displayCombo: 'Ctrl + A',
-    icon: '🟦',
-  },
-  {
-    id: 'sc-find',
-    name: 'Mencari Kata (Find)',
-    description: 'Mencari kata atau kalimat tertentu dalam dokumen yang sangat panjang.',
-    keys: ['Control', 'f'],
-    displayCombo: 'Ctrl + F',
-    icon: '🔍',
-  },
-  {
-    id: 'sc-new',
-    name: 'Dokumen Baru (New)',
-    description: 'Membuka dokumen atau jendela aplikasi baru dengan cepat.',
-    keys: ['Control', 'n'],
-    displayCombo: 'Ctrl + N',
-    icon: '📄',
-  },
-  {
-    id: 'sc-task-mgr',
-    name: 'Task Manager (Ctrl+Shift+Esc)',
-    description: 'Melihat program apa saja yang sedang berjalan di sistem Windows.',
-    keys: ['Control', 'Shift', 'Escape'],
-    displayCombo: 'Ctrl + Shift + Esc',
-    icon: '📊',
-  },
-  {
-    id: 'sc-desktop',
-    name: 'Tampilkan Desktop (Win+D)',
-    description: 'Menyembunyikan semua jendela dan langsung melihat layar desktop.',
-    keys: ['Meta', 'd'],
-    displayCombo: 'Win + D',
-    icon: '🖥️',
-  },
-  {
-    id: 'sc-explorer',
-    name: 'File Explorer (Win+E)',
-    description: 'Membuka jendela untuk mencari file atau folder di komputer.',
-    keys: ['Meta', 'e'],
-    displayCombo: 'Win + E',
-    icon: '📂',
-  }
 ];
 
 export const ShortcutMaster: React.FC = () => {
   const { currentUser, refreshUser } = useAuth();
-  const { showSuccess, showStarReward } = useToast();
+  const { showStarReward } = useToast();
 
-  const [currentIdx, setCurrentIdx] = useState(0);
+  const [currentLevelIdx, setCurrentLevelIdx] = useState(0);
+  const currentLevel = SHORTCUT_LEVELS[currentLevelIdx];
+
+  const [currentChallengeIdx, setCurrentChallengeIdx] = useState(0);
   const [pressedKeys, setPressedKeys] = useState<Set<string>>(new Set());
-  const [completedList, setCompletedList] = useState<string[]>([]);
-  const [isDone, setIsDone] = useState(false);
+  const [completedInLevel, setCompletedInLevel] = useState<string[]>([]);
+  const [completedLevels, setCompletedLevels] = useState<number[]>([]);
+  const [showLevelVictory, setShowLevelVictory] = useState(false);
+  const [showGrandVictory, setShowGrandVictory] = useState(false);
   const [successAnimation, setSuccessAnimation] = useState(false);
 
-  const currentChallenge = CHALLENGES[currentIdx];
+  const currentChallenge = currentLevel.challenges[currentChallengeIdx];
 
-  // Listen to keyboard keydown and keyup
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Prevent browser default shortcut actions during training (e.g. Ctrl+S save webpage, Ctrl+P print)
+      // Prevent browser default actions for training
       if (
         (e.ctrlKey || e.metaKey) &&
-        ['s', 'p', 'f', 'a', 'z', 'b', 'i', 'u', 'c', 'v'].includes(e.key.toLowerCase())
+        ['s', 'p', 'f', 'a', 'z', 'b', 'i', 'u', 'c', 'v', 'y', 'n', 'd', 'e'].includes(e.key.toLowerCase())
       ) {
         e.preventDefault();
       }
@@ -154,43 +195,38 @@ export const ShortcutMaster: React.FC = () => {
       const keyName = e.key;
       setPressedKeys((prev) => new Set(prev).add(keyName.toLowerCase()));
 
-      if (isDone || !currentChallenge) return;
+      if (showLevelVictory || showGrandVictory || !currentChallenge) return;
 
-      // Check if current challenge requirements are met
+      // Check combo
       const requiredKeys = currentChallenge.keys.map((k) => k.toLowerCase());
       const hasAll = requiredKeys.every(
         (k) =>
           k === 'control'
             ? e.ctrlKey || e.metaKey
+            : k === 'shift'
+            ? e.shiftKey
+            : k === 'meta'
+            ? e.metaKey
             : e.key.toLowerCase() === k || pressedKeys.has(k)
       );
 
       if (hasAll) {
-        // Solved challenge!
         setSuccessAnimation(true);
-        setTimeout(() => setSuccessAnimation(false), 800);
+        setTimeout(() => setSuccessAnimation(false), 700);
 
-        if (!completedList.includes(currentChallenge.id)) {
-          const nextCompleted = [...completedList, currentChallenge.id];
-          setCompletedList(nextCompleted);
+        if (!completedInLevel.includes(currentChallenge.id)) {
+          const nextCompleted = [...completedInLevel, currentChallenge.id];
+          setCompletedInLevel(nextCompleted);
 
-          if (currentIdx + 1 < CHALLENGES.length) {
+          if (currentChallengeIdx + 1 < currentLevel.challenges.length) {
             setTimeout(() => {
-              setCurrentIdx((prev) => prev + 1);
+              setCurrentChallengeIdx((prev) => prev + 1);
             }, 600);
           } else {
-            // All completed!
-            setIsDone(true);
-            if (currentUser) {
-              awardStudentPoints(currentUser.id, 50);
-              recordShortcutCompleted(currentUser.id);
-              refreshUser();
-              showStarReward(
-                5,
-                'Luar biasa! Anda telah menyelesaikan seluruh tantangan Shortcut Master dan meraih +50 Poin (+5 Bintang)!',
-                'Bintang Pintasan Master!'
-              );
-            }
+            // Level finished!
+            setTimeout(() => {
+              finishLevel();
+            }, 600);
           }
         }
       }
@@ -212,175 +248,291 @@ export const ShortcutMaster: React.FC = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [currentIdx, currentChallenge, completedList, isDone, currentUser, refreshUser, showSuccess]);
+  }, [currentChallengeIdx, currentChallenge, completedInLevel, showLevelVictory, showGrandVictory, currentLevel]);
 
-  const handleReset = () => {
-    setCurrentIdx(0);
-    setCompletedList([]);
-    setIsDone(false);
+  const finishLevel = () => {
+    setShowLevelVictory(true);
+
+    if (!completedLevels.includes(currentLevel.id)) {
+      setCompletedLevels((prev) => [...prev, currentLevel.id]);
+      if (currentUser) {
+        const bonus = currentLevel.points;
+        awardStudentPoints(currentUser.id, bonus);
+        recordShortcutCompleted(currentUser.id);
+        refreshUser();
+        showStarReward(
+          Math.max(1, Math.floor(bonus / 10)),
+          `${currentLevel.title} Selesai! Kamu menguasai semua tombol pintasan (+${bonus} Poin)!`,
+          'Bintang Pintasan Master!'
+        );
+      }
+    }
+  };
+
+  const handleNextLevel = () => {
+    setShowLevelVictory(false);
+    if (currentLevelIdx < SHORTCUT_LEVELS.length - 1) {
+      setCurrentLevelIdx((prev) => prev + 1);
+      setCurrentChallengeIdx(0);
+      setCompletedInLevel([]);
+      setPressedKeys(new Set());
+    } else {
+      setShowGrandVictory(true);
+    }
+  };
+
+  const handleSelectLevelTab = (idx: number) => {
+    setCurrentLevelIdx(idx);
+    setCurrentChallengeIdx(0);
+    setCompletedInLevel([]);
+    setPressedKeys(new Set());
+    setShowLevelVictory(false);
+    setShowGrandVictory(false);
+  };
+
+  const handleResetLevel = () => {
+    setCurrentChallengeIdx(0);
+    setCompletedInLevel([]);
+    setPressedKeys(new Set());
+    setShowLevelVictory(false);
+  };
+
+  const handleRestartFromBeginning = () => {
+    setCurrentLevelIdx(0);
+    setCurrentChallengeIdx(0);
+    setCompletedInLevel([]);
+    setCompletedLevels([]);
+    setPressedKeys(new Set());
+    setShowLevelVictory(false);
+    setShowGrandVictory(false);
   };
 
   const keyboardRows = [
     ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
     ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-    ['Ctrl', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'Space'],
+    ['Ctrl', 'Shift', 'Win', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'Space'],
   ];
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xs space-y-5">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 sm:p-6 shadow-sm space-y-6 max-w-4xl mx-auto">
+      {/* Header Deck */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
               <Keyboard className="w-4 h-4" />
               Simulator Pintasan Keyboard
             </span>
             <span className="text-slate-300 dark:text-slate-700">·</span>
-            <span className="text-xs text-slate-500">
-              Progres: {completedList.length}/{CHALLENGES.length} Selesai
+            <span className="text-xs font-bold text-slate-500">
+              Level {currentLevel.id} dari {SHORTCUT_LEVELS.length}
             </span>
           </div>
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">
-            Shortcut Keyboard Master
+          <h2 className="text-xl font-black text-slate-900 dark:text-white">
+            {currentLevel.title}
           </h2>
-          <p className="text-xs text-slate-500">
-            Tekan kombinasi tombol pada keyboard fisik Anda sesuai instruksi di layar.
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            {currentLevel.description}
           </p>
         </div>
 
-        <button
-          onClick={handleReset}
-          className="px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-          <span>Ulangi Tantangan</span>
-        </button>
-      </div>
-
-      {!isDone ? (
-        <div className="space-y-6">
-          {/* Active Challenge Banner */}
-          <div
-            className={`p-6 rounded-2xl border-2 transition-all text-center relative overflow-hidden ${
-              successAnimation
-                ? 'bg-emerald-500 text-white border-emerald-400 scale-[1.02]'
-                : 'bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/80 dark:from-slate-900 dark:via-indigo-950/40 dark:to-slate-900 border-indigo-200 dark:border-indigo-800/60'
-            }`}
-          >
-            <div className="text-4xl mb-2">{currentChallenge.icon}</div>
-            <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-              Tantangan {currentIdx + 1} dari {CHALLENGES.length}
-            </span>
-            <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1">
-              {currentChallenge.name}
-            </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-300 max-w-md mx-auto mt-1">
-              {currentChallenge.description}
-            </p>
-
-            {/* Huge Glowing Combo Display */}
-            <div className="mt-4 inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/30 text-lg sm:text-xl font-mono font-black tracking-widest animate-pulse">
-              <span>{currentChallenge.displayCombo}</span>
-            </div>
-
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-3 font-medium">
-              👉 Tekan kombinasi tombol <strong>{currentChallenge.displayCombo}</strong> di keyboard sekarang!
-            </p>
-          </div>
-
-          {/* Interactive Visual Keyboard Component */}
-          <div className="p-4 bg-slate-100 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 max-w-xl mx-auto shadow-inner">
-            <p className="text-[10px] font-bold uppercase text-slate-400 text-center tracking-wider mb-2">
-              Visual Keyboard Indicator (Menyala saat tombol ditekan)
-            </p>
-            {keyboardRows.map((row, rIdx) => (
-              <div key={rIdx} className="flex justify-center gap-1.5">
-                {row.map((key) => {
-                  const lower = key.toLowerCase();
-                  const isPressed =
-                    lower === 'ctrl'
-                      ? pressedKeys.has('control')
-                      : lower === 'space'
-                      ? pressedKeys.has(' ')
-                      : pressedKeys.has(lower);
-
-                  const isTarget =
-                    lower === 'ctrl'
-                      ? currentChallenge.keys.includes('Control')
-                      : currentChallenge.keys.map((k) => k.toLowerCase()).includes(lower);
-
-                  return (
-                    <div
-                      key={key}
-                      className={`h-10 rounded-lg flex items-center justify-center font-mono text-xs font-bold transition-all shadow-xs border ${
-                        key === 'Space'
-                          ? 'w-32'
-                          : key === 'Ctrl'
-                          ? 'w-14'
-                          : 'w-9 sm:w-11'
-                      } ${
-                        isPressed
-                          ? 'bg-indigo-600 text-white border-indigo-400 scale-95 shadow-indigo-500/50'
-                          : isTarget
-                          ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-200 border-amber-400 animate-pulse'
-                          : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700'
-                      }`}
-                    >
-                      {key}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-
-          {/* Step Progress Pills */}
-          <div className="flex items-center justify-center gap-2 flex-wrap">
-            {CHALLENGES.map((ch, idx) => {
-              const done = completedList.includes(ch.id);
-              const active = idx === currentIdx;
-
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
+          {/* Level Switcher Tabs */}
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl">
+            {SHORTCUT_LEVELS.map((lvl, idx) => {
+              const isDone = completedLevels.includes(lvl.id);
+              const isCurrent = idx === currentLevelIdx;
               return (
                 <button
-                  key={ch.id}
-                  onClick={() => setCurrentIdx(idx)}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 transition-all ${
-                    done
-                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                      : active
-                      ? 'bg-indigo-600 text-white shadow-xs'
-                      : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                  key={lvl.id}
+                  type="button"
+                  onClick={() => handleSelectLevelTab(idx)}
+                  className={`px-3 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                    isCurrent
+                      ? 'bg-indigo-600 text-white shadow-sm'
+                      : isDone
+                      ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
+                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  {done ? <CheckCircle2 className="w-3 h-3 text-emerald-600" /> : null}
-                  <span>{ch.displayCombo}</span>
+                  {isDone && <CheckCircle2 className="w-3 h-3 text-emerald-500" />}
+                  <span>Lvl {lvl.id}</span>
                 </button>
               );
             })}
           </div>
-        </div>
-      ) : (
-        /* Completed All Screen */
-        <div className="py-12 text-center space-y-4 max-w-md mx-auto">
-          <div className="w-16 h-16 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto shadow-xl">
-            <Trophy className="w-8 h-8" />
-          </div>
-          <h3 className="text-2xl font-black text-slate-900 dark:text-white">
-            Selamat! Master Shortcut Keyboard!
-          </h3>
-          <p className="text-xs text-slate-600 dark:text-slate-300">
-            Anda telah berhasil menguasai seluruh pintasan keyboard penting untuk Microsoft Word dan komputer. Keterampilan ini akan membuat pekerjaan mengetik Anda berkali-kali lipat lebih cepat!
-          </p>
-          <div className="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-800 text-xs font-semibold text-amber-900 dark:text-amber-300">
-            ★ +50 Poin Bintang & Lencana "Master Shortcut" Telah Terbuka! ★
-          </div>
+
           <button
-            onClick={handleReset}
-            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors"
+            type="button"
+            onClick={handleResetLevel}
+            className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 transition-colors cursor-pointer"
+            title="Reset Level"
           >
-            Latih Ulang dari Awal
+            <RotateCcw className="w-4 h-4" />
           </button>
+        </div>
+      </div>
+
+      {/* Main Challenge Card */}
+      {currentChallenge && (
+        <div
+          className={`p-6 rounded-3xl border-2 transition-all duration-300 relative overflow-hidden ${
+            successAnimation
+              ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-500 scale-[1.01]'
+              : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700'
+          }`}
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="text-4xl p-3 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 shrink-0">
+                {currentChallenge.icon}
+              </div>
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase font-black tracking-widest text-indigo-600 dark:text-indigo-400">
+                  Tantangan {currentChallengeIdx + 1} dari {currentLevel.challenges.length}
+                </span>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white">
+                  {currentChallenge.name}
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed max-w-lg">
+                  {currentChallenge.description}
+                </p>
+              </div>
+            </div>
+
+            {/* Target Keys Display */}
+            <div className="text-center sm:text-right shrink-0 p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+              <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1">
+                Kombinasi Tombol:
+              </span>
+              <kbd className="px-4 py-2 bg-indigo-50 dark:bg-indigo-950/60 border-2 border-indigo-200 dark:border-indigo-800 rounded-xl text-indigo-700 dark:text-indigo-300 font-mono font-black text-base shadow-inner inline-block">
+                {currentChallenge.displayCombo}
+              </kbd>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Visual Keyboard Simulation Helper */}
+      <div className="p-5 bg-slate-950 rounded-3xl border border-slate-800 space-y-2 text-center shadow-inner">
+        <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 block mb-2">
+          Simulator Papan Tombol Fisik:
+        </span>
+        <div className="space-y-1.5 flex flex-col items-center">
+          {keyboardRows.map((row, rIdx) => (
+            <div key={rIdx} className="flex gap-1 sm:gap-1.5 justify-center flex-wrap">
+              {row.map((k) => {
+                const isTarget = currentChallenge?.keys.some(
+                  (tk) =>
+                    tk.toLowerCase() === k.toLowerCase() ||
+                    (tk.toLowerCase() === 'control' && k === 'Ctrl') ||
+                    (tk.toLowerCase() === 'meta' && k === 'Win') ||
+                    (tk.toLowerCase() === 'escape' && k === 'Esc')
+                );
+                const isPressed =
+                  pressedKeys.has(k.toLowerCase()) ||
+                  (pressedKeys.has('control') && k === 'Ctrl') ||
+                  (pressedKeys.has('meta') && k === 'Win') ||
+                  (pressedKeys.has('shift') && k === 'Shift') ||
+                  (pressedKeys.has('escape') && k === 'Esc');
+
+                return (
+                  <span
+                    key={k}
+                    className={`px-2.5 sm:px-3.5 py-1.5 rounded-xl text-[11px] sm:text-xs font-mono font-bold transition-all duration-150 ${
+                      isPressed
+                        ? 'bg-emerald-500 text-slate-950 scale-95 shadow-md shadow-emerald-500/30'
+                        : isTarget
+                        ? 'bg-indigo-600 text-white animate-pulse ring-2 ring-indigo-400'
+                        : 'bg-slate-800 text-slate-400 border border-slate-700'
+                    }`}
+                  >
+                    {k}
+                  </span>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Level Victory Modal & Lanjut Level */}
+      {showLevelVictory && !showGrandVictory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-md w-full border-2 border-indigo-500/40 shadow-2xl text-center space-y-5 animate-in zoom-in-95">
+            <div className="w-20 h-20 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 rounded-3xl mx-auto flex items-center justify-center text-white shadow-xl shadow-indigo-500/30">
+              <Trophy className="w-10 h-10 animate-bounce" />
+            </div>
+
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300">
+                <CheckCircle2 className="w-4 h-4" />
+                Level {currentLevel.id} Selesai!
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white pt-1">
+                Pintasan Berhasil Dikuasai!
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+                Kamu telah menyelesaikan semua tantangan pintasan keyboard pada {currentLevel.subtitle}!
+              </p>
+            </div>
+
+            <div className="p-3.5 bg-indigo-50 dark:bg-indigo-950/50 rounded-2xl border border-indigo-200 dark:border-indigo-900 text-center">
+              <span className="text-[10px] uppercase font-bold text-indigo-500 block">Poin Didapatkan</span>
+              <span className="text-xl font-black font-mono text-indigo-600 dark:text-indigo-400">
+                +{currentLevel.points} Poin (★ {Math.floor(currentLevel.points / 10)} Bintang)
+              </span>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-1">
+              <button
+                type="button"
+                onClick={handleResetLevel}
+                className="w-full sm:w-1/3 py-3 px-4 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all cursor-pointer"
+              >
+                Ulangi
+              </button>
+              <button
+                type="button"
+                onClick={handleNextLevel}
+                className="w-full sm:w-2/3 py-3 px-5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black text-xs shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all"
+              >
+                <span>{currentLevelIdx < SHORTCUT_LEVELS.length - 1 ? 'Lanjut ke Level Berikutnya' : 'Lihat Gelar Shortcut Master!'}</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Grand Victory */}
+      {showGrandVictory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-md w-full border-2 border-indigo-500/50 shadow-2xl text-center space-y-5 animate-in zoom-in-95">
+            <div className="w-20 h-20 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 rounded-3xl mx-auto flex items-center justify-center text-white shadow-xl shadow-indigo-500/30">
+              <Award className="w-10 h-10 animate-bounce" />
+            </div>
+
+            <div className="space-y-1">
+              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">
+                Gelar Produktivitas Komputer
+              </span>
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white pt-1">
+                🏆 Shortcut Keyboard Master Tamat!
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
+                Selamat! Kamu telah menguasai seluruh kombinasi tombol pintas teks, pencarian, cetak dokumen, hingga sistem Windows Explorer!
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleRestartFromBeginning}
+              className="w-full py-3 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-lg shadow-indigo-500/20 cursor-pointer transition-all"
+            >
+              Mainkan Lagi dari Level 1
+            </button>
+          </div>
         </div>
       )}
     </div>

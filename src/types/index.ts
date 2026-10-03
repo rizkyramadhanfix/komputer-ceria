@@ -386,3 +386,17 @@ export interface TypingLeagueScore {
   submittedAt: string;
 }
 
+export interface TypingDraft {
+  id: string; // e.g. `${studentId}_${practiceId}`
+  practiceId: string;
+  practiceTitle?: string;
+  studentId: string;
+  studentName?: string;
+  contentHtml: string;
+  wpm: number;
+  accuracy: number;
+  charCount: number;
+  wordCount: number;
+  lastSavedAt: string;
+}
+

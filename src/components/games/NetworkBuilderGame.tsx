@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Network, 
   Cpu, 
@@ -9,11 +9,13 @@ import {
   Play, 
   RotateCcw, 
   Check, 
-  CheckCircle, 
+  CheckCircle2, 
   Award, 
   Sparkles, 
   AlertTriangle,
-  HelpCircle
+  HelpCircle,
+  ChevronRight,
+  Trophy
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -46,7 +48,7 @@ const LEVELS: Level[] = [
     id: 1,
     title: 'Misi 1: Akses Internet Sederhana',
     mission: 'Hubungkan Komputer Siswa langsung ke Router Internet, kemudian Router Internet ke Server Google. Setelah itu klik Tes Ping!',
-    targetExplanation: 'Mengajarkan bahwa komputer butuh Router (Gateway) untuk meneruskan paket data ke server internet di seluruh dunia.',
+    targetExplanation: 'Komputer membutuhkan Router (Gateway) untuk meneruskan paket data ke server internet di seluruh dunia.',
     nodes: [
       { id: 'pc1', name: 'Komputer Siswa', type: 'pc', x: 15, y: 50 },
       { id: 'router1', name: 'Router Internet', type: 'router', x: 50, y: 50 },
@@ -61,7 +63,7 @@ const LEVELS: Level[] = [
     id: 2,
     title: 'Misi 2: Jaringan Lab Komputer Ceria',
     mission: 'Hubungkan Komputer 1 dan Komputer 2 ke Switch Lab. Kemudian hubungkan Switch ke Router, dan Router ke Server Google.',
-    targetExplanation: 'Mengajarkan fungsi Switch untuk menghubungkan banyak komputer lokal, lalu membagikan akses internet lewat satu Router.',
+    targetExplanation: 'Switch berfungsi menghubungkan banyak komputer lokal dalam lab, lalu membagikan akses internet lewat satu Router.',
     nodes: [
       { id: 'pc1', name: 'Komputer Siswa 1', type: 'pc', x: 15, y: 25 },
       { id: 'pc2', name: 'Komputer Siswa 2', type: 'pc', x: 15, y: 75 },
@@ -80,7 +82,7 @@ const LEVELS: Level[] = [
     id: 3,
     title: 'Misi 3: Berbagi Printer di Lab',
     mission: 'Hubungkan Komputer ke Switch, hubungkan Printer Bersama ke Switch agar bisa mencetak, serta hubungkan Switch ke Router lalu Router ke Server Google.',
-    targetExplanation: 'Mengajarkan konsep Local Area Network (LAN) untuk berbagi pakai perangkat keras (printer) dan akses internet bersama.',
+    targetExplanation: 'Local Area Network (LAN) memungkinkan berbagi pakai perangkat keras (seperti printer) dan akses internet bersama secara efisien.',
     nodes: [
       { id: 'pc1', name: 'Komputer Siswa', type: 'pc', x: 15, y: 30 },
       { id: 'printer1', name: 'Printer Bersama', type: 'printer', x: 15, y: 75 },
@@ -99,7 +101,7 @@ const LEVELS: Level[] = [
     id: 4,
     title: 'Misi 4: Infrastruktur Cloud Server',
     mission: 'Hubungkan PC 1 dan PC 2 ke Switch. Hubungkan Switch ke Router. Terakhir, hubungkan Router ke Server Google DAN Server Minecraft.',
-    targetExplanation: 'Mengajarkan bahwa satu jaringan lokal bisa mengakses berbagai layanan server (Cloud) yang berbeda di internet melalui satu Router.',
+    targetExplanation: 'Satu jaringan lokal dapat mengakses berbagai layanan server (Cloud) yang berbeda di internet melalui konfigurasi routing yang tepat.',
     nodes: [
       { id: 'pc1', name: 'PC Siswa A', type: 'pc', x: 15, y: 25 },
       { id: 'pc2', name: 'PC Siswa B', type: 'pc', x: 15, y: 75 },
@@ -129,12 +131,14 @@ export const NetworkBuilderGame: React.FC = () => {
   const [isTesting, setIsTesting] = useState(false);
   const [testSuccess, setTestSuccess] = useState<boolean | null>(null);
   const [points, setPoints] = useState(0);
+  const [completedLevels, setCompletedLevels] = useState<number[]>([]);
+  const [showLevelVictory, setShowLevelVictory] = useState(false);
   const [animationPacket, setAnimationPacket] = useState<{ x: number; y: number } | null>(null);
 
   const level = LEVELS[currentLevelIdx];
 
   const handleNodeClick = (id: string) => {
-    if (isTesting) return;
+    if (isTesting || showLevelVictory) return;
 
     if (selectedNodeId === null) {
       setSelectedNodeId(id);
@@ -172,12 +176,10 @@ export const NetworkBuilderGame: React.FC = () => {
     setIsTesting(true);
     setTestSuccess(null);
 
-    // Let's validate connections
-    // Find matching nodes based on requirements
+    // Validate connections
     let validatedCount = 0;
     const requiredConns = [...level.requiredConnections];
 
-    // For each link in connections, check if it matches a required pair
     connections.forEach((conn) => {
       const nodeFrom = level.nodes.find((n) => n.id === conn.from);
       const nodeTo = level.nodes.find((n) => n.id === conn.to);
@@ -195,11 +197,6 @@ export const NetworkBuilderGame: React.FC = () => {
       }
     });
 
-    // Check path validity: PC must be connected to Switch/Router, Router to Server
-    // Level 1: pc -> router -> server
-    // Level 2: pc1 -> switch, pc2 -> switch, switch -> router, router -> server
-    // Level 3: pc -> switch, printer -> switch, switch -> router, router -> server
-
     const hasCompletedAll = requiredConns.length === 0 && connections.length >= level.requiredConnections.length;
 
     // Simulate packet flow animation
@@ -207,7 +204,6 @@ export const NetworkBuilderGame: React.FC = () => {
     const interval = setInterval(() => {
       animationStep++;
       if (animationStep <= 10) {
-        // animate packet moving along the path
         const pct = animationStep / 10;
         setAnimationPacket({
           x: 15 + pct * 70,
@@ -220,17 +216,32 @@ export const NetworkBuilderGame: React.FC = () => {
 
         if (hasCompletedAll) {
           setTestSuccess(true);
-          setPoints((prev) => prev + 100);
-          showSuccess(`Misi Berhasil! Jaringan terhubung sempurna. ${level.targetExplanation}`);
+          const earned = 60;
+          setPoints((prev) => prev + earned);
+
+          if (!completedLevels.includes(level.id)) {
+            setCompletedLevels((prev) => [...prev, level.id]);
+            if (currentUser) {
+              recordGameScore('Simulasi Jaringan', currentUser.id, points + earned, 12);
+              refreshUser();
+              showStarReward(
+                4,
+                `Level ${level.id} Selesai! Paket data terkirim sukses (+${earned} Poin)!`,
+                'Bintang Topologi Jaringan!'
+              );
+            }
+          }
+          setShowLevelVictory(true);
         } else {
           setTestSuccess(false);
           showError('Ping Gagal! Cek kembali konfigurasi kabel jaringan Anda.');
         }
       }
-    }, 150);
+    }, 120);
   };
 
   const handleNextLevel = () => {
+    setShowLevelVictory(false);
     setConnections([]);
     setSelectedNodeId(null);
     setTestSuccess(null);
@@ -242,17 +253,25 @@ export const NetworkBuilderGame: React.FC = () => {
     }
   };
 
+  const handleSelectLevel = (idx: number) => {
+    setCurrentLevelIdx(idx);
+    setShowLevelVictory(false);
+    setConnections([]);
+    setSelectedNodeId(null);
+    setTestSuccess(null);
+  };
+
   const handleGameCompleted = () => {
     setGameState('completed');
 
     if (currentUser) {
-      const rewardPoints = 80;
-      recordGameScore('Simulasi Jaringan', currentUser.id, points, rewardPoints);
+      const rewardPoints = 100;
+      recordGameScore('Simulasi Jaringan', currentUser.id, points + rewardPoints, 20);
       refreshUser();
       showStarReward(
-        8,
-        `Keren! Kamu menyelesaikan semua simulasi jaringan dan mendapat +80 Poin (+8 ★ Bintang)!`,
-        'Teknisi Jaringan Cilik'
+        10,
+        `Keren! Kamu menyelesaikan semua simulasi jaringan dan mendapat +100 Poin (+10 ★ Bintang)!`,
+        'Master Teknisi Jaringan'
       );
     }
   };
@@ -263,34 +282,63 @@ export const NetworkBuilderGame: React.FC = () => {
     setSelectedNodeId(null);
     setTestSuccess(null);
     setPoints(0);
+    setCompletedLevels([]);
+    setShowLevelVictory(false);
     setGameState('playing');
   };
 
   return (
-    <div className="bg-slate-50 dark:bg-slate-950 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6 max-w-4xl mx-auto">
-      {/* Header */}
+    <div className="bg-slate-50 dark:bg-slate-950 p-4 sm:p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6 max-w-4xl mx-auto">
+      {/* Header Panel */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
-            <Network className="w-5 h-5" />
+          <div className="w-11 h-11 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/20">
+            <Network className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-              Simulator Jaringan Komputer
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                Simulator Topologi Jaringan Komputer
+              </h3>
+              <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
+                Level {currentLevelIdx + 1} dari {LEVELS.length}
+              </span>
+            </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Belajar konsep pengkabelan, alamat IP, dan cara kerja internet dengan menyambungkan komputer lab!
+              Rancang rute kabel data antar komputer, switch, router, dan cloud server.
             </p>
           </div>
         </div>
 
         {gameState === 'playing' && (
-          <div className="flex items-center gap-3 font-bold text-xs">
-            <span className="px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-900 text-blue-700 dark:text-blue-300">
-              Poin: <span className="font-mono text-sm">{points}</span>
-            </span>
-            <span className="px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950 border border-indigo-200 dark:border-indigo-900 text-indigo-700 dark:text-indigo-300 font-sans">
-              Level {level.id} / 3
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            {/* Level Selector Tabs */}
+            <div className="flex items-center gap-1 bg-white dark:bg-slate-900 p-1 rounded-2xl border border-slate-200 dark:border-slate-800">
+              {LEVELS.map((lvl, idx) => {
+                const isDone = completedLevels.includes(lvl.id);
+                const isCurrent = idx === currentLevelIdx;
+                return (
+                  <button
+                    key={lvl.id}
+                    type="button"
+                    onClick={() => handleSelectLevel(idx)}
+                    className={`px-3 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                      isCurrent
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : isDone
+                        ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
+                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    {isDone && <CheckCircle2 className="w-3 h-3 text-emerald-500" />}
+                    <span>Lvl {lvl.id}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <span className="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/80 border border-blue-200 dark:border-blue-900 text-blue-700 dark:text-blue-300 font-bold text-xs">
+              Skor: <span className="font-mono text-sm">{points}</span>
             </span>
           </div>
         )}
@@ -298,79 +346,82 @@ export const NetworkBuilderGame: React.FC = () => {
 
       {gameState === 'intro' ? (
         <div className="py-12 flex flex-col items-center text-center space-y-5">
-          <div className="w-20 h-20 bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center animate-pulse">
+          <div className="w-20 h-20 bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 rounded-3xl flex items-center justify-center animate-bounce shadow-xl shadow-blue-500/10">
             <Workflow className="w-10 h-10" />
           </div>
           <div className="space-y-2 max-w-md">
-            <h4 className="text-base font-bold text-slate-900 dark:text-white">
-              Hubungkan Kabel Jaringan Lab Ceria!
+            <h4 className="text-xl font-black text-slate-900 dark:text-white">
+              Arsitek Jaringan Lab Sekolah
             </h4>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Pernahkah kamu penasaran bagaimana Komputer di Lab bisa terhubung ke Google? Di sini kamu akan belajar menjadi teknisi jaringan cilik dengan menyambungkan kabel data LAN!
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              Pelajari bagaimana paket data melesat melintasi kabel LAN, switch pembagi, dan router gerbang internet untuk menyambungkan semua perangkat!
             </p>
           </div>
           <button
             onClick={() => setGameState('playing')}
-            className="inline-flex items-center gap-2 px-6 py-3 font-semibold text-xs text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md cursor-pointer"
+            className="inline-flex items-center gap-2 px-8 py-3.5 font-black text-xs text-white bg-blue-600 hover:bg-blue-700 rounded-2xl shadow-lg shadow-blue-500/25 cursor-pointer transition-all hover:scale-105"
           >
             <Play className="w-4 h-4" />
-            <span>Mulai Mendesain Jaringan</span>
+            <span>Mulai Simulasi Level 1</span>
           </button>
         </div>
       ) : gameState === 'completed' ? (
         <div className="py-12 flex flex-col items-center text-center space-y-5">
-          <div className="w-20 h-20 bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center animate-bounce">
+          <div className="w-20 h-20 bg-gradient-to-tr from-amber-400 to-amber-600 text-white rounded-3xl flex items-center justify-center animate-bounce shadow-xl shadow-amber-500/30">
             <Award className="w-10 h-10" />
           </div>
           <div className="space-y-2">
-            <h4 className="text-lg font-bold text-slate-900 dark:text-white">
-              Semua Misi Selesai! Kamu Hebat!
+            <h4 className="text-2xl font-black text-slate-900 dark:text-white">
+              🎉 Selamat! Kamu Tamat Menjadi Master Jaringan!
             </h4>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              Total Poin Desain Jaringan: <span className="font-bold text-blue-600 dark:text-blue-400 text-lg">{points} Poin</span>
+              Total Skor Simulasi: <span className="font-black text-blue-600 dark:text-blue-400 text-lg">{points} Poin</span>
             </p>
             <p className="text-xs text-slate-400 max-w-sm mx-auto">
-              Luar biasa! Sekarang kamu tahu bagaimana router, switch, printer, dan server bekerjasama membagikan internet.
+              Kamu telah sukses merancang topologi internet, lab LAN, printer sharing, dan infrastruktur cloud multi-server!
             </p>
           </div>
           <button
             onClick={handleRestart}
-            className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl cursor-pointer"
+            className="inline-flex items-center gap-2 px-6 py-3 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-2xl shadow-lg cursor-pointer transition-all"
           >
             <RotateCcw className="w-4 h-4" />
-            <span>Main Ulang</span>
+            <span>Mainkan Lagi dari Misi 1</span>
           </button>
         </div>
       ) : (
-        <div className="space-y-6">
-          {/* Mission explanation card */}
-          <div className="p-4 rounded-xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 text-xs text-blue-900 dark:text-blue-300">
-            <span className="font-extrabold block text-sm mb-1">{level.title}</span>
-            <p>{level.mission}</p>
+        <div className="space-y-4">
+          {/* Mission Instruction Card */}
+          <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex items-start gap-3">
+            <Sparkles className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+            <div>
+              <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                {level.title}
+              </h4>
+              <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                {level.mission}
+              </p>
+            </div>
           </div>
 
-          {/* Interactive Topology Designer Workspace */}
-          <div className="relative h-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
-            {/* Background grid line decoration */}
-            <div className="absolute inset-0 bg-grid-slate-100 dark:bg-grid-slate-800/20 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))]" />
+          {/* Canvas Workspace Map */}
+          <div className="relative w-full h-80 bg-slate-900 rounded-3xl border border-slate-800 overflow-hidden shadow-inner select-none">
+            {/* Grid dot background */}
+            <div 
+              className="absolute inset-0 opacity-15 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px]" 
+            />
 
-            {/* Render Canvas Connections SVG */}
+            {/* SVG Connecting Wire Lines */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none">
-              <defs>
-                <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                  <path d="M 0 0 L 10 5 L 0 10 z" className="fill-slate-300 dark:fill-slate-700" />
-                </marker>
-              </defs>
-              
               {connections.map((conn, idx) => {
-                const nodeFrom = level.nodes.find((n) => n.id === conn.from);
-                const nodeTo = level.nodes.find((n) => n.id === conn.to);
-                if (!nodeFrom || !nodeTo) return null;
+                const nFrom = level.nodes.find((n) => n.id === conn.from);
+                const nTo = level.nodes.find((n) => n.id === conn.to);
+                if (!nFrom || !nTo) return null;
 
-                const fromX = `${nodeFrom.x}%`;
-                const fromY = `${nodeFrom.y}%`;
-                const toX = `${nodeTo.x}%`;
-                const toY = `${nodeTo.y}%`;
+                const fromX = `${nFrom.x}%`;
+                const fromY = `${nFrom.y}%`;
+                const toX = `${nTo.x}%`;
+                const toY = `${nTo.y}%`;
 
                 return (
                   <line
@@ -379,24 +430,24 @@ export const NetworkBuilderGame: React.FC = () => {
                     y1={fromY}
                     x2={toX}
                     y2={toY}
-                    className="stroke-indigo-500 dark:stroke-indigo-400 stroke-[3]"
-                    strokeDasharray="2,2"
+                    className="stroke-indigo-400 stroke-[3]"
+                    strokeDasharray="4,4"
                   />
                 );
               })}
 
-              {/* Render Animated Package Traveling */}
+              {/* Animated ping circle */}
               {animationPacket && (
                 <circle
                   cx={`${animationPacket.x}%`}
                   cy={`${animationPacket.y}%`}
                   r="8"
-                  className="fill-amber-500 animate-ping shadow-lg"
+                  className="fill-amber-400 animate-ping shadow-lg"
                 />
               )}
             </svg>
 
-            {/* Render Topology Devices Nodes */}
+            {/* Render Network Nodes */}
             {level.nodes.map((node) => {
               const isSelected = selectedNodeId === node.id;
               const hasConnectingLink = connections.some((c) => c.from === node.id || c.to === node.id);
@@ -429,42 +480,80 @@ export const NetworkBuilderGame: React.FC = () => {
             })}
           </div>
 
-          {/* Action Footer Button Group */}
-          <div className="flex items-center justify-between gap-4 pt-2">
-            <div className="text-slate-400 text-[11px] flex items-center gap-1">
+          {/* Action Footer */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+            <div className="text-slate-400 text-[11px] flex items-center gap-1.5">
               <HelpCircle className="w-4 h-4 shrink-0 text-slate-400" />
-              <span>Pilih satu perangkat, lalu klik perangkat lain untuk membuat/menghapus kabel data!</span>
+              <span>Klik perangkat pertama, lalu klik perangkat kedua untuk memasang atau mencabut kabel LAN!</span>
             </div>
 
-            <div className="flex gap-3 shrink-0">
+            <div className="flex gap-2.5 shrink-0 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={handleClearConnections}
-                className="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl cursor-pointer"
+                className="flex-1 sm:flex-none px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl cursor-pointer"
               >
                 Hapus Kabel
               </button>
 
-              {testSuccess ? (
-                <button
-                  type="button"
-                  onClick={handleNextLevel}
-                  className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs cursor-pointer"
-                >
-                  <Check className="w-4 h-4" />
-                  <span>Misi Berikutnya</span>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleTestPing}
-                  disabled={isTesting || connections.length === 0}
-                  className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Play className="w-4 h-4" />
-                  <span>Tes Jaringan (Ping!)</span>
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handleTestPing}
+                disabled={isTesting || connections.length === 0}
+                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-6 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Play className="w-4 h-4" />
+                <span>{isTesting ? 'Menguji Paket Data...' : 'Tes Jaringan (Ping!)'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Level Victory Modal & Lanjut Level */}
+      {showLevelVictory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-md w-full border-2 border-blue-500/40 shadow-2xl text-center space-y-5 animate-in zoom-in-95">
+            <div className="w-20 h-20 bg-gradient-to-tr from-blue-500 via-indigo-500 to-cyan-500 rounded-3xl mx-auto flex items-center justify-center text-white shadow-xl shadow-blue-500/30">
+              <Trophy className="w-10 h-10 animate-bounce" />
+            </div>
+
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300">
+                <CheckCircle2 className="w-4 h-4" />
+                Level {currentLevelIdx + 1} Berhasil!
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white pt-1">
+                Paket Data Terkirim Sukses!
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
+                {level.targetExplanation}
+              </p>
+            </div>
+
+            <div className="p-3.5 bg-blue-50 dark:bg-blue-950/50 rounded-2xl border border-blue-200 dark:border-blue-900 text-center">
+              <span className="text-[10px] uppercase font-bold text-blue-500 block">Poin Didapatkan</span>
+              <span className="text-xl font-black font-mono text-blue-600 dark:text-blue-400">
+                +60 Poin (★ 4 Bintang)
+              </span>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-1">
+              <button
+                type="button"
+                onClick={() => setShowLevelVictory(false)}
+                className="w-full sm:w-1/3 py-3 px-4 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all cursor-pointer"
+              >
+                Lihat Topologi
+              </button>
+              <button
+                type="button"
+                onClick={handleNextLevel}
+                className="w-full sm:w-2/3 py-3 px-5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xs shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all"
+              >
+                <span>{currentLevelIdx < LEVELS.length - 1 ? 'Lanjut ke Level Berikutnya' : 'Lihat Gelar Tamat Jaringan!'}</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>

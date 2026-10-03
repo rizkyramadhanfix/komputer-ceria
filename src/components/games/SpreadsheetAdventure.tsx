@@ -10,12 +10,17 @@ import {
   Trophy,
   ArrowRight,
   HelpCircle,
+  Award,
+  ChevronRight,
 } from 'lucide-react';
 import { getActiveUser, awardStudentPoints } from '../../services/storageService';
+import { useToast } from '../../context/ToastContext';
 
 interface Scenario {
   id: string;
+  levelNum: number;
   title: string;
+  shortLabel: string;
   story: string;
   task: string;
   defaultData: Record<string, string>;
@@ -30,7 +35,9 @@ interface Scenario {
 const SCENARIOS: Scenario[] = [
   {
     id: 'scen-1',
-    title: 'Kantin Kejujuran: Menghitung Total Belanja',
+    levelNum: 1,
+    title: 'Level 1: Kantin Kejujuran — Rumus =SUM (Penjumlahan)',
+    shortLabel: 'Lvl 1: =SUM',
     story: 'Kantin sekolah baru saja membeli stok makanan ringan. Bantu Ibu Kantin menjumlahkan total harga belanjaan menggunakan rumus penjumlahan otomatis.',
     task: 'Ketik rumus =SUM(C2:C5) pada sel C6 untuk menghitung total belanjaan.',
     defaultData: {
@@ -44,13 +51,15 @@ const SCENARIOS: Scenario[] = [
     targetCell: 'C6',
     expectedFormula: /^=SUM\s*\(\s*C2\s*:\s*C5\s*\)$/i,
     expectedResult: 119000,
-    explanation: 'Hebat sekali! Rumus =SUM(C2:C5) otomatis menjumlahkan seluruh angka dari baris 2 sampai 5 menjadi Rp 119.000.',
+    explanation: 'Hebat sekali! Rumus =SUM(C2:C5) otomatis menjumlahkan seluruh angka dari baris C2 sampai C5 menjadi Rp 119.000.',
     chartLabels: ['Roti', 'Susu', 'Biskuit', 'Air'],
     chartValuesKey: ['C2', 'C3', 'C4', 'C5'],
   },
   {
     id: 'scen-2',
-    title: 'Analisis Nilai Komputer: Menghitung Rata-rata',
+    levelNum: 2,
+    title: 'Level 2: Analisis Nilai Kelas — Rumus =AVERAGE (Rata-rata)',
+    shortLabel: 'Lvl 2: =AVERAGE',
     story: 'Pak Guru Pembina ingin mengetahui rata-rata nilai latihan mengetik 5 siswa di kelompok belajar Sukadamai 2.',
     task: 'Ketik rumus =AVERAGE(B2:B6) pada sel B7 untuk menghitung nilai rata-rata kelas.',
     defaultData: {
@@ -69,9 +78,77 @@ const SCENARIOS: Scenario[] = [
     chartLabels: ['Arya', 'Sisi', 'Budi', 'Citra', 'Doni'],
     chartValuesKey: ['B2', 'B3', 'B4', 'B5', 'B6'],
   },
+  {
+    id: 'scen-3',
+    levelNum: 3,
+    title: 'Level 3: Juara Lomba Esports — Rumus =MAX (Nilai Tertinggi)',
+    shortLabel: 'Lvl 3: =MAX',
+    story: 'Dalam turnamen mengetik cepat antar-sekolah, panitia ingin mengetahui skor tertinggi yang diraih oleh peserta.',
+    task: 'Ketik rumus =MAX(B2:B5) pada sel B6 untuk mencari skor tertinggi.',
+    defaultData: {
+      A1: 'Nama Peserta', B1: 'WPM Kecepatan', C1: 'Sekolah',
+      A2: 'Rian Pratama', B2: '72', C2: 'SDN 01',
+      A3: 'Fathir Ahmad', B3: '88', C3: 'SDN 03',
+      A4: 'Nayla Zahra', B4: '64', C4: 'SDN 02',
+      A5: 'Kenzo Alif', B5: '94', C5: 'SD Ceria',
+      A6: 'SKOR TERTINGGI', B6: '', C6: 'Juara 1',
+    },
+    targetCell: 'B6',
+    expectedFormula: /^=MAX\s*\(\s*B2\s*:\s*B5\s*\)$/i,
+    expectedResult: 94,
+    explanation: 'Tepat sekali! Rumus =MAX(B2:B5) otomatis memindai dan menemukan skor tertinggi yaitu 94 WPM!',
+    chartLabels: ['Rian', 'Fathir', 'Nayla', 'Kenzo'],
+    chartValuesKey: ['B2', 'B3', 'B4', 'B5'],
+  },
+  {
+    id: 'scen-4',
+    levelNum: 4,
+    title: 'Level 4: Absensi Lab Komputer — Rumus =COUNT (Menghitung Data)',
+    shortLabel: 'Lvl 4: =COUNT',
+    story: 'Petugas lab komputer ingin menghitung berapa banyak komputer yang hadir dan aktif digunakan saat praktikum.',
+    task: 'Ketik rumus =COUNT(B2:B6) pada sel B7 untuk menghitung jumlah unit komputer yang aktif.',
+    defaultData: {
+      A1: 'Nomor PC', B1: 'Durasi (Menit)', C1: 'Status',
+      A2: 'PC-01', B2: '45', C2: 'Online',
+      A3: 'PC-02', B3: '60', C3: 'Online',
+      A4: 'PC-03', B4: '30', C4: 'Online',
+      A5: 'PC-04', B5: '50', C5: 'Online',
+      A6: 'PC-05', B6: '40', C6: 'Online',
+      A7: 'TOTAL UNIT', B7: '', C7: 'Terpakai',
+    },
+    targetCell: 'B7',
+    expectedFormula: /^=COUNT\s*\(\s*B2\s*:\s*B6\s*\)$/i,
+    expectedResult: 5,
+    explanation: 'Sempurna! Rumus =COUNT(B2:B6) menghitung ada 5 sel berisi angka durasi praktikum.',
+    chartLabels: ['PC-01', 'PC-02', 'PC-03', 'PC-04', 'PC-05'],
+    chartValuesKey: ['B2', 'B3', 'B4', 'B5', 'B6'],
+  },
+  {
+    id: 'scen-5',
+    levelNum: 5,
+    title: 'Level 5: Rekapitulasi Pembelian — Rumus =MIN (Harga Termurah)',
+    shortLabel: 'Lvl 5: =MIN',
+    story: 'Bantu bagian inventaris lab mencari harga peralatan komputer paling murah untuk penghematan anggaran.',
+    task: 'Ketik rumus =MIN(B2:B5) pada sel B6 untuk mencari harga komponen paling hemat.',
+    defaultData: {
+      A1: 'Nama Aksesoris', B1: 'Harga Satuan (Rb)', C1: 'Kategori',
+      A2: 'Mouse USB', B2: '35', C2: 'Hardware',
+      A3: 'Mousepad Ceria', B3: '15', C3: 'Aksesoris',
+      A4: 'Kabel LAN 2M', B4: '20', C4: 'Jaringan',
+      A5: 'Keyboard USB', B5: '65', C5: 'Hardware',
+      A6: 'HARGA TERMURAH', B6: '', C6: 'Hemat Budget',
+    },
+    targetCell: 'B6',
+    expectedFormula: /^=MIN\s*\(\s*B2\s*:\s*B5\s*\)$/i,
+    expectedResult: 15,
+    explanation: 'Luar biasa! Rumus =MIN(B2:B5) otomatis menemukan nilai terendah yaitu 15 (Rp 15.000 untuk Mousepad).',
+    chartLabels: ['Mouse', 'Mousepad', 'Kabel LAN', 'Keyboard'],
+    chartValuesKey: ['B2', 'B3', 'B4', 'B5'],
+  },
 ];
 
 export const SpreadsheetAdventure: React.FC = () => {
+  const { showSuccess, showStarReward } = useToast();
   const [scenarioIdx, setScenarioIdx] = useState(0);
   const activeScen = SCENARIOS[scenarioIdx];
   const [gridData, setGridData] = useState<Record<string, string>>({ ...activeScen.defaultData });
@@ -81,6 +158,8 @@ export const SpreadsheetAdventure: React.FC = () => {
   const [showChart, setShowChart] = useState(false);
   const [completedScenarios, setCompletedScenarios] = useState<string[]>([]);
   const [totalPoints, setTotalPoints] = useState(0);
+  const [showLevelVictory, setShowLevelVictory] = useState(false);
+  const [showGrandVictory, setShowGrandVictory] = useState(false);
 
   const handleCellClick = (cellId: string) => {
     setSelectedCell(cellId);
@@ -102,16 +181,18 @@ export const SpreadsheetAdventure: React.FC = () => {
           isSuccess: true,
           text: activeScen.explanation,
         });
+        setShowLevelVictory(true);
 
         if (!completedScenarios.includes(activeScen.id)) {
           const newCompleted = [...completedScenarios, activeScen.id];
           setCompletedScenarios(newCompleted);
-          setTotalPoints((prev) => prev + 100);
+          setTotalPoints((prev) => prev + 50);
 
           const student = getActiveUser();
           if (student && student.role === 'student') {
-            awardStudentPoints(student.id, 100);
+            awardStudentPoints(student.id, 50);
           }
+          showStarReward(5, `Rumus Excel ${activeScen.title} berhasil diterapkan (+50 Poin)!`, 'Bintang Rumus Excel!');
         }
       } else {
         setFeedback({
@@ -123,6 +204,7 @@ export const SpreadsheetAdventure: React.FC = () => {
   };
 
   const handleNext = () => {
+    setShowLevelVictory(false);
     if (scenarioIdx < SCENARIOS.length - 1) {
       const nextIdx = scenarioIdx + 1;
       setScenarioIdx(nextIdx);
@@ -131,31 +213,50 @@ export const SpreadsheetAdventure: React.FC = () => {
       setFormulaInput('');
       setFeedback(null);
       setShowChart(false);
+    } else {
+      setShowGrandVictory(true);
     }
   };
 
-  const handleReset = () => {
-    setGridData({ ...activeScen.defaultData });
-    setSelectedCell(activeScen.targetCell);
+  const handleSelectScenario = (idx: number) => {
+    setScenarioIdx(idx);
+    setGridData({ ...SCENARIOS[idx].defaultData });
+    setSelectedCell(SCENARIOS[idx].targetCell);
     setFormulaInput('');
     setFeedback(null);
     setShowChart(false);
+    setShowLevelVictory(false);
+  };
+
+  const handleRestart = () => {
+    setScenarioIdx(0);
+    setGridData({ ...SCENARIOS[0].defaultData });
+    setSelectedCell(SCENARIOS[0].targetCell);
+    setFormulaInput('');
+    setFeedback(null);
+    setShowChart(false);
+    setCompletedScenarios([]);
+    setTotalPoints(0);
+    setShowLevelVictory(false);
+    setShowGrandVictory(false);
   };
 
   const columns = ['A', 'B', 'C'];
   const rows = [1, 2, 3, 4, 5, 6, 7];
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm space-y-6">
-      {/* Top Deck */}
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm space-y-6 max-w-4xl mx-auto">
+      {/* Header Deck */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
               <FileSpreadsheet className="w-3 h-3" />
-              Petualangan Spreadsheet Cilik
+              Petualangan Rumus Spreadsheet
             </span>
-            <span className="text-xs text-slate-500">Misi #{scenarioIdx + 1}</span>
+            <span className="text-xs text-slate-500">
+              Level {activeScen.levelNum} dari {SCENARIOS.length}
+            </span>
           </div>
           <h2 className="text-xl font-black text-slate-900 dark:text-white mt-1">
             {activeScen.title}
@@ -165,51 +266,63 @@ export const SpreadsheetAdventure: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="text-right">
-            <span className="text-[10px] text-slate-400 block font-medium">Bintang Didapat</span>
-            <span className="text-base font-black text-emerald-600 dark:text-emerald-400 font-mono">
-              +{totalPoints} Poin
-            </span>
-          </div>
-          <button
-            onClick={handleReset}
-            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
-            title="Reset Spreadsheet"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </button>
+        {/* Level Switcher Tabs */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {SCENARIOS.map((scen, idx) => {
+            const isDone = completedScenarios.includes(scen.id);
+            const isCurrent = idx === scenarioIdx;
+            return (
+              <button
+                key={scen.id}
+                onClick={() => handleSelectScenario(idx)}
+                className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                  isCurrent
+                    ? 'bg-emerald-600 text-white font-black shadow-md shadow-emerald-500/30'
+                    : isDone
+                    ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
+                }`}
+              >
+                {isDone && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />}
+                <span>{scen.shortLabel}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Task Mission Banner */}
-      <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 rounded-xl text-xs text-emerald-900 dark:text-emerald-200 flex items-start gap-2.5">
-        <Sparkles className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-        <div>
-          <strong className="text-emerald-700 dark:text-emerald-300">Tugas Siswa: </strong>
-          <span>{activeScen.task}</span>
+      {/* Task instruction card */}
+      <div className="p-3.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/60 flex items-center justify-between gap-3 text-xs text-indigo-900 dark:text-indigo-200">
+        <div className="flex items-center gap-2">
+          <HelpCircle className="w-4 h-4 text-indigo-600 shrink-0" />
+          <span>
+            <strong>Tugas Kamu:</strong> {activeScen.task}
+          </span>
         </div>
+        <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300">
+          Target Sel: {activeScen.targetCell}
+        </span>
       </div>
 
-      {/* Formula Bar (like Microsoft Excel) */}
-      <div className="bg-slate-100 dark:bg-slate-950 p-2 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-2">
-        <div className="px-3 py-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-md font-mono text-xs font-bold text-slate-700 dark:text-slate-300 min-w-[50px] text-center">
-          {selectedCell || 'A1'}
+      {/* Formula Bar (Excel UI Style) */}
+      <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs">
+        <div className="flex items-center gap-1 px-2 py-1 font-mono font-bold bg-white dark:bg-slate-900 rounded border border-slate-300 dark:border-slate-700 min-w-14 text-center">
+          {selectedCell}
         </div>
-        <span className="text-xs font-bold text-slate-400 select-none font-mono">fx</span>
+        <span className="font-serif italic font-bold text-slate-400 px-1">fx</span>
         <form onSubmit={handleFormulaSubmit} className="flex-1 flex items-center gap-2">
           <input
             type="text"
             value={formulaInput}
             onChange={(e) => setFormulaInput(e.target.value)}
             placeholder="Ketik rumus di sini, misal: =SUM(C2:C5)"
-            className="flex-1 px-3 py-1 text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+            className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
           />
           <button
             type="submit"
-            className="px-4 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-xs font-bold transition-all cursor-pointer"
+            className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-xs"
           >
-            Terapkan
+            Terapkan Rumus
           </button>
         </form>
       </div>
@@ -296,15 +409,13 @@ export const SpreadsheetAdventure: React.FC = () => {
                       <BarChart3 className="w-3.5 h-3.5" />
                       <span>{showChart ? 'Tutup Grafik' : 'Buat Grafik Visual'}</span>
                     </button>
-                    {scenarioIdx < SCENARIOS.length - 1 && (
-                      <button
-                        onClick={handleNext}
-                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer"
-                      >
-                        <span>Misi Selanjutnya</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
-                    )}
+                    <button
+                      onClick={handleNext}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>{scenarioIdx < SCENARIOS.length - 1 ? 'Lanjut Level Berikutnya' : 'Lihat Gelar Tamat!'}</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 )}
               </div>
@@ -360,6 +471,91 @@ export const SpreadsheetAdventure: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Modal Level Selesai & Lanjut Level */}
+      {showLevelVictory && !showGrandVictory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-md w-full border-2 border-emerald-500/50 shadow-2xl text-center space-y-5 animate-in zoom-in-95">
+            <div className="w-20 h-20 bg-linear-to-tr from-emerald-400 via-teal-500 to-emerald-600 rounded-3xl mx-auto flex items-center justify-center text-white shadow-xl shadow-emerald-500/30">
+              <Trophy className="w-10 h-10 animate-bounce" />
+            </div>
+
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300">
+                <CheckCircle2 className="w-4 h-4" />
+                Level {activeScen.levelNum} Selesai!
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white pt-1">
+                Rumus Berhasil Diterapkan!
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+                Kamu sukses menguasai sintaks formula spreadsheet untuk {activeScen.shortLabel}!
+              </p>
+            </div>
+
+            <div className="p-3.5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 text-center">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Bonus Hadiah</span>
+              <span className="text-xl font-black font-mono text-emerald-600 dark:text-emerald-400 mt-1 block">
+                +50 Poin Bintang
+              </span>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => setShowLevelVictory(false)}
+                className="w-full sm:w-1/3 py-3 px-4 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all cursor-pointer"
+              >
+                Tutup
+              </button>
+              <button
+                type="button"
+                onClick={handleNext}
+                className="w-full sm:w-2/3 py-3 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all"
+              >
+                <span>{scenarioIdx < SCENARIOS.length - 1 ? 'Lanjut ke Level Berikutnya' : 'Lihat Gelar Master Excel!'}</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Grand Victory Semua Level */}
+      {showGrandVictory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-md w-full border-2 border-emerald-500/50 shadow-2xl text-center space-y-5 animate-in zoom-in-95">
+            <div className="w-20 h-20 bg-linear-to-tr from-emerald-500 via-teal-500 to-indigo-600 rounded-3xl mx-auto flex items-center justify-center text-white shadow-xl shadow-emerald-500/30">
+              <Award className="w-10 h-10 animate-bounce" />
+            </div>
+
+            <div className="space-y-1">
+              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                Gelar Master Formula Spreadsheet
+              </span>
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white pt-1">
+                🏆 Petualangan Rumus Tamat!
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
+                Luar biasa! Kamu telah menuntaskan seluruh 5 formula fundamental Microsoft Excel / Spreadsheet: =SUM, =AVERAGE, =MAX, =MIN, dan =COUNT!
+              </p>
+            </div>
+
+            <div className="p-4 bg-emerald-50 dark:bg-emerald-950/50 rounded-2xl border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-900 dark:text-emerald-200 space-y-1">
+              <span className="font-extrabold block">Poin Bintang & Lencana Analisis Data Telah Diberikan</span>
+              <p className="text-[11px] opacity-80">Kemampuan olah datamu kini siap untuk tugas sekolah dan perkantoran!</p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleRestart}
+              className="w-full py-3 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-lg shadow-emerald-500/20 cursor-pointer transition-all"
+            >
+              Mainkan Lagi dari Level 1
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
