@@ -115,7 +115,7 @@ function setStoredItem<T>(key: string, value: T): void {
 }
 
 // One-time clean reset for all student and pembina accounts & old session logs as requested
-const CLEAN_RESET_KEY = 'ekskul_clean_reset_v5';
+const CLEAN_RESET_KEY = 'ekskul_clean_reset_v6_fresh_admin_only';
 if (typeof window !== 'undefined') {
   try {
     if (localStorage.getItem(CLEAN_RESET_KEY) !== 'true') {
@@ -127,6 +127,8 @@ if (typeof window !== 'undefined') {
       localStorage.removeItem('ekskul_game_battles');
       localStorage.removeItem(STORAGE_KEYS.REWARD_REDEMPTIONS);
       localStorage.removeItem(STORAGE_KEYS.GALLERY_WORKS);
+      localStorage.removeItem(STORAGE_KEYS.TYPING_DRAFTS);
+      localStorage.removeItem(STORAGE_KEYS.TYPING_LEAGUE_SCORES);
       localStorage.removeItem('ekskul_active_user');
       localStorage.setItem(CLEAN_RESET_KEY, 'true');
     }
@@ -779,6 +781,114 @@ export function deleteUser(id: string): boolean {
   removeDocFromFirestore('users', id);
   notifyDataUpdated();
   return true;
+}
+
+export async function purgeNonAdminUsersAndResetDatabase(): Promise<{
+  success: boolean;
+  removedUsersCount: number;
+  message: string;
+}> {
+  try {
+    const rawUsers = getStoredItem<User[]>(STORAGE_KEYS.USERS, INITIAL_USERS);
+    const nonAdminUsers = rawUsers.filter(
+      (u) => u.role !== 'superadmin' && u.role !== 'admin'
+    );
+
+    // Keep only superadmin and admin accounts
+    const adminUsers = rawUsers.filter(
+      (u) => u.role === 'superadmin' || u.role === 'admin'
+    );
+
+    // Ensure default Super Administrator exists
+    const hasDefaultAdmin = adminUsers.some(
+      (u) =>
+        u.username === 'Administrator' ||
+        u.username.toLowerCase() === 'administrator'
+    );
+
+    if (!hasDefaultAdmin) {
+      adminUsers.unshift({
+        id: 'usr-superadmin-default',
+        role: 'superadmin',
+        username: 'Administrator',
+        password: 'Admin@123',
+        name: 'Super Administrator Pusat',
+        totalPoints: 0,
+        totalStars: 0,
+        completedLessons: [],
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    // Delete non-admin user documents from Firestore
+    for (const user of nonAdminUsers) {
+      await removeDocFromFirestore('users', user.id);
+    }
+
+    // Save updated clean admin users array in localStorage
+    setStoredItem(STORAGE_KEYS.USERS, adminUsers);
+
+    // Wipe student activity data, logs, submissions, drafts
+    localStorage.removeItem(STORAGE_KEYS.QUIZ_SUBMISSIONS);
+    localStorage.removeItem(STORAGE_KEYS.TYPING_SUBMISSIONS);
+    localStorage.removeItem(STORAGE_KEYS.GAME_SCORES);
+    localStorage.removeItem('ekskul_game_battles');
+    localStorage.removeItem(STORAGE_KEYS.REWARD_REDEMPTIONS);
+    localStorage.removeItem(STORAGE_KEYS.GALLERY_WORKS);
+    localStorage.removeItem(STORAGE_KEYS.LOGIN_LOGS);
+    localStorage.removeItem(STORAGE_KEYS.TYPING_DRAFTS);
+    localStorage.removeItem(STORAGE_KEYS.TYPING_LEAGUE_SCORES);
+    localStorage.removeItem('ekskul_forum_threads');
+    localStorage.removeItem('ekskul_forum_replies');
+
+    // Also purge subcollections from Firestore if accessible
+    try {
+      const collectionsToPurge = [
+        'quizSubmissions',
+        'typingSubmissions',
+        'gameScores',
+        'rewardRedemptions',
+        'galleryWorks',
+        'loginLogs',
+        'typingDrafts',
+        'typingLeagueScores',
+        'forumThreads',
+        'forumReplies',
+      ];
+      for (const colName of collectionsToPurge) {
+        const snap = await getDocs(collection(db, colName));
+        snap.docs.forEach((d) => {
+          removeDocFromFirestore(colName, d.id);
+        });
+      }
+    } catch (e) {
+      console.warn('Firestore collections cleanup notice:', e);
+    }
+
+    // If currently logged in user is non-admin, clear active session
+    const activeUser = getStoredItem<User | null>(STORAGE_KEYS.CURRENT_USER, null);
+    if (
+      activeUser &&
+      activeUser.role !== 'superadmin' &&
+      activeUser.role !== 'admin'
+    ) {
+      localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+    }
+
+    notifyDataUpdated();
+    return {
+      success: true,
+      removedUsersCount: nonAdminUsers.length,
+      message: `Database berhasil dibersihkan! ${nonAdminUsers.length} akun non-admin dihapus. Hanya akun Administrator yang dipertahankan.`,
+    };
+  } catch (err: any) {
+    console.error('Error purging non-admin users:', err);
+    return {
+      success: false,
+      removedUsersCount: 0,
+      message: `Terjadi kesalahan saat membersihkan database: ${err.message || 'Gagal'}`,
+    };
+  }
 }
 
 // --- Dashboard Config Management ---

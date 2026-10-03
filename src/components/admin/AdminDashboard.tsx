@@ -101,6 +101,7 @@ import {
   saveTypingLeagueText,
   deleteTypingLeagueText,
   getTypingLeagueScores,
+  purgeNonAdminUsersAndResetDatabase,
 } from '../../services/storageService';
 import {
   AnnouncementItem,
@@ -701,6 +702,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     saveContactInfo(contactForm);
     showSuccess('Informasi Kontak publik berhasil disimpan!');
     reloadAll();
+  };
+
+  const handlePurgeNonAdminUsers = () => {
+    requestConfirm(
+      'Bersihkan Database (Kecuali Admin)',
+      'Apakah Anda yakin ingin MENGHAPUS SEMUA akun siswa, pembina, dan riwayat pengerjaan dari database? Hanya akun Administrator yang akan dipertahankan agar database kembali fresh dari awal.',
+      async () => {
+        const res = await purgeNonAdminUsersAndResetDatabase();
+        if (res.success) {
+          showSuccess(res.message);
+          reloadAll();
+        } else {
+          showError(res.message);
+        }
+      }
+    );
   };
 
 
@@ -1674,6 +1691,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               >
                 <Users className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                 <span>Tambah Banyak Siswa</span>
+              </button>
+
+              {/* Purge All Non-Admin Users Button */}
+              <button
+                type="button"
+                onClick={handlePurgeNonAdminUsers}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 rounded-lg shadow-xs transition-all cursor-pointer"
+                title="Hapus semua data akun non-administrator di database agar fresh kembali dari awal"
+              >
+                <Trash2 className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                <span>Bersihkan Database (Kecuali Admin)</span>
               </button>
 
               {/* Add Single Student Manual */}
