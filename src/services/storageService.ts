@@ -115,7 +115,7 @@ function setStoredItem<T>(key: string, value: T): void {
 }
 
 // One-time clean reset for all student and pembina accounts & old session logs as requested
-const CLEAN_RESET_KEY = 'ekskul_clean_reset_v6_fresh_admin_only';
+const CLEAN_RESET_KEY = 'ekskul_clean_reset_v7_contact_badge_typing';
 if (typeof window !== 'undefined') {
   try {
     if (localStorage.getItem(CLEAN_RESET_KEY) !== 'true') {
@@ -130,6 +130,9 @@ if (typeof window !== 'undefined') {
       localStorage.removeItem(STORAGE_KEYS.TYPING_DRAFTS);
       localStorage.removeItem(STORAGE_KEYS.TYPING_LEAGUE_SCORES);
       localStorage.removeItem('ekskul_active_user');
+      localStorage.setItem(STORAGE_KEYS.CONTACT_INFO, JSON.stringify(DEFAULT_CONTACT_INFO));
+      localStorage.setItem(STORAGE_KEYS.GAMIFICATION_CONFIG, JSON.stringify(DEFAULT_GAMIFICATION_CONFIG));
+      localStorage.setItem(STORAGE_KEYS.TYPING_PRACTICES, JSON.stringify(INITIAL_TYPING_PRACTICES));
       localStorage.setItem(CLEAN_RESET_KEY, 'true');
     }
   } catch (err) {
@@ -828,6 +831,14 @@ export async function purgeNonAdminUsersAndResetDatabase(): Promise<{
     // Save updated clean admin users array in localStorage
     setStoredItem(STORAGE_KEYS.USERS, adminUsers);
 
+    // Reset default contact info, badge gamification, and typing practices
+    setStoredItem(STORAGE_KEYS.CONTACT_INFO, DEFAULT_CONTACT_INFO);
+    syncDocToFirestore('settings', 'contact_info', DEFAULT_CONTACT_INFO);
+    setStoredItem(STORAGE_KEYS.GAMIFICATION_CONFIG, DEFAULT_GAMIFICATION_CONFIG);
+    syncDocToFirestore('config', 'gamification', DEFAULT_GAMIFICATION_CONFIG);
+    setStoredItem(STORAGE_KEYS.TYPING_PRACTICES, INITIAL_TYPING_PRACTICES);
+    INITIAL_TYPING_PRACTICES.forEach((tp) => syncDocToFirestore('typingPractices', tp.id, tp));
+
     // Wipe student activity data, logs, submissions, drafts
     localStorage.removeItem(STORAGE_KEYS.QUIZ_SUBMISSIONS);
     localStorage.removeItem(STORAGE_KEYS.TYPING_SUBMISSIONS);
@@ -954,7 +965,22 @@ export function deleteAnnouncement(id: string): boolean {
 
 // --- Contact Info Management (Superadmin Controlled) ---
 export function getContactInfo(): ContactInfoConfig {
-  return getStoredItem<ContactInfoConfig>(STORAGE_KEYS.CONTACT_INFO, DEFAULT_CONTACT_INFO);
+  const info = getStoredItem<ContactInfoConfig>(STORAGE_KEYS.CONTACT_INFO, DEFAULT_CONTACT_INFO);
+  if (
+    !info.phonePrimary ||
+    info.phonePrimary === '0812-3456-7890' ||
+    info.email === 'ekskul.komputer@sekolah.sch.id' ||
+    (info.address && info.address.includes('Sekretariat Pusat Laboratorium Komputer Ceria'))
+  ) {
+    info.phonePrimary = DEFAULT_CONTACT_INFO.phonePrimary;
+    info.phoneSecondary = DEFAULT_CONTACT_INFO.phoneSecondary;
+    info.email = DEFAULT_CONTACT_INFO.email;
+    info.address = DEFAULT_CONTACT_INFO.address;
+    info.socialIg = DEFAULT_CONTACT_INFO.socialIg;
+    info.socialYt = DEFAULT_CONTACT_INFO.socialYt;
+    saveContactInfo(info);
+  }
+  return info;
 }
 
 export function saveContactInfo(config: ContactInfoConfig): void {
@@ -1022,10 +1048,17 @@ export function saveCertificateConfigForSchool(schoolName: string, config: Certi
 
 // --- Gamification Configuration ---
 export function getGamificationConfig(): GamificationConfig {
-  return getStoredItem<GamificationConfig>(
+  const config = getStoredItem<GamificationConfig>(
     STORAGE_KEYS.GAMIFICATION_CONFIG,
     DEFAULT_GAMIFICATION_CONFIG
   );
+  // Auto-upgrade if previous lower badge thresholds are in storage
+  const bronze = config.badges?.find((b) => b.tier === 'Bronze');
+  if (bronze && bronze.minPoints < 5000) {
+    config.badges = DEFAULT_GAMIFICATION_CONFIG.badges;
+    saveGamificationConfig(config);
+  }
+  return config;
 }
 
 export function saveGamificationConfig(config: GamificationConfig): void {
@@ -1565,12 +1598,23 @@ export function getTypingPractices(): TypingPractice[] {
     setStoredItem(STORAGE_KEYS.TYPING_PRACTICES, INITIAL_TYPING_PRACTICES);
     return INITIAL_TYPING_PRACTICES;
   }
-  const existingIds = new Set(stored.map((t) => t.id));
-  const missing = INITIAL_TYPING_PRACTICES.filter((t) => !existingIds.has(t.id));
-  if (missing.length > 0) {
-    const combined = [...stored, ...missing];
-    setStoredItem(STORAGE_KEYS.TYPING_PRACTICES, combined);
-    return combined;
+  const existingMap = new Map(stored.map((t) => [t.id, t]));
+  let changed = false;
+  for (const initPractice of INITIAL_TYPING_PRACTICES) {
+    const existing = existingMap.get(initPractice.id);
+    if (!existing) {
+      stored.push(initPractice);
+      changed = true;
+    } else if (existing.targetPlainText.length < 350 && initPractice.targetPlainText.length >= 350) {
+      const idx = stored.findIndex((p) => p.id === initPractice.id);
+      if (idx !== -1) {
+        stored[idx] = { ...stored[idx], ...initPractice };
+        changed = true;
+      }
+    }
+  }
+  if (changed) {
+    setStoredItem(STORAGE_KEYS.TYPING_PRACTICES, stored);
   }
   return stored;
 }

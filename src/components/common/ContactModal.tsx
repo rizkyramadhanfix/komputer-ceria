@@ -217,13 +217,13 @@ export const ContactModal: React.FC<ContactModalProps> = ({
             </div>
 
             {/* Social Media Links */}
-            {(contactInfo.socialIg || contactInfo.socialYt) && (
+            {((contactInfo.socialIg && contactInfo.socialIg !== '-') || (contactInfo.socialYt && contactInfo.socialYt !== '-')) ? (
               <div className="pt-5 border-t border-slate-100 dark:border-slate-800 space-y-3">
                 <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">
                   Media Sosial Resmi:
                 </span>
                 <div className="flex flex-col gap-2 text-xs">
-                  {contactInfo.socialIg && (
+                  {contactInfo.socialIg && contactInfo.socialIg !== '-' && (
                     <a
                       href={`https://instagram.com/${contactInfo.socialIg.replace('@', '')}`}
                       target="_blank"
@@ -240,7 +240,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({
                     </a>
                   )}
 
-                  {contactInfo.socialYt && (
+                  {contactInfo.socialYt && contactInfo.socialYt !== '-' && (
                     <a
                       href={`https://youtube.com/results?search_query=${encodeURIComponent(contactInfo.socialYt)}`}
                       target="_blank"
@@ -257,6 +257,10 @@ export const ContactModal: React.FC<ContactModalProps> = ({
                     </a>
                   )}
                 </div>
+              </div>
+            ) : (
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-400">
+                Media Sosial: <span className="font-semibold text-slate-500 dark:text-slate-400">-</span>
               </div>
             )}
           </div>
