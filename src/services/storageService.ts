@@ -501,34 +501,105 @@ seedServerDbIfEmpty();
 // --- Users Management ---
 export function getUsers(): User[] {
   const rawUsers = getStoredItem<User[]>(STORAGE_KEYS.USERS, INITIAL_USERS);
-  console.log('DEBUG: getUsers rawUsers length:', rawUsers?.length);
   let hasModified = false;
   
-  // Deduplicate users array by ID and username
-  const users: User[] = [];
-  const seenIds = new Set<string>();
-  const seenUsernames = new Set<string>();
+  // Robust Deduplication & Merge Map
+  // Keyed by best unique identifier: id -> username -> nisn -> (name + school)
+  const usersMap = new Map<string, User>();
+  const idToKeyMap = new Map<string, string>();
+  const usernameToKeyMap = new Map<string, string>();
+  const nisnToKeyMap = new Map<string, string>();
+  const nameSchoolToKeyMap = new Map<string, string>();
 
-  for (const u of rawUsers) {
-    const lowerUsername = u.username ? u.username.toLowerCase().trim() : '';
-    if (!u.id || seenIds.has(u.id) || (lowerUsername && seenUsernames.has(lowerUsername))) {
+  for (const raw of (Array.isArray(rawUsers) ? rawUsers : [])) {
+    if (!raw || typeof raw !== 'object' || !raw.id) {
       hasModified = true;
       continue;
     }
+
+    const lowerUsername = raw.username ? raw.username.toLowerCase().trim() : '';
+    const cleanNisn = raw.nisn ? raw.nisn.trim() : '';
+    const cleanName = raw.name ? raw.name.toLowerCase().trim() : '';
+    const cleanSchool = raw.school ? raw.school.toLowerCase().trim() : '';
+
     // Filter out dummy pembina accounts
     if (
-      u.id === 'usr-pembina-sukadamai' ||
-      u.id === 'usr-pembina-serikat' ||
+      raw.id === 'usr-pembina-sukadamai' ||
+      raw.id === 'usr-pembina-serikat' ||
       lowerUsername === 'pembina_sukadamai' ||
       lowerUsername === 'pembina_serikat'
     ) {
       hasModified = true;
       continue;
     }
-    seenIds.add(u.id);
-    if (lowerUsername) seenUsernames.add(lowerUsername);
-    users.push(u);
+
+    // Normalize numeric values
+    const safePoints = typeof raw.totalPoints === 'number' && !isNaN(raw.totalPoints) ? Math.max(0, raw.totalPoints) : 0;
+    const safeStars = typeof raw.totalStars === 'number' && !isNaN(raw.totalStars) ? Math.max(0, raw.totalStars) : Math.floor(safePoints / 10);
+    const safeLessons = Array.isArray(raw.completedLessons) ? Array.from(new Set(raw.completedLessons)) : [];
+
+    const cleanUser: User = {
+      ...raw,
+      id: raw.id,
+      name: raw.name ? raw.name.trim() : 'Siswa',
+      username: raw.username ? raw.username.trim() : `user_${raw.id}`,
+      role: raw.role || 'student',
+      totalPoints: safePoints,
+      totalStars: safeStars,
+      completedLessons: safeLessons,
+      createdAt: raw.createdAt || new Date().toISOString(),
+      lastActiveAt: raw.lastActiveAt || raw.createdAt || new Date().toISOString(),
+    };
+
+    // Find if user already recognized by id, username, nisn, or (name + school for student)
+    let existingKey = idToKeyMap.get(cleanUser.id);
+    if (!existingKey && lowerUsername) {
+      existingKey = usernameToKeyMap.get(lowerUsername);
+    }
+    if (!existingKey && cleanNisn) {
+      existingKey = nisnToKeyMap.get(cleanNisn);
+    }
+    if (!existingKey && cleanUser.role === 'student' && cleanName && cleanSchool) {
+      existingKey = nameSchoolToKeyMap.get(`${cleanName}__${cleanSchool}`);
+    }
+
+    if (existingKey && usersMap.has(existingKey)) {
+      hasModified = true;
+      const existing = usersMap.get(existingKey)!;
+      // Merge: keep higher points, combined lessons, and richer profile
+      const mergedPoints = Math.max(existing.totalPoints || 0, cleanUser.totalPoints || 0);
+      const mergedStars = Math.max(existing.totalStars || 0, cleanUser.totalStars || 0, Math.floor(mergedPoints / 10));
+      const mergedLessons = Array.from(new Set([...(existing.completedLessons || []), ...(cleanUser.completedLessons || [])]));
+      const mergedUser: User = {
+        ...existing,
+        ...cleanUser,
+        id: existing.id, // keep stable primary id
+        totalPoints: mergedPoints,
+        totalStars: mergedStars,
+        completedLessons: mergedLessons,
+        equippedBadge: cleanUser.equippedBadge || existing.equippedBadge,
+        equippedFrame: cleanUser.equippedFrame || existing.equippedFrame,
+        equippedTitle: cleanUser.equippedTitle || existing.equippedTitle,
+        avatarUrl: cleanUser.avatarUrl || existing.avatarUrl,
+        school: cleanUser.school || existing.school,
+        grade: cleanUser.grade || existing.grade,
+        schoolFaction: cleanUser.schoolFaction || existing.schoolFaction,
+        lastActiveAt: (cleanUser.lastActiveAt && cleanUser.lastActiveAt > (existing.lastActiveAt || '')) ? cleanUser.lastActiveAt : existing.lastActiveAt,
+      };
+      usersMap.set(existingKey, mergedUser);
+    } else {
+      const primaryKey = cleanUser.id;
+      usersMap.set(primaryKey, cleanUser);
+      idToKeyMap.set(cleanUser.id, primaryKey);
+      if (lowerUsername) usernameToKeyMap.set(lowerUsername, primaryKey);
+      if (cleanNisn) nisnToKeyMap.set(cleanNisn, primaryKey);
+      if (cleanUser.role === 'student' && cleanName && cleanSchool) {
+        nameSchoolToKeyMap.set(`${cleanName}__${cleanSchool}`, primaryKey);
+      }
+    }
   }
+
+  const users: User[] = Array.from(usersMap.values());
 
   // Ensure default Administrator / Superadmin exists
   const hasSuperadmin = users.some(

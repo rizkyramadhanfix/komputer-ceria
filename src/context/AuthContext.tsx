@@ -53,14 +53,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const lastActivityRef = useRef<number>(Date.now());
 
   useEffect(() => {
-    // Initial fetch from local storage only
+    // Initial fetch from local storage
     const initAuth = () => {
       try {
+        const allUsers = getUsers();
+        setUsers(allUsers);
+
         const raw = localStorage.getItem('ekskul_active_user');
         if (raw) {
           const parsed = JSON.parse(raw) as User;
           if (parsed && parsed.id) {
-            setCurrentUser(parsed);
+            const matched = allUsers.find((u) => u.id === parsed.id) || parsed;
+            setCurrentUser(matched);
           }
         }
       } catch (e) {

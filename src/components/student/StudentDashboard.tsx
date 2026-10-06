@@ -1972,64 +1972,82 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
           </div>
 
           {/* School Faction Team Battle Leaderboard */}
-          <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-2 border-indigo-500/30 rounded-2xl p-5 text-white shadow-xl space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-amber-400 animate-bounce" />
-                <h3 className="text-sm font-black uppercase tracking-wider">
-                  Klasemen Fraksi Tim Sekolah {currentUser.school ? `· ${currentUser.school}` : ''}
-                </h3>
-              </div>
-              <span className="text-[11px] font-bold text-indigo-300">Team Battle Aktif ⚔️</span>
-            </div>
+          {(() => {
+            const currentSchoolClean = currentUser.school?.toLowerCase().trim() || '';
+            const allStudents = getUsers().filter((u) => u.role === 'student');
+            const filteredBySchool = currentSchoolClean
+              ? allStudents.filter((u) => !u.school || u.school.toLowerCase().trim() === currentSchoolClean)
+              : allStudents;
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {/* Processor Team */}
-              <div className={`p-4 rounded-xl border transition-all ${currentUser.schoolFaction === 'processor' ? 'bg-cyan-950/80 border-cyan-400 ring-2 ring-cyan-400/40' : 'bg-white/5 border-white/10'}`}>
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl">⚡</span>
-                  <span className="text-[10px] font-mono font-bold text-cyan-300 uppercase">Prosesor</span>
-                </div>
-                <h4 className="text-sm font-black text-white mt-1">Tim Prosesor</h4>
-                <div className="mt-3 flex items-baseline justify-between">
-                  <span className="text-[11px] text-slate-400">{getUsers().filter(u => u.role === 'student' && u.schoolFaction === 'processor' && (!currentUser.school || u.school === currentUser.school)).length} Anggota</span>
-                  <span className="text-base font-black font-mono text-cyan-300">
-                    {getUsers().filter(u => u.role === 'student' && u.schoolFaction === 'processor' && (!currentUser.school || u.school === currentUser.school)).reduce((acc, u) => acc + (u.totalPoints || 0), 0)} pt
-                  </span>
-                </div>
-              </div>
+            const processorMembers = filteredBySchool.filter((u) => u.schoolFaction === 'processor');
+            const graphicsMembers = filteredBySchool.filter((u) => u.schoolFaction === 'graphics');
+            const memoryMembers = filteredBySchool.filter((u) => u.schoolFaction === 'memory');
 
-              {/* Graphics Team */}
-              <div className={`p-4 rounded-xl border transition-all ${currentUser.schoolFaction === 'graphics' ? 'bg-pink-950/80 border-pink-400 ring-2 ring-pink-400/40' : 'bg-white/5 border-white/10'}`}>
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl">🎨</span>
-                  <span className="text-[10px] font-mono font-bold text-pink-300 uppercase">Grafis</span>
-                </div>
-                <h4 className="text-sm font-black text-white mt-1">Tim Grafis</h4>
-                <div className="mt-3 flex items-baseline justify-between">
-                  <span className="text-[11px] text-slate-400">{getUsers().filter(u => u.role === 'student' && u.schoolFaction === 'graphics' && (!currentUser.school || u.school === currentUser.school)).length} Anggota</span>
-                  <span className="text-base font-black font-mono text-pink-300">
-                    {getUsers().filter(u => u.role === 'student' && u.schoolFaction === 'graphics' && (!currentUser.school || u.school === currentUser.school)).reduce((acc, u) => acc + (u.totalPoints || 0), 0)} pt
-                  </span>
-                </div>
-              </div>
+            const processorPts = processorMembers.reduce((acc, u) => acc + (u.totalPoints || 0), 0);
+            const graphicsPts = graphicsMembers.reduce((acc, u) => acc + (u.totalPoints || 0), 0);
+            const memoryPts = memoryMembers.reduce((acc, u) => acc + (u.totalPoints || 0), 0);
 
-              {/* Memory Team */}
-              <div className={`p-4 rounded-xl border transition-all ${currentUser.schoolFaction === 'memory' ? 'bg-emerald-950/80 border-emerald-400 ring-2 ring-emerald-400/40' : 'bg-white/5 border-white/10'}`}>
+            return (
+              <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-2 border-indigo-500/30 rounded-2xl p-5 text-white shadow-xl space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-2xl">🧠</span>
-                  <span className="text-[10px] font-mono font-bold text-emerald-300 uppercase">Memori</span>
+                  <div className="flex items-center gap-2">
+                    <Trophy className="w-5 h-5 text-amber-400 animate-bounce" />
+                    <h3 className="text-sm font-black uppercase tracking-wider">
+                      Klasemen Fraksi Tim Sekolah {currentUser.school ? `· ${currentUser.school}` : ''}
+                    </h3>
+                  </div>
+                  <span className="text-[11px] font-bold text-indigo-300">Team Battle Aktif ⚔️</span>
                 </div>
-                <h4 className="text-sm font-black text-white mt-1">Tim Memori</h4>
-                <div className="mt-3 flex items-baseline justify-between">
-                  <span className="text-[11px] text-slate-400">{getUsers().filter(u => u.role === 'student' && u.schoolFaction === 'memory' && (!currentUser.school || u.school === currentUser.school)).length} Anggota</span>
-                  <span className="text-base font-black font-mono text-emerald-300">
-                    {getUsers().filter(u => u.role === 'student' && u.schoolFaction === 'memory' && (!currentUser.school || u.school === currentUser.school)).reduce((acc, u) => acc + (u.totalPoints || 0), 0)} pt
-                  </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {/* Processor Team */}
+                  <div className={`p-4 rounded-xl border transition-all ${currentUser.schoolFaction === 'processor' ? 'bg-cyan-950/80 border-cyan-400 ring-2 ring-cyan-400/40' : 'bg-white/5 border-white/10'}`}>
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl">⚡</span>
+                      <span className="text-[10px] font-mono font-bold text-cyan-300 uppercase">Prosesor</span>
+                    </div>
+                    <h4 className="text-sm font-black text-white mt-1">Tim Prosesor</h4>
+                    <div className="mt-3 flex items-baseline justify-between">
+                      <span className="text-[11px] text-slate-400">{processorMembers.length} Anggota</span>
+                      <span className="text-base font-black font-mono text-cyan-300">
+                        {processorPts} pt
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Graphics Team */}
+                  <div className={`p-4 rounded-xl border transition-all ${currentUser.schoolFaction === 'graphics' ? 'bg-pink-950/80 border-pink-400 ring-2 ring-pink-400/40' : 'bg-white/5 border-white/10'}`}>
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl">🎨</span>
+                      <span className="text-[10px] font-mono font-bold text-pink-300 uppercase">Grafis</span>
+                    </div>
+                    <h4 className="text-sm font-black text-white mt-1">Tim Grafis</h4>
+                    <div className="mt-3 flex items-baseline justify-between">
+                      <span className="text-[11px] text-slate-400">{graphicsMembers.length} Anggota</span>
+                      <span className="text-base font-black font-mono text-pink-300">
+                        {graphicsPts} pt
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Memory Team */}
+                  <div className={`p-4 rounded-xl border transition-all ${currentUser.schoolFaction === 'memory' ? 'bg-emerald-950/80 border-emerald-400 ring-2 ring-emerald-400/40' : 'bg-white/5 border-white/10'}`}>
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl">🧠</span>
+                      <span className="text-[10px] font-mono font-bold text-emerald-300 uppercase">Memori</span>
+                    </div>
+                    <h4 className="text-sm font-black text-white mt-1">Tim Memori</h4>
+                    <div className="mt-3 flex items-baseline justify-between">
+                      <span className="text-[11px] text-slate-400">{memoryMembers.length} Anggota</span>
+                      <span className="text-base font-black font-mono text-emerald-300">
+                        {memoryPts} pt
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
+            );
+          })()}
 
           <LeaderboardWidget showAll={true} />
         </div>
