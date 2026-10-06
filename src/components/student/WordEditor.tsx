@@ -38,10 +38,12 @@ import {
 } from 'lucide-react';
 import { TypingPractice } from '../../types';
 import { compressImageFile } from '../../utils/imageCompressor';
+import { soundEffects } from '../../utils/soundEffects';
 import { PrintPreviewModal } from '../common/PrintPreviewModal';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { getTypingDraft, saveTypingDraft, deleteTypingDraft } from '../../services/storageService';
+import { Volume2, VolumeX } from 'lucide-react';
 
 interface WordEditorProps {
   practice: TypingPractice;
@@ -94,6 +96,7 @@ export const WordEditor: React.FC<WordEditorProps> = ({
   const [showReference, setShowReference] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copyPasteWarning, setCopyPasteWarning] = useState<string | null>(null);
+  const [soundEnabled, setSoundEnabled] = useState(() => soundEffects.isEnabled());
 
   const triggerCopyPasteWarning = (action: 'copy' | 'paste' | 'cut') => {
     const text =
@@ -494,6 +497,11 @@ export const WordEditor: React.FC<WordEditorProps> = ({
         }
       }
     }
+
+    // Play tactile mechanical keypress sound on valid typing keys
+    if (!e.ctrlKey && !e.altKey && !e.metaKey && e.key.length === 1 || ['Enter', 'Backspace', 'Space', ' '].includes(e.key)) {
+      soundEffects.playKeypress(e.key);
+    }
   };
 
   // Similarity & Accuracy calculation
@@ -660,6 +668,7 @@ export const WordEditor: React.FC<WordEditorProps> = ({
     }
 
     setTimeout(() => {
+      soundEffects.playSuccessFanfare();
       onSubmit({
         content,
         accuracy: finalAccuracy,
@@ -781,6 +790,23 @@ export const WordEditor: React.FC<WordEditorProps> = ({
                 <span className="hidden sm:inline">Simpan & Keluar</span>
               </button>
             )}
+
+            <button
+              type="button"
+              onClick={() => {
+                const next = soundEffects.toggle();
+                setSoundEnabled(next);
+              }}
+              className={`p-1.5 text-xs font-medium rounded-lg border transition-colors cursor-pointer flex items-center gap-1 ${
+                soundEnabled
+                  ? 'border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300'
+                  : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-slate-600'
+              }`}
+              title={soundEnabled ? 'Suara Ketikan Aktif (Klik untuk Matikan)' : 'Suara Ketikan Mati (Klik untuk Nyalakan)'}
+            >
+              {soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+              <span className="hidden sm:inline text-[11px] font-semibold">{soundEnabled ? 'Suara: ON' : 'Suara: OFF'}</span>
+            </button>
 
             <button
               type="button"

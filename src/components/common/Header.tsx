@@ -45,6 +45,8 @@ import {
   ShieldAlert,
   Bot,
   Rocket,
+  Share2,
+  QrCode,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -52,14 +54,13 @@ import { useToast } from '../../context/ToastContext';
 import { getDashboardConfig } from '../../services/storageService';
 import { Avatar } from './Avatar';
 import { CloudSyncStatusButton } from './CloudSyncStatusButton';
+import { ShareAppModal } from './ShareAppModal';
 
 interface HeaderProps {
   currentView: string;
   onNavigate: (view: string) => void;
   onOpenAuthModal: (mode: 'admin' | 'superadmin' | 'pembina' | 'student-login' | 'student-register') => void;
   onOpenProfileModal?: () => void;
-  onOpenAnnouncementModal?: () => void;
-  onOpenContactModal?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -67,14 +68,13 @@ export const Header: React.FC<HeaderProps> = ({
   onNavigate,
   onOpenAuthModal,
   onOpenProfileModal,
-  onOpenAnnouncementModal,
-  onOpenContactModal,
 }) => {
   const { theme, toggleTheme } = useTheme();
   const { currentUser, logout, isAdmin, isSuperAdmin, isPembina, isStudent, assignedSchool } = useAuth();
   const { showToast } = useToast();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const dashboardConfig = getDashboardConfig();
 
   const handleNavClick = (view: string) => {
@@ -253,7 +253,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   onMouseEnter={() => setActiveDropdown('game')}
                   className={`transition-all hover:text-indigo-600 dark:hover:text-indigo-400 py-1 flex items-center gap-1 cursor-pointer ${
-                    ['student-games', 'student-pc-doctor', 'student-pixel-art', 'student-spreadsheet', 'student-pc-builder', 'student-coding-lab', 'student-file-explorer', 'student-network-builder', 'student-cyber-safety'].includes(currentView) ? 'text-indigo-600 dark:text-indigo-400' : ''
+                    ['student-games', 'student-pc-doctor', 'student-pixel-art', 'student-spreadsheet', 'student-pc-builder', 'student-coding-lab', 'student-file-explorer', 'student-network-builder', 'student-cyber-safety', 'student-pizza-tycoon', 'student-code-a-pet', 'student-detective-hoax'].includes(currentView) ? 'text-indigo-600 dark:text-indigo-400' : ''
                   }`}
                 >
                   <span>Arena Game</span>
@@ -263,7 +263,28 @@ export const Header: React.FC<HeaderProps> = ({
                   onMouseLeave={() => setActiveDropdown(null)}
                   className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all z-50 max-h-96 overflow-y-auto"
                 >
-                  <button onClick={() => handleNavClick('student-pc-doctor')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
+                  <button onClick={() => handleNavClick('student-pizza-tycoon')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-amber-600 dark:text-amber-400 font-bold bg-amber-50/50 dark:bg-amber-950/30">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">🍕</span>
+                      <span>Excel Pizza Tycoon</span>
+                    </div>
+                    <span className="text-[9px] bg-rose-500 text-white px-1.5 py-0.2 rounded font-black">BARU</span>
+                  </button>
+                  <button onClick={() => handleNavClick('student-code-a-pet')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-pink-600 dark:text-pink-400 font-bold bg-pink-50/50 dark:bg-pink-950/30">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">🐾</span>
+                      <span>Code-A-Pet Robot</span>
+                    </div>
+                    <span className="text-[9px] bg-rose-500 text-white px-1.5 py-0.2 rounded font-black">BARU</span>
+                  </button>
+                  <button onClick={() => handleNavClick('student-detective-hoax')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-blue-600 dark:text-blue-400 font-bold bg-blue-50/50 dark:bg-blue-950/30">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">🕵️‍♂️</span>
+                      <span>Detektif Hoax & Fakta</span>
+                    </div>
+                    <span className="text-[9px] bg-rose-500 text-white px-1.5 py-0.2 rounded font-black">BARU</span>
+                  </button>
+                  <button onClick={() => handleNavClick('student-pc-doctor')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 border-t border-slate-100 dark:border-slate-800">
                     <Stethoscope className="w-3.5 h-3.5 text-rose-500" />
                     <span>Dokter PC (Troubleshooting)</span>
                   </button>
@@ -505,6 +526,17 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Modern Real-Time Cloud Sync Button & Indicator */}
           <CloudSyncStatusButton />
 
+          {/* Share & Connect Multi-Device Button */}
+          <button
+            type="button"
+            onClick={() => setIsShareModalOpen(true)}
+            title="Buka di Perangkat Lain (Scan QR Code & Bagikan Tautan Online)"
+            className="px-2.5 py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800/80 bg-indigo-50/80 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold shrink-0 shadow-xs active:scale-95"
+          >
+            <QrCode className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+            <span className="hidden sm:inline">Hubungkan HP</span>
+          </button>
+
           {currentUser ? (
             <div className="flex items-center gap-3">
               {/* Profile Avatar & Info Clickable */}
@@ -616,6 +648,19 @@ export const Header: React.FC<HeaderProps> = ({
                   <span>Dashboard</span>
                 </button>
 
+                {onOpenProfileModal && (
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      onOpenProfileModal();
+                    }}
+                    className="w-full text-left py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:text-indigo-600 flex items-center gap-2"
+                  >
+                    <UserCheck className="w-4 h-4 text-emerald-500" />
+                    <span>Edit Profil & Foto</span>
+                  </button>
+                )}
+
                 <div className="pt-2 pb-1">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-1">Materi & Kuis</p>
                   <button onClick={() => handleNavClick('student-lessons')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Daftar Materi</button>
@@ -634,6 +679,18 @@ export const Header: React.FC<HeaderProps> = ({
 
                 <div className="pt-2 pb-1">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-1">Arena Game & Simulasi</p>
+                  <button onClick={() => handleNavClick('student-pizza-tycoon')} className="w-full text-left py-2 px-2 text-sm font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 flex items-center justify-between">
+                    <span>🍕 Excel Pizza Tycoon</span>
+                    <span className="text-[9px] bg-rose-500 text-white px-1.5 py-0.2 rounded font-black">BARU</span>
+                  </button>
+                  <button onClick={() => handleNavClick('student-code-a-pet')} className="w-full text-left py-2 px-2 text-sm font-bold text-pink-600 dark:text-pink-400 hover:text-pink-700 flex items-center justify-between">
+                    <span>🐾 Code-A-Pet Robot</span>
+                    <span className="text-[9px] bg-rose-500 text-white px-1.5 py-0.2 rounded font-black">BARU</span>
+                  </button>
+                  <button onClick={() => handleNavClick('student-detective-hoax')} className="w-full text-left py-2 px-2 text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 flex items-center justify-between">
+                    <span>🕵️‍♂️ Detektif Hoax & Fakta</span>
+                    <span className="text-[9px] bg-rose-500 text-white px-1.5 py-0.2 rounded font-black">BARU</span>
+                  </button>
                   <button onClick={() => handleNavClick('student-pc-doctor')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Dokter PC (Troubleshooting)</button>
                   <button onClick={() => handleNavClick('student-pixel-art')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Studio Pixel Art 8-Bit</button>
                   <button onClick={() => handleNavClick('student-spreadsheet')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Petualangan Excel Cilik</button>
@@ -726,6 +783,17 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Real-Time Sync Button in Mobile Drawer */}
           <div className="pt-3 border-t border-slate-200 dark:border-slate-800">
             <CloudSyncStatusButton className="w-full flex justify-center" />
+            <button
+              type="button"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setIsShareModalOpen(true);
+              }}
+              className="w-full mt-2 py-2 px-3 text-center text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 rounded-xl flex items-center justify-center gap-2 border border-indigo-200 dark:border-indigo-800"
+            >
+              <Share2 className="w-4 h-4" />
+              <span>Buka di HP / Perangkat Lain (QR Code)</span>
+            </button>
           </div>
 
           {currentUser && (
@@ -766,6 +834,12 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </div>
       )}
+
+      {/* Share & Connect Multi-Device Modal */}
+      <ShareAppModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+      />
     </header>
   );
 };

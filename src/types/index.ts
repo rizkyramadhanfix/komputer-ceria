@@ -172,6 +172,7 @@ export interface TypingPractice {
   targetWpm: number;
   createdAt: string;
   tournamentId?: string; // If this belongs to a tournament
+  relatedQuizId?: string; // Optional related quiz ID for post-typing assessment
 }
 
 export interface TypingSubmission {

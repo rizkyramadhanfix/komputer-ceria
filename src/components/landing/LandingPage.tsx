@@ -31,6 +31,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { getDashboardConfig, getLessons, getQuizzes, getTypingPractices, trackVisitor, getUsers, getAnnouncements, getContactInfo } from '../../services/storageService';
 import { VisitorStats } from '../../types';
+import QRCode from 'qrcode';
 import { Avatar } from '../common/Avatar';
 import { LeaderboardWidget } from '../common/LeaderboardWidget';
 
@@ -66,10 +67,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const { showSuccess, showError } = useToast();
   const [copied, setCopied] = useState(false);
   const [liveUrl, setLiveUrl] = useState('');
+  const [qrDataUrl, setQrDataUrl] = useState('');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setLiveUrl(window.location.origin);
+      const origin = window.location.origin;
+      setLiveUrl(origin);
+      QRCode.toDataURL(origin, {
+        width: 250,
+        margin: 1.5,
+        color: { dark: '#1e1b4b', light: '#ffffff' },
+        errorCorrectionLevel: 'M',
+      })
+        .then((url) => setQrDataUrl(url))
+        .catch((err) => console.error('Landing QR error:', err));
     }
   }, []);
 
@@ -377,21 +388,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             {/* Right Column: QR Code Card */}
             <div className="lg:col-span-5 flex flex-col items-center sm:items-end justify-center">
-              <div className="p-5 rounded-2xl bg-white text-slate-900 shadow-2xl border border-white/40 max-w-xs text-center space-y-3">
+              <div className="p-5 rounded-2xl bg-white text-slate-900 shadow-2xl border-2 border-indigo-200 max-w-xs text-center space-y-3">
                 <div className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full">
                   <QrCode className="w-3.5 h-3.5 text-indigo-600" />
                   <span>Scan QR Code dari HP</span>
                 </div>
 
                 <div className="flex justify-center p-2 bg-slate-50 rounded-xl border border-slate-100">
-                  <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=8&data=${encodeURIComponent(
-                      liveUrl || 'https://ais-pre-56wtolkkvjr66jc3jpdb4m-719827907114.asia-east1.run.app'
-                    )}`}
-                    alt="QR Code Akses Komputer Ceria"
-                    className="w-40 h-40 object-contain rounded-lg"
-                    loading="lazy"
-                  />
+                  {qrDataUrl ? (
+                    <img
+                      src={qrDataUrl}
+                      alt="QR Code Akses Komputer Ceria"
+                      className="w-40 h-40 object-contain rounded-lg block"
+                    />
+                  ) : (
+                    <div className="w-40 h-40 flex items-center justify-center text-xs text-slate-400">
+                      Membuat QR Code...
+                    </div>
+                  )}
                 </div>
 
                 <p className="text-[11px] text-slate-600 leading-tight">

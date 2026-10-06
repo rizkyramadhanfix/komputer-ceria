@@ -115,7 +115,7 @@ function setStoredItem<T>(key: string, value: T): void {
 }
 
 // One-time clean reset for all student and pembina accounts & old session logs as requested
-const CLEAN_RESET_KEY = 'ekskul_clean_reset_v7_contact_badge_typing';
+const CLEAN_RESET_KEY = 'ekskul_clean_reset_v9_moderate_typing_text_linked_quizzes';
 if (typeof window !== 'undefined') {
   try {
     if (localStorage.getItem(CLEAN_RESET_KEY) !== 'true') {
@@ -132,6 +132,8 @@ if (typeof window !== 'undefined') {
       localStorage.removeItem('ekskul_active_user');
       localStorage.setItem(STORAGE_KEYS.CONTACT_INFO, JSON.stringify(DEFAULT_CONTACT_INFO));
       localStorage.setItem(STORAGE_KEYS.GAMIFICATION_CONFIG, JSON.stringify(DEFAULT_GAMIFICATION_CONFIG));
+      localStorage.setItem(STORAGE_KEYS.LESSONS, JSON.stringify(INITIAL_LESSONS));
+      localStorage.setItem(STORAGE_KEYS.QUIZZES, JSON.stringify(INITIAL_QUIZZES));
       localStorage.setItem(STORAGE_KEYS.TYPING_PRACTICES, JSON.stringify(INITIAL_TYPING_PRACTICES));
       localStorage.setItem(CLEAN_RESET_KEY, 'true');
     }
@@ -1541,12 +1543,26 @@ export function getQuizzes(): Quiz[] {
     setStoredItem(STORAGE_KEYS.QUIZZES, INITIAL_QUIZZES);
     return INITIAL_QUIZZES;
   }
-  const existingIds = new Set(stored.map((q) => q.id));
-  const missing = INITIAL_QUIZZES.filter((q) => !existingIds.has(q.id));
-  if (missing.length > 0) {
-    const combined = [...stored, ...missing];
-    setStoredItem(STORAGE_KEYS.QUIZZES, combined);
-    return combined;
+  const existingMap = new Map(stored.map((q) => [q.id, q]));
+  let changed = false;
+  const merged: Quiz[] = [...stored];
+  for (const initQuiz of INITIAL_QUIZZES) {
+    const existing = existingMap.get(initQuiz.id);
+    if (!existing) {
+      merged.push(initQuiz);
+      changed = true;
+    } else if (initQuiz.questions.length > 0 && existing.questions[0]?.questionText !== initQuiz.questions[0]?.questionText) {
+      // Update quiz questions to the latest text-comprehension questions
+      const idx = merged.findIndex((q) => q.id === initQuiz.id);
+      if (idx !== -1) {
+        merged[idx] = { ...merged[idx], ...initQuiz };
+        changed = true;
+      }
+    }
+  }
+  if (changed) {
+    setStoredItem(STORAGE_KEYS.QUIZZES, merged);
+    return merged;
   }
   return stored;
 }
@@ -1600,21 +1616,23 @@ export function getTypingPractices(): TypingPractice[] {
   }
   const existingMap = new Map(stored.map((t) => [t.id, t]));
   let changed = false;
+  const merged: TypingPractice[] = [...stored];
   for (const initPractice of INITIAL_TYPING_PRACTICES) {
     const existing = existingMap.get(initPractice.id);
     if (!existing) {
-      stored.push(initPractice);
+      merged.push(initPractice);
       changed = true;
-    } else if (existing.targetPlainText.length < 350 && initPractice.targetPlainText.length >= 350) {
-      const idx = stored.findIndex((p) => p.id === initPractice.id);
+    } else if (existing.targetPlainText !== initPractice.targetPlainText || existing.relatedQuizId !== initPractice.relatedQuizId) {
+      const idx = merged.findIndex((p) => p.id === initPractice.id);
       if (idx !== -1) {
-        stored[idx] = { ...stored[idx], ...initPractice };
+        merged[idx] = { ...merged[idx], ...initPractice };
         changed = true;
       }
     }
   }
   if (changed) {
-    setStoredItem(STORAGE_KEYS.TYPING_PRACTICES, stored);
+    setStoredItem(STORAGE_KEYS.TYPING_PRACTICES, merged);
+    return merged;
   }
   return stored;
 }

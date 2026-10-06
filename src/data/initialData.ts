@@ -400,293 +400,760 @@ Berpikir komputasional adalah metode menyelesaikan masalah kompleks dengan memec
 - **Perulangan (Looping)**: Mengulang perintah yang sama berkali-kali secara otomatis.
   - *Contoh: Ulangi melangkah maju sebanyak 5 kali.*`,
   },
+  {
+    id: 'les-8',
+    title: 'Dasar Microsoft Excel Cilik: Baris, Kolom, Sel, dan Rumus SUM',
+    category: 'Aplikasi Kantor',
+    summary: 'Mengenal lembar sebar (spreadsheet), alamat sel seperti A1, memasukkan data angka, dan rumus penjumlahan otomatis =SUM().',
+    readingTimeMinutes: 6,
+    points: 65,
+    tags: ['Excel', 'Spreadsheet', 'Rumus Dasar'],
+    imageUrl: '',
+    videoUrl: '',
+    createdAt: new Date().toISOString(),
+    content: `## A. Apa Itu Microsoft Excel?
+Microsoft Excel adalah aplikasi lembar kerja (*spreadsheet*) yang digunakan untuk mengolah data angka, membuat tabel keuangan, dan menghitung rumus matematika secara otomatis dan akurat.
+
+---
+
+## B. Struktur Lembar Kerja Excel
+1. **Kolom (Columns)**: Kotak membujur dari atas ke bawah yang ditandai dengan huruf abjad (**A, B, C, D, ...**).
+2. **Baris (Rows)**: Kotak membentang dari kiri ke kanan yang ditandai dengan angka (**1, 2, 3, 4, ...**).
+3. **Sel (Cell)**: Kotak pertemuan antara kolom dan baris. Contohnya, sel **B3** adalah pertemuan antara kolom B dan baris ke-3.
+4. **Range**: Kumpulan beberapa sel yang dipilih bersamaan, contohnya **A1:A5** (sel A1 sampai A5).
+
+---
+
+## C. Rumus Ajaib Penjumlahan (=SUM)
+Semua penulisan rumus di Excel wajib diawali dengan tanda sama dengan (**=**).
+- **Rumus Penjumlahan**: \`=SUM(A1:A5)\` menjumlahkan seluruh angka dari sel A1 hingga A5.
+- **Rata-rata**: \`=AVERAGE(B1:B10)\` mencari nilai rata-rata dari sekelompok data.
+- **Nilai Tertinggi & Terendah**: \`=MAX()\` untuk nilai terbesar dan \`=MIN()\` untuk nilai terkecil.`,
+  },
+  {
+    id: 'les-9',
+    title: 'Desain Grafis Cilik: Warna RGB, Resolusi Piksel, dan Format File',
+    category: 'Dasar Komputer',
+    summary: 'Mengenal konsep dasar seni digital: model warna RGB, kerapatan piksel (resolusi), dan perbedaan format PNG, JPG, dan GIF.',
+    readingTimeMinutes: 5,
+    points: 60,
+    tags: ['Desain', 'Grafis', 'Warna RGB'],
+    imageUrl: '',
+    videoUrl: '',
+    createdAt: new Date().toISOString(),
+    content: `## A. Gambar Digital & Satuan Piksel (Pixel)
+Setiap gambar di layar komputer tersusun dari jutaan kotak warna sangat kecil yang disebut **Piksel** (*Picture Element*). Semakin banyak jumlah piksel pada gambar, semakin tajam dan jernih kualitasnya (*High Resolution*).
+
+---
+
+## B. Model Warna Cahaya Digital: RGB
+Layar monitor komputer dan smartphone menggunakan model pencampuran tiga warna cahaya utama (**Red, Green, Blue** atau RGB):
+- **Red (Merah)**
+- **Green (Hijau)**
+- **Blue (Biru)**
+Ketika ketiga warna cahaya ini dinyalakan bersamaan dengan kekuatan penuh, akan tercipta warna **Putih terang**.
+
+---
+
+## C. Mengenal 3 Format Berkas Gambar Populer
+1. **JPG / JPEG**: Format foto standar yang paling efisien untuk foto pemandangan dan manusia dengan ukuran berkas kecil.
+2. **PNG**: Format gambar berkualitas tinggi yang mendukung latar belakang transparan (tembus pandang), sangat cocok untuk logo dan stiker.
+3. **GIF**: Format gambar animasi bergerak pendek tanpa suara.`,
+  },
+  {
+    id: 'les-10',
+    title: 'Jaringan Komputer & Internet: Wi-Fi, Kabel LAN, dan Router',
+    category: 'Hardware',
+    summary: 'Memahami bagaimana komputer saling terhubung melalui gelombang nirkabel Wi-Fi, kabel UTP LAN, IP Address, dan perangkat router.',
+    readingTimeMinutes: 6,
+    points: 65,
+    tags: ['Jaringan', 'Internet', 'Wi-Fi', 'LAN'],
+    imageUrl: '',
+    videoUrl: '',
+    createdAt: new Date().toISOString(),
+    content: `## A. Apa Itu Jaringan Komputer?
+Jaringan komputer (*Computer Network*) adalah sistem yang menghubungkan dua komputer atau lebih sehingga dapat saling bertukar data, berbagi koneksi internet, dan berbagi printer bersama.
+
+---
+
+## B. Dua Cara Menghubungkan Komputer
+1. **Jaringan Berkabel (Wired / Kabel LAN)**:
+   - Menggunakan kabel jaringan tembaga (kabel UTP) dengan konektor **RJ-45**.
+   - Keunggulannya: Koneksi data sangat stabil, cepat, dan tidak terganggu cuaca.
+2. **Jaringan Nirkabel (Wireless / Wi-Fi)**:
+   - Menghubungkan perangkat melalui gelombang radio tanpa kabel fisik.
+   - Keunggulannya: Praktis, mudah dibawa berpindah ruangan (laptop dan smartphone).
+
+---
+
+## C. Perangkat Penting Jaringan Lab Komputer
+- **Router**: Perangkat pengatur lalu lintas data yang membagikan sinyal internet ke seluruh komputer lab.
+- **Switch / Hub**: Alat percabangan tempat kabel-kabel LAN dari puluhan komputer tersambung menjadi satu kesatuan.
+- **IP Address (Alamat IP)**: Nomor identitas digital unik bagi setiap perangkat di jaringan (seperti nomor rumah di dunia nyata).`,
+  },
 ];
 
 // ==========================================
 // DAFTAR BANK KUIS INTERAKTIF LENGKAP
+// (Setiap kuis menguji pemahaman teks naskah latihan mengetik)
 // ==========================================
 export const INITIAL_QUIZZES: Quiz[] = [
   {
     id: 'quiz-1',
-    title: 'Jago Shortcut Microsoft Word',
-    category: 'Aplikasi Kantor',
-    description: 'Uji kecepatan jarimu menghafal tombol shortcut ajaib di Microsoft Word agar tugas selesai secepat kilat!',
+    title: 'Kuis Pemahaman Surat Resmi Undangan Rapat',
+    category: 'Format Word',
+    description: 'Uji pemahamanmu dari naskah Surat Resmi Undangan: pengirim, waktu, tempat rapat, dan agenda.',
     allocatedPoints: 100,
     timeLimitMinutes: 10,
     createdAt: new Date().toISOString(),
     questions: [
       {
         id: 'q1-1',
-        questionText: 'Kombinasi tombol keyboard yang digunakan untuk membuat tulisan menjadi tebal (Bold) adalah...',
-        options: ['Ctrl + B', 'Ctrl + D', 'Ctrl + T', 'Ctrl + I'],
+        questionText: 'Berdasarkan surat resmi tersebut, siapa nama sekolah pengirim surat undangan?',
+        options: ['SDN Sukadamai 2 Bogor', 'SD Ceria Nusantara', 'SD Harapan Bangsa', 'SD Prestasi Emas'],
         correctAnswerIndex: 0,
-        explanation: 'Hebat! Ctrl + B (Bold) digunakan untuk menebalkan teks yang dipilih.',
+        explanation: 'Tepat! Kop surat menunjukkan SEKOLAH DASAR NEGERI SUKADAMAI 2 BOGOR.',
         weight: 20,
       },
       {
         id: 'q1-2',
-        questionText: 'Shortcut apakah yang digunakan untuk menyimpan dokumen (Save) yang sedang kamu ketik?',
-        options: ['Ctrl + O', 'Ctrl + S', 'Ctrl + P', 'Ctrl + A'],
-        correctAnswerIndex: 1,
-        explanation: 'Tepat sekali! Ctrl + S (Save) digunakan untuk menyimpan perubahan dokumen.',
+        questionText: 'Kepada siapa surat undangan resmi tersebut ditujukan?',
+        options: [
+          'Bapak/Ibu Orang Tua Siswa Kelas 5 dan 6',
+          'Kepala Dinas Pendidikan Kota',
+          'Pengurus RT dan RW setempat',
+          'Seluruh Siswa Kelas 1 dan 2'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Benar! Surat ditujukan kepada Bapak/Ibu Orang Tua Siswa Kelas 5 dan 6.',
         weight: 20,
       },
       {
         id: 'q1-3',
-        questionText: 'Apa fungsi dari shortcut Ctrl + Z pada komputer?',
-        options: ['Membatalkan perintah terakhir (Undo)', 'Menutup aplikasi', 'Memotong teks', 'Menyimpan dokumen'],
+        questionText: 'Kapan hari dan tanggal rapat koordinasi sosialisasi akan diselenggarakan?',
+        options: ['Sabtu, 24 Oktober 2026', 'Minggu, 10 November 2026', 'Senin, 1 Desember 2026', 'Jumat, 15 September 2026'],
         correctAnswerIndex: 0,
-        explanation: 'Pintar! Ctrl + Z adalah fungsi Undo untuk membatalkan kesalahan perintah sebelumnya.',
+        explanation: 'Hebat! Waktu pelaksanaan adalah Sabtu, 24 Oktober 2026.',
         weight: 20,
       },
       {
         id: 'q1-4',
-        questionText: 'Untuk menyalin teks tanpa menghapus aslinya, tombol yang ditekan adalah...',
-        options: ['Ctrl + X', 'Ctrl + V', 'Ctrl + C', 'Ctrl + K'],
-        correctAnswerIndex: 2,
-        explanation: 'Keren! Ctrl + C (Copy) berfungsi menyalin teks ke papan klip.',
+        questionText: 'Pukul berapa rentang waktu pelaksanaan rapat koordinasi tersebut?',
+        options: ['Pukul 09.00 - 11.30 WIB', 'Pukul 07.00 - 08.30 WIB', 'Pukul 13.00 - 15.00 WIB', 'Pukul 16.00 - 18.00 WIB'],
+        correctAnswerIndex: 0,
+        explanation: 'Pintar! Rapat dijadwalkan pada Pukul 09.00 - 11.30 WIB.',
         weight: 20,
       },
       {
         id: 'q1-5',
-        questionText: 'Pasangan dari tombol Copy (Ctrl + C) untuk menempelkan hasil salinan adalah...',
-        options: ['Ctrl + V', 'Ctrl + P', 'Ctrl + L', 'Ctrl + A'],
+        questionText: 'Di ruangan manakah rapat sosialisasi tersebut akan bertempat?',
+        options: [
+          'Ruang Laboratorium Komputer Ceria Lt. 2',
+          'Aula Serbaguna Lapangan',
+          'Kantin Sekolah Lt. 1',
+          'Ruang Tata Usaha'
+        ],
         correctAnswerIndex: 0,
-        explanation: 'Mantap! Ctrl + V (Paste) digunakan untuk menempelkan teks atau gambar yang disalin.',
+        explanation: 'Mantap! Rapat bertempat di Ruang Laboratorium Komputer Ceria Lt. 2.',
         weight: 20,
       },
     ],
   },
   {
     id: 'quiz-2',
-    title: 'Detektif Perangkat Keras (Hardware Master)',
-    category: 'Hardware',
-    description: 'Buktikan kemampuanmu mengenali komponen otak komputer, memori, perangkat input, dan perangkat output!',
+    title: 'Kuis Pemahaman Jadwal & Tata Tertib Laboratorium',
+    category: 'Aplikasi Kantor',
+    description: 'Uji pemahamanmu dari naskah Jadwal Praktikum & Tata Tertib Lab Komputer.',
     allocatedPoints: 100,
     timeLimitMinutes: 10,
     createdAt: new Date().toISOString(),
     questions: [
       {
         id: 'q2-1',
-        questionText: 'Perangkat keras yang berfungsi sebagai otak utama pengolah data pada komputer adalah...',
-        options: ['CPU (Processor)', 'Monitor', 'Keyboard', 'Speaker'],
+        questionText: 'Berdasarkan jadwal praktikum, materi apakah yang dipelajari pada hari Selasa?',
+        options: [
+          'Pelatihan Kecepatan dan Ketepatan Mengetik 10 Jari',
+          'Dasar Rumus Lembar Kerja Microsoft Excel',
+          'Pengenalan Perangkat Keras dan Perakitan Komputer',
+          'Menggambar Bebas dengan Paint'
+        ],
         correctAnswerIndex: 0,
-        explanation: 'Luar biasa! CPU (Central Processing Unit) adalah otak pemroses seluruh data komputer.',
+        explanation: 'Tepat! Jadwal hari Selasa adalah Pelatihan Kecepatan dan Ketepatan Mengetik 10 Jari.',
         weight: 20,
       },
       {
         id: 'q2-2',
-        questionText: 'Berikut ini yang termasuk ke dalam kelompok Perangkat Keluaran (Output Device) adalah...',
-        options: ['Keyboard dan Mouse', 'Monitor dan Printer', 'Microphone dan Scanner', 'Flashdisk dan RAM'],
-        correctAnswerIndex: 1,
-        explanation: 'Benar! Monitor dan Printer menampilkan dan mencetak informasi hasil kerja komputer.',
+        questionText: 'Pukul berapa jam sesi pembelajaran praktikum komputer dilaksanakan?',
+        options: ['Pukul 08.00 - 09.30 WIB', 'Pukul 10.00 - 12.00 WIB', 'Pukul 13.00 - 14.30 WIB', 'Pukul 06.30 - 07.30 WIB'],
+        correctAnswerIndex: 0,
+        explanation: 'Benar! Praktikum dijadwalkan Pukul 08.00 - 09.30 WIB.',
         weight: 20,
       },
       {
         id: 'q2-3',
-        questionText: 'Memori komputer yang bersifat sementara dan akan terhapus saat komputer dimatikan adalah...',
-        options: ['Harddisk', 'Flashdisk', 'RAM (Random Access Memory)', 'CD-ROM'],
-        correctAnswerIndex: 2,
-        explanation: 'Tepat! RAM adalah memori volatile yang bekerja saat aplikasi sedang aktif dibuka.',
+        questionText: 'Berdasarkan materi hari Rabu, siswa akan belajar tentang apa?',
+        options: [
+          'Pemformatan Dokumen dan Tabel Microsoft Word',
+          'Bermain Game Online',
+          'Menonton Video Animasi',
+          'Membongkar Layar Monitor'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Pintar! Materi hari Rabu adalah Pemformatan Dokumen dan Tabel Microsoft Word.',
         weight: 20,
       },
       {
         id: 'q2-4',
-        questionText: 'Papan sirkuit elektronik utama tempat semua komponen CPU, RAM, dan kabel terhubung disebut...',
-        options: ['Motherboard', 'Keyboard', 'Harddisk', 'Monitor'],
+        questionText: 'Apa aturan tata tertib wajib yang harus dipatuhi mengenai alas kaki?',
+        options: [
+          'Seluruh siswa wajib melepas alas kaki di rak yang telah disediakan',
+          'Siswa wajib mengenakan sepatu roda',
+          'Siswa boleh memakai sandal basah',
+          'Alas kaki diletakkan di atas meja komputer'
+        ],
         correctAnswerIndex: 0,
-        explanation: 'Pintar! Motherboard adalah papan induk sirkuit utama komputer.',
+        explanation: 'Hebat! Siswa wajib melepas alas kaki di rak yang telah disediakan.',
         weight: 20,
       },
       {
         id: 'q2-5',
-        questionText: 'Perangkat yang digunakan untuk mencetak teks atau gambar dari komputer ke kertas fisik adalah...',
-        options: ['Scanner', 'Printer', 'Webcam', 'Plotter'],
-        correctAnswerIndex: 1,
-        explanation: 'Betul! Printer mencetak dokumen digital ke lembaran kertas nyata.',
+        questionText: 'Langkah apa yang wajib dilakukan sebelum siswa meninggalkan ruangan lab?',
+        options: [
+          'Matikan komputer melalui prosedur Shut down yang benar',
+          'Langsung mencabut colokan kabel listrik',
+          'Membiarkan komputer menyala semalaman',
+          'Mengubah sandi komputer tanpa izin'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Bagus sekali! Wajib mematikan komputer melalui prosedur Shut down yang benar.',
         weight: 20,
       },
     ],
   },
   {
     id: 'quiz-3',
-    title: 'Petualang Windows & Manajemen File Folder',
-    category: 'Dasar Komputer',
-    description: 'Uji keahlianmu mengelola file, folder, Recycle Bin, dan navigasi antarmuka Windows.',
+    title: 'Kuis Pemahaman Cerita Kucing Robot Pixel',
+    category: 'Format Word',
+    description: 'Uji pemahamanmu dari cerita edukatif petualangan kucing robot Pixel di dunia koding.',
     allocatedPoints: 100,
     timeLimitMinutes: 10,
     createdAt: new Date().toISOString(),
     questions: [
       {
         id: 'q3-1',
-        questionText: 'Kombinasi tombol shortcut keyboard untuk membuka File Explorer di Windows secara cepat adalah...',
-        options: ['Windows + E', 'Windows + D', 'Windows + R', 'Windows + L'],
+        questionText: 'Siapa nama kucing robot pintar dalam naskah cerita tersebut?',
+        options: ['Pixel', 'Byte', 'Neo', 'Robo'],
         correctAnswerIndex: 0,
-        explanation: 'Hebat! Tombol Windows + E (Explorer) langsung membuka jendela File Explorer.',
+        explanation: 'Tepat! Kucing robot pintar tersebut bernama Pixel.',
         weight: 20,
       },
       {
         id: 'q3-2',
-        questionText: 'Tempat penampungan digital untuk file yang baru saja dihapus sementara di Windows adalah...',
-        options: ['Recycle Bin', 'Control Panel', 'Task Manager', 'Downloads'],
+        questionText: 'Apa warna bulu bercahaya yang dimiliki oleh Pixel?',
+        options: ['Biru neon', 'Kuning emas', 'Merah marun', 'Hijau terang'],
         correctAnswerIndex: 0,
-        explanation: 'Tepat! Recycle Bin menyimpan file terhapus sehingga masih bisa dipulihkan (Restore).',
+        explanation: 'Benar! Pixel memiliki bulu bercahaya biru neon.',
         weight: 20,
       },
       {
         id: 'q3-3',
-        questionText: 'Ekstensi file (.extension) standar untuk dokumen Microsoft Word modern adalah...',
-        options: ['.docx', '.mp3', '.jpg', '.xlsx'],
+        questionText: 'Di kota digital manakah latar cerita petualangan tersebut berlangsung?',
+        options: ['Kota Byteville', 'Kota Cyberia', 'Kota Robotika', 'Kota Bit City'],
         correctAnswerIndex: 0,
-        explanation: 'Benar! File dokumen Microsoft Word memiliki ekstensi .docx.',
+        explanation: 'Pintar! Kota digital tempat tinggal Pixel bernama Byteville.',
         weight: 20,
       },
       {
         id: 'q3-4',
-        questionText: 'Tombol keyboard pintas yang digunakan untuk mengganti nama (Rename) file yang dipilih adalah...',
-        options: ['F1', 'F2', 'F5', 'F12'],
-        correctAnswerIndex: 1,
-        explanation: 'Keren! Menekan tombol fungsi F2 langsung mengaktifkan mode ganti nama file.',
+        questionText: 'Menurut Pixel, belajar logika koding itu menyenangkan dan mirip seperti menyusun apa?',
+        options: ['Balok lego warna-warni', 'Puzzle kayu kuno', 'Rumah kartu', 'Menara pasir'],
+        correctAnswerIndex: 0,
+        explanation: 'Luar biasa! Pixel menyebut koding mirip menyusun balok lego warna-warni.',
         weight: 20,
       },
       {
         id: 'q3-5',
-        questionText: 'Langkah yang benar saat ingin mematikan komputer desktop adalah...',
-        options: [
-          'Langsung mencabut kabel colokan listrik',
-          'Klik Start -> Power -> Shut down',
-          'Menekan tombol power monitor saja',
-          'Membiarkannya menyala semalaman'
-        ],
-        correctAnswerIndex: 1,
-        explanation: 'Bagus sekali! Selalu gunakan menu Start -> Shut down agar sistem dan file tetap aman.',
+        questionText: 'Tanda baca apa yang terhapus sehingga membuat komputer perpustakaan mengalami gangguan?',
+        options: ['Tanda titik koma (;)', 'Tanda seru (!)', 'Tanda tanya (?)', 'Tanda petik ganda (")'],
+        correctAnswerIndex: 0,
+        explanation: 'Keren! Gangguan terjadi karena sebuah tanda titik koma terhapus dari baris kode.',
         weight: 20,
       },
     ],
   },
   {
     id: 'quiz-4',
-    title: 'Jawara Mengetik 10 Jari & Posisi Keyboard',
-    category: 'Format Word',
-    description: 'Tunjukkan pemahamanmu mengenai posisi jari Home Row, tombol khusus, dan teknik mengetik cepat.',
+    title: 'Kuis Pemahaman Laporan Perangkat Keras Komputer',
+    category: 'Dasar Komputer',
+    description: 'Uji pemahamanmu dari naskah laporan observasi perangkat keras komputer desktop.',
     allocatedPoints: 100,
     timeLimitMinutes: 10,
     createdAt: new Date().toISOString(),
     questions: [
       {
         id: 'q4-1',
-        questionText: 'Dua tombol pada keyboard yang memiliki tanda tonjolan kecil sebagai jangkar telunjuk adalah...',
-        options: ['Tombol F dan J', 'Tombol A dan L', 'Tombol G dan H', 'Tombol C dan M'],
+        questionText: 'Komponen apakah yang bertindak sebagai otak utama pengolah perintah komputasi?',
+        options: ['Central Processing Unit (CPU)', 'Monitor IPS', 'Mouse Optik', 'Keyboard Mekanikal'],
         correctAnswerIndex: 0,
-        explanation: 'Pintar! Tombol F (telunjuk kiri) dan J (telunjuk kanan) adalah penanda posisi dasar Home Row.',
+        explanation: 'Tepat! CPU bertindak sebagai otak utama pengolah perintah komputasi.',
         weight: 20,
       },
       {
         id: 'q4-2',
-        questionText: 'Jari apakah yang bertugas menekan tombol Spacebar (Spasi)?',
-        options: ['Jari Telunjuk', 'Jari Kelingking', 'Kedua Ibu Jari (Jempol)', 'Jari Manis'],
-        correctAnswerIndex: 2,
-        explanation: 'Tepat! Kedua ibu jari bertugas menekan tombol spasi panjang di bagian bawah.',
+        questionText: 'Apa perbedaan mendasar antara memori RAM dan media penyimpanan SSD NVMe dalam teks?',
+        options: [
+          'RAM menyimpan data sementara saat program aktif, sedangkan SSD menyimpan berkas permanen',
+          'RAM menyimpan game selamanya, sedangkan SSD hanya menyala saat malam',
+          'RAM adalah kabel listrik, sedangkan SSD adalah tombol keyboard',
+          'Keduanya tidak memiliki fungsi yang berbeda'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Benar! RAM bersifat sementara saat program aktif, SSD menyimpan secara permanen.',
         weight: 20,
       },
       {
         id: 'q4-3',
-        questionText: 'Untuk membuat SATU huruf kapital saat mengetik tanpa menyalakan Caps Lock, kita menahan tombol...',
-        options: ['Tombol Shift', 'Tombol Tab', 'Tombol Alt', 'Tombol Ctrl'],
+        questionText: 'Perangkat apa yang bertugas memproses tampilan visual dua dimensi dan tiga dimensi?',
+        options: ['Kartu Grafis (GPU)', 'Power Supply', 'Kabel LAN', 'Kipas Casing'],
         correctAnswerIndex: 0,
-        explanation: 'Benar! Menahan tombol Shift bersamaan dengan huruf akan menghasilkan satu huruf kapital.',
+        explanation: 'Pintar! Kartu grafis (GPU) bertugas memproses dan merender tampilan visual.',
         weight: 20,
       },
       {
         id: 'q4-4',
-        questionText: 'Tombol yang berfungsi membuat baris baru ke bawah atau mengeksekusi perintah adalah...',
-        options: ['Backspace', 'Enter', 'Spacebar', 'Escape'],
-        correctAnswerIndex: 1,
-        explanation: 'Keren! Tombol Enter memindahkan kursor ke baris baru di bawahnya.',
+        questionText: 'Jenis panel monitor apa yang disebutkan dalam laporan agar mata tetap nyaman?',
+        options: ['Monitor panel IPS', 'Monitor tabung cembung', 'Layar kain proyektor', 'Layar kaca hitam putih'],
+        correctAnswerIndex: 0,
+        explanation: 'Hebat! Teks menyebutkan monitor berpanel IPS dengan refresh rate optimal.',
         weight: 20,
       },
       {
         id: 'q4-5',
-        questionText: 'Perbedaan tombol Backspace dan Delete dalam menghapus teks adalah...',
+        questionText: 'Menurut kesimpulan laporan, apa dua hal yang menghasilkan performa komputer cepat dan stabil?',
         options: [
-          'Backspace menghapus karakter di sebelah kiri kursor, Delete di sebelah kanan kursor',
-          'Delete menghapus seluruh dokumen sekaligus',
-          'Backspace hanya menghapus angka',
-          'Keduanya tidak memiliki perbedaan'
+          'Perangkat keras terawat baik dan sistem operasi yang bersih',
+          'Komputer dicolokkan ke aki mobil',
+          'Komputer yang penuh debu dan kotoran',
+          'Menghapus semua file sistem komputer'
         ],
         correctAnswerIndex: 0,
-        explanation: 'Tepat sekali! Backspace menghapus karakter di kiri kursor, sedangkan Delete menghapus di kanan kursor.',
+        explanation: 'Mantap! Kombinasi hardware terawat dan OS bersih menghasilkan performa komputasi optimal.',
         weight: 20,
       },
     ],
   },
   {
     id: 'quiz-5',
-    title: 'Polisi Siber & Internet Sehat Ceria',
-    category: 'Internet & Etika',
-    description: 'Kuis kesadaran keamanan digital: cara melindungi kata sandi, mengenali bahaya phishing, dan netiket online.',
+    title: 'Kuis Pemahaman Proposal Pekan Kreativitas',
+    category: 'Format Word',
+    description: 'Uji pemahamanmu dari naskah proposal Pekan Kreativitas Digital Pelajar.',
     allocatedPoints: 100,
     timeLimitMinutes: 10,
     createdAt: new Date().toISOString(),
     questions: [
       {
         id: 'q5-1',
-        questionText: 'Sikap yang benar jika menerima pesan WhatsApp dari nomor tak dikenal yang menyatakan kamu menang uang 100 juta adalah...',
+        questionText: 'Apa tema resmi yang diusung dalam proposal Pekan Kreativitas Digital Pelajar?',
         options: [
-          'Langsung klik link tautan yang diberikan',
-          'Kirimkan foto kartu identitas dan nomor rekening',
-          'Abaikan dan laporkan pesan mencurigakan tersebut ke orang tua/guru',
-          'Bagikan pesan ke seluruh grup teman sekelas'
+          '"Berkarya Nyata Menuju Generasi Emas Digital"',
+          '"Bermain Game Bersama di Laboratorium"',
+          '"Mengenang Komputer Masa Kuno"',
+          '"Liburan Ceria Bersama Komputer"'
         ],
-        correctAnswerIndex: 2,
-        explanation: 'Sangat bijak! Itu adalah modus penipuan phishing. Jangan pernah membuka link mencurigakan!',
+        correctAnswerIndex: 0,
+        explanation: 'Tepat! Tema kegiatan adalah "Berkarya Nyata Menuju Generasi Emas Digital".',
         weight: 20,
       },
       {
         id: 'q5-2',
-        questionText: 'Manakah contoh kata sandi (password) yang paling aman dan kuat?',
-        options: ['12345678', 'namasaya', 'K0mput3r_C3r1a!#26', 'password123'],
-        correctAnswerIndex: 2,
-        explanation: 'Hebat! Password yang kuat menggabungkan huruf besar, huruf kecil, angka, dan simbol unik.',
+        questionText: 'Kapan jadwal hari dan tanggal pelaksanaan lomba pada proposal tersebut?',
+        options: [
+          'Senin - Rabu, 16 - 18 November 2026',
+          'Sabtu - Minggu, 1 - 2 Januari 2026',
+          'Kamis, 15 Oktober 2026',
+          'Jumat, 25 Desember 2026'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Benar! Pelaksanaan dijadwalkan Senin - Rabu, 16 - 18 November 2026.',
         weight: 20,
       },
       {
         id: 'q5-3',
-        questionText: 'Etika yang baik saat berkomunikasi dan berteman di ruang digital atau media sosial adalah...',
-        options: [
-          'Menulis komentar kasar dan mengejek teman',
-          'Menggunakan bahasa santun, saling menghargai, dan tidak menyebarkan hoaks',
-          'Membagikan password akun teman ke publik',
-          'Mengambil foto orang lain tanpa izin'
-        ],
-        correctAnswerIndex: 1,
-        explanation: 'Pintar! Bersikap santun dan saling menghargai menciptakan lingkungan internet yang positif dan ceria.',
+        questionText: 'Pukul berapa rentang waktu kegiatan lomba diadakan setiap harinya?',
+        options: ['Pukul 13.30 - 15.30 WIB', 'Pukul 07.00 - 08.00 WIB', 'Pukul 18.00 - 20.00 WIB', 'Pukul 10.00 - 11.00 WIB'],
+        correctAnswerIndex: 0,
+        explanation: 'Pintar! Waktu kegiatan adalah Pukul 13.30 - 15.30 WIB.',
         weight: 20,
       },
       {
         id: 'q5-4',
-        questionText: 'Ikon gembok terkunci pada bilah alamat browser web (HTTPS) menandakan bahwa...',
+        questionText: 'Di manakah tempat diselenggarakannya cabang lomba pekan kreativitas tersebut?',
         options: [
-          'Website tersebut rusak',
-          'Koneksi komunikasi data terenkripsi dan aman',
-          'Komputer sedang kehabisan baterai',
-          'Website tidak memiliki internet'
+          'Laboratorium Komputer dan Multimedia Sekolah',
+          'Lapangan Upacara Sekolah',
+          'Kantin Utama Sekolah',
+          'Pos Keamanan Gerbang Depan'
         ],
-        correctAnswerIndex: 1,
-        explanation: 'Tepat! Protokol HTTPS dengan ikon gembok memastikan data terlindungi secara aman.',
+        correctAnswerIndex: 0,
+        explanation: 'Hebat! Tempat kegiatan adalah Laboratorium Komputer dan Multimedia Sekolah.',
         weight: 20,
       },
       {
         id: 'q5-5',
-        questionText: 'Apa yang wajib dilakukan setelah selesai menggunakan komputer di laboratorium sekolah atau warnet?',
+        questionText: 'Manakah yang merupakan salah satu cabang lomba resmi pada naskah proposal?',
         options: [
-          'Membiarkan akun email dan media sosial tetap login',
-          'Melakukan Logout (Keluar) dari semua akun pribadi',
-          'Menghapus sistem operasi komputer',
-          'Mengubah wallpaper komputer tanpa izin'
+          'Lomba Kecepatan Mengetik Naskah Word (Liga 10 Jari)',
+          'Lomba Balap Sepeda',
+          'Lomba Tebak Suara Hewan',
+          'Lomba Menyanyi Solo'
         ],
-        correctAnswerIndex: 1,
-        explanation: 'Bagus! Selalu logout dari akunmu agar tidak disalahgunakan oleh pengguna berikutnya.',
+        correctAnswerIndex: 0,
+        explanation: 'Mantap! Salah satu cabang lomba adalah Lomba Kecepatan Mengetik Naskah Word (Liga 10 Jari).',
+        weight: 20,
+      },
+    ],
+  },
+  {
+    id: 'quiz-6',
+    title: 'Kuis Pemahaman Artikel Netiket & Jejak Digital',
+    category: 'Internet & Etika',
+    description: 'Uji pemahamanmu dari naskah artikel netiket: rumus T.H.I.N.K, privasi akun, dan etika siber.',
+    allocatedPoints: 100,
+    timeLimitMinutes: 10,
+    createdAt: new Date().toISOString(),
+    questions: [
+      {
+        id: 'q6-1',
+        questionText: 'Mengapa jejak digital di internet perlu kita waspadai dan jaga dengan baik?',
+        options: [
+          'Karena meninggalkan jejak digital permanen yang sulit dihapus sepenuhnya',
+          'Karena internet akan mati jika banyak mengetik',
+          'Karena kuota internet akan langsung terpotong',
+          'Karena layar monitor akan berubah warna'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Tepat! Aktivitas internet meninggalkan jejak digital permanen yang sulit dihapus.',
+        weight: 20,
+      },
+      {
+        id: 'q6-2',
+        questionText: 'Apa kepanjangan dari prinsip T.H.I.N.K sebelum menulis komentar atau pesan digital?',
+        options: [
+          'True, Helpful, Inspiring, Necessary, Kind',
+          'Time, Hope, Internet, Network, Knowledge',
+          'Technology, Hard, Information, New, Key',
+          'Think, Help, Idea, Name, Keep'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Luar biasa! T.H.I.N.K mewakili True, Helpful, Inspiring, Necessary, dan Kind.',
+        weight: 20,
+      },
+      {
+        id: 'q6-3',
+        questionText: 'Manakah contoh data rahasia pribadi yang dilarang dibagikan kepada orang asing?',
+        options: [
+          'Password, NISN, dan alamat rumah',
+          'Judul buku paket sekolah',
+          'Nama ekstrakurikuler komputer',
+          'Warna gedung sekolah'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Benar! Password, NISN, dan alamat rumah merupakan data pribadi rahasia.',
+        weight: 20,
+      },
+      {
+        id: 'q6-4',
+        questionText: 'Apa bentuk menghargai hak cipta saat menggunakan artikel atau gambar untuk tugas sekolah?',
+        options: [
+          'Selalu mencantumkan sumber referensi pencipta asli',
+          'Mengakuinya sebagai karya buatan sendiri',
+          'Menghapus watermark pencipta',
+          'Menjual ulang gambar tersebut'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Pintar! Menghargai hak cipta dilakukan dengan mencantumkan sumber referensi resmi.',
+        weight: 20,
+      },
+      {
+        id: 'q6-5',
+        questionText: 'Kepada siapa siswa harus melapor jika menemukan modus kejahatan siber atau cyberbullying?',
+        options: ['Orang tua atau guru pembina', 'Orang tak dikenal di game', 'Robot spam internet', 'Didiamkan saja'],
+        correctAnswerIndex: 0,
+        explanation: 'Sangat tepat! Laporkan segera ke orang tua atau guru pembina.',
+        weight: 20,
+      },
+    ],
+  },
+  {
+    id: 'quiz-7',
+    title: 'Kuis Pemahaman SOP Perawatan & Shutdown Komputer',
+    category: 'Aplikasi Kantor',
+    description: 'Uji pemahamanmu dari naskah SOP Laboratorium: persiapan, perawatan, dan prosedur mematikan komputer.',
+    allocatedPoints: 100,
+    timeLimitMinutes: 10,
+    createdAt: new Date().toISOString(),
+    questions: [
+      {
+        id: 'q7-1',
+        questionText: 'Pada Tahap 1, apa yang wajib dipastikan sebelum menyalakan daya listrik komputer?',
+        options: [
+          'Memastikan meja dan lantai kering dari tumpahan cairan',
+          'Semua pintu ruangan dikunci gembok',
+          'Layar monitor sudah panas',
+          'Membawa minuman manis ke dekat keyboard'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Benar sekali! Meja dan lantai harus kering dari tumpahan cairan demi keamanan listrik.',
+        weight: 20,
+      },
+      {
+        id: 'q7-2',
+        questionText: 'Unit manakah yang ditekan tombol power-nya terlebih dahulu saat menghidupkan komputer?',
+        options: [
+          'Unit CPU terlebih dahulu, kemudian nyalakan monitor',
+          'Layar monitor terlebih dahulu, lalu cabut kabel',
+          'Tombol spasi keyboard',
+          'Speaker audio'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Tepat! Tekan tombol Power pada unit CPU terlebih dahulu, lalu nyalakan monitor.',
+        weight: 20,
+      },
+      {
+        id: 'q7-3',
+        questionText: 'Fitur Windows apa yang wajib digunakan sebelum mencabut flashdisk dari port USB?',
+        options: [
+          'Safely Remove Hardware / Eject',
+          'Copy Paste',
+          'Task Manager',
+          'Format Disk'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Pintar! Fitur "Safely Remove Hardware / Eject" melindungi data flashdisk dari kerusakan.',
+        weight: 20,
+      },
+      {
+        id: 'q7-4',
+        questionText: 'Pada Tahap 3, apa yang harus dilakukan terhadap dokumen sebelum menekan tombol Shut down?',
+        options: [
+          'Simpan seluruh pekerjaan dokumen dan tutup semua jendela aplikasi',
+          'Biarkan dokumen terbuka tanpa disimpan',
+          'Hapus semua berkas dokumen',
+          'Matikan saklar stopkontak langsung'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Hebat! Wajib menyimpan pekerjaan dan menutup seluruh aplikasi sebelum Shutdown.',
+        weight: 20,
+      },
+      {
+        id: 'q7-5',
+        questionText: 'Bagaimana posisi kursi lab yang benar setelah selesai menggunakan komputer?',
+        options: [
+          'Dimasukkan ke bawah meja dengan rapi',
+          'Dibiarkan melintang di lorong lab',
+          'Dinaikkan ke atas meja',
+          'Dikeluarkan ke teras sekolah'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Bagus! Kursi harus dimasukkan ke bawah meja dengan rapi demi ketertiban lab.',
+        weight: 20,
+      },
+    ],
+  },
+  {
+    id: 'quiz-8',
+    title: 'Kuis Pemahaman Naskah Pidato Pelajar',
+    category: 'Format Word',
+    description: 'Uji pemahamanmu dari naskah pidato perwakilan siswa: tiga kunci sukses menatap masa depan teknologi.',
+    allocatedPoints: 100,
+    timeLimitMinutes: 10,
+    createdAt: new Date().toISOString(),
+    questions: [
+      {
+        id: 'q8-1',
+        questionText: 'Dalam naskah pidato siswa, komputer diibaratkan sebagai apa?',
+        options: [
+          'Jendela ilmu pengetahuan dunia tanpa batas',
+          'Mesin hitung toko kelontong',
+          'Kamera pengawas ruangan',
+          'Televisi tayangan kartun'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Luar biasa! Komputer diibaratkan sebagai jendela ilmu pengetahuan dunia tanpa batas.',
+        weight: 20,
+      },
+      {
+        id: 'q8-2',
+        questionText: 'Berdasarkan pidato, apa kunci sukses pertama bagi generasi muda digital?',
+        options: [
+          'Memiliki rasa ingin tahu yang tinggi untuk terus belajar hal baru',
+          'Membeli perangkat komputer paling mahal',
+          'Bermain media sosial sepanjang malam',
+          'Menghindari latihan mengetik'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Tepat! Kunci pertama adalah rasa ingin tahu yang tinggi untuk belajar hal baru.',
+        weight: 20,
+      },
+      {
+        id: 'q8-3',
+        questionText: 'Sikap apa yang harus ditunjukkan menurut pidato ketika program mengalami kendala atau error?',
+        options: [
+          'Teliti, disiplin, dan pantang menyerah',
+          'Marah dan merusak keyboard',
+          'Langsung berhenti belajar koding',
+          'Menyalahkan teman sekelas'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Benar! Bersikap teliti, disiplin, dan pantang menyerah ketika menghadapi kendala.',
+        weight: 20,
+      },
+      {
+        id: 'q8-4',
+        questionText: 'Apa tujuan menjunjung tinggi etika moral dalam berkarya digital menurut pidato?',
+        options: [
+          'Agar karya kita membawa manfaat bagi nusa dan bangsa',
+          'Agar menjadi selebriti instan di internet',
+          'Agar mendapatkan uang banyak saja',
+          'Agar tidak perlu mengikuti ujian sekolah'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Pintar! Etika moral membimbing karya kita agar membawa manfaat bagi nusa dan bangsa.',
+        weight: 20,
+      },
+      {
+        id: 'q8-5',
+        questionText: 'Keterampilan mengetik apakah yang disemangati untuk terus dilatih secara giat pada penutup pidato?',
+        options: [
+          'Mengetik 10 jari di atas papan ketik',
+          'Mengetik dengan satu jari telunjuk',
+          'Mengetik tanpa melihat layar monitor',
+          'Mengetik menggunakan suara saja'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Mantap! Seluruh siswa disemangati untuk giat berlatih mengetik 10 jari.',
+        weight: 20,
+      },
+    ],
+  },
+  {
+    id: 'quiz-9',
+    title: 'Kuis Pemahaman Tabel Nilai Mengetik 10 Jari',
+    category: 'Aplikasi Kantor',
+    description: 'Uji pemahamanmu dari naskah tabel rekapitulasi nilai dan capaian mengetik siswa.',
+    allocatedPoints: 100,
+    timeLimitMinutes: 10,
+    createdAt: new Date().toISOString(),
+    questions: [
+      {
+        id: 'q9-1',
+        questionText: 'Siapa siswa yang memiliki kecepatan mengetik tertinggi (42 WPM) pada tabel rekapitulasi?',
+        options: [
+          'Budi Santoso (Kelas 6A)',
+          'Ahmad Fauzi (Kelas 5A)',
+          'Siti Rahmawati (Kelas 5B)',
+          'Citra Kirana (Kelas 6B)'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Tepat! Budi Santoso dari Kelas 6A mencatat kecepatan tertinggi 42 WPM.',
+        weight: 20,
+      },
+      {
+        id: 'q9-2',
+        questionText: 'Berapa tingkat akurasi mengetik yang diraih oleh Siti Rahmawati dari Kelas 5B?',
+        options: ['98%', '95%', '90%', '85%'],
+        correctAnswerIndex: 0,
+        explanation: 'Benar! Siti Rahmawati berhasil meraih akurasi 98%.',
+        weight: 20,
+      },
+      {
+        id: 'q9-3',
+        questionText: 'Berapa kriteria batas kecepatan minimal yang ditentukan dalam penilaian naskah?',
+        options: ['Minimal 30 WPM', 'Minimal 15 WPM', 'Minimal 50 WPM', 'Minimal 60 WPM'],
+        correctAnswerIndex: 0,
+        explanation: 'Pintar! Batas kriteria kecepatan minimal adalah 30 WPM.',
+        weight: 20,
+      },
+      {
+        id: 'q9-4',
+        questionText: 'Berapa batas akurasi minimal yang harus dicapai siswa berdasarkan naskah tabel?',
+        options: ['Akurasi minimal 90%', 'Akurasi minimal 70%', 'Akurasi minimal 50%', 'Akurasi minimal 30%'],
+        correctAnswerIndex: 0,
+        explanation: 'Hebat! Kriteria akurasi minimal adalah 90%.',
+        weight: 20,
+      },
+      {
+        id: 'q9-5',
+        questionText: 'Apa nilai huruf yang diperoleh oleh Citra Kirana dari Kelas 6B dengan kecepatan 40 WPM?',
+        options: ['Nilai A+', 'Nilai B', 'Nilai C', 'Nilai D'],
+        correctAnswerIndex: 0,
+        explanation: 'Mantap! Citra Kirana memperoleh nilai A+.',
+        weight: 20,
+      },
+    ],
+  },
+  {
+    id: 'quiz-10',
+    title: 'Kuis Pemahaman Tips Kesehatan Mata & Postur',
+    category: 'Dasar Komputer',
+    description: 'Uji pemahamanmu dari naskah panduan merawat mata dan postur duduk saat mengetik.',
+    allocatedPoints: 100,
+    timeLimitMinutes: 10,
+    createdAt: new Date().toISOString(),
+    questions: [
+      {
+        id: 'q10-1',
+        questionText: 'Berdasarkan teks panduan kesehatan, apa maksud dari Aturan 20-20-20?',
+        options: [
+          'Tiap 20 menit menatap layar, istirahatkan mata dengan melihat objek sejauh 20 kaki selama 20 detik',
+          'Mengetik selama 20 jam tanpa istirahat',
+          'Membeli 20 kacamata dalam waktu 20 hari',
+          'Menekan tombol keyboard 20 kali dalam 20 detik'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Tepat! Tiap 20 menit menatap layar, lihat objek sejauh 20 kaki (6 meter) selama 20 detik.',
+        weight: 20,
+      },
+      {
+        id: 'q10-2',
+        questionText: 'Berapa jarak aman posisi layar monitor dari mata yang dianjurkan dalam naskah?',
+        options: ['50 sampai 60 sentimeter', '10 sampai 15 sentimeter', '2 sampai 3 meter', '5 sentimeter saja'],
+        correctAnswerIndex: 0,
+        explanation: 'Benar! Layar monitor diposisikan sekitar 50 sampai 60 sentimeter dari mata.',
+        weight: 20,
+      },
+      {
+        id: 'q10-3',
+        questionText: 'Bagaimana posisi kedua telapak kaki yang benar saat duduk mengetik di depan komputer?',
+        options: ['Menapak rata di lantai', 'Menggantung tinggi di udara', 'Dilipat ke atas meja komputer', 'Disilangkan di atas kursi'],
+        correctAnswerIndex: 0,
+        explanation: 'Pintar! Kedua telapak kaki harus menapak rata di lantai.',
+        weight: 20,
+      },
+      {
+        id: 'q10-4',
+        questionText: 'Mengapa kita disarankan untuk sering berkedip saat menatap layar komputer?',
+        options: [
+          'Menjaga kelembapan kornea mata agar tidak perih atau lelah',
+          'Agar komputer tidak mati mendadak',
+          'Untuk mempercepat koneksi internet',
+          'Supaya tombol keyboard mengetik otomatis'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Hebat! Berkedip teratur menjaga kelembapan kornea mata agar tidak perih.',
+        weight: 20,
+      },
+      {
+        id: 'q10-5',
+        questionText: 'Bagaimana posisi punggung yang dianjurkan saat duduk di depan komputer?',
+        options: [
+          'Tegak bersandar pada sandaran kursi',
+          'Membungkuk sangat dekat dengan keyboard',
+          'Tiduran terlentang di lantai lab',
+          'Miring ke kiri terus menerus'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Mantap! Duduklah dengan punggung tegak bersandar pada sandaran kursi.',
         weight: 20,
       },
     ],
@@ -695,6 +1162,7 @@ export const INITIAL_QUIZZES: Quiz[] = [
 
 // ==========================================
 // DAFTAR TUGAS LATIHAN MENGETIK MICROSOFT WORD
+// (Teks terkalibrasi sedang/ringkas, terhubung langsung ke kuis)
 // ==========================================
 export const INITIAL_TYPING_PRACTICES: TypingPractice[] = [
   {
@@ -705,9 +1173,10 @@ export const INITIAL_TYPING_PRACTICES: TypingPractice[] = [
     allocatedPoints: 80,
     minAccuracy: 75,
     targetWpm: 25,
+    relatedQuizId: 'quiz-1',
     instructions: 'Ketik ulang naskah surat resmi berikut dengan format kop surat, penomoran teratur, dan perataan teks yang rapi.',
-    targetPlainText: `SEKOLAH DASAR NEGERI SUKADAMAI 2 BOGOR\nJl. Kebon Pedes No. 22, Kota Bogor · Telp: (0251) 8321000\n\nNomor: 045/SDN2/KOMP/IX/2026\nLampiran: 1 (satu) Berkas Jadwal\nHal: Undangan Rapat Sosialisasi Program Literasi Komputer\n\nKepada Yth.\nBapak/Ibu Orang Tua / Wali Murid Kelas 5 dan 6\nDi Tempat\n\nDengan hormat,\n\nSehubungan dengan dimulainya tahun ajaran baru dan peluncuran kurikulum ekstrakurikuler komputer modern, kami mengundang Bapak/Ibu untuk hadir pada rapat koordinasi yang akan dilaksanakan pada:\n\nHari, Tanggal: Sabtu, 24 Oktober 2026\nWaktu: Pukul 09.00 - 11.30 WIB\nTempat: Ruang Laboratorium Komputer Ceria Lt. 2\nAgenda Rapat: Sosialisasi modul pembelajaran digital, teknik mengetik 10 jari, dan pengenalan sistem portofolio siswa.\n\nMengingat pentingnya agenda tersebut bagi kelancaran belajar putra-putri kita, kehadiran Bapak/Ibu sangat kami harapkan tepat pada waktunya.\n\nDemikian surat undangan ini kami sampaikan. Atas perhatian dan kerja sama yang baik, kami ucapkan terima kasih.\n\nHormat kami,\nKepala Sekolah & Pembina Komputer`,
-    targetDocument: `<div style="text-align: center; border-bottom: 2px solid #334155; padding-bottom: 6px; margin-bottom: 12px;"><h3 style="margin: 0; font-weight: bold; color: #1e3a8a;">SEKOLAH DASAR NEGERI SUKADAMAI 2 BOGOR</h3><p style="margin: 2px 0 0 0; font-size: 11px; color: #64748b;">Jl. Kebon Pedes No. 22, Kota Bogor · Telp: (0251) 8321000</p></div><p><b>Nomor:</b> 045/SDN2/KOMP/IX/2026<br/><b>Lampiran:</b> 1 (satu) Berkas Jadwal<br/><b>Hal:</b> Undangan Rapat Sosialisasi Program Literasi Komputer</p><br/><p>Kepada Yth.<br/><b>Bapak/Ibu Orang Tua / Wali Murid Kelas 5 dan 6</b><br/>Di Tempat</p><br/><p>Dengan hormat,</p><p style="text-indent: 28px; text-align: justify;">Sehubungan dengan dimulainya tahun ajaran baru dan peluncuran kurikulum ekstrakurikuler komputer modern, kami mengundang Bapak/Ibu untuk hadir pada rapat koordinasi yang akan dilaksanakan pada:</p><div style="margin-left: 28px; margin-top: 6px; margin-bottom: 6px;"><p style="margin: 2px 0;"><b>Hari, Tanggal:</b> Sabtu, 24 Oktober 2026</p><p style="margin: 2px 0;"><b>Waktu:</b> Pukul 09.00 - 11.30 WIB</p><p style="margin: 2px 0;"><b>Tempat:</b> Ruang Laboratorium Komputer Ceria Lt. 2</p><p style="margin: 2px 0;"><b>Agenda Rapat:</b> Sosialisasi modul pembelajaran digital, teknik mengetik 10 jari, dan pengenalan sistem portofolio siswa.</p></div><p style="text-indent: 28px; text-align: justify;">Mengingat pentingnya agenda tersebut bagi kelancaran belajar putra-putri kita, kehadiran Bapak/Ibu sangat kami harapkan tepat pada waktunya.</p><p style="text-indent: 28px; text-align: justify;">Demikian surat undangan ini kami sampaikan. Atas perhatian dan kerja sama yang baik, kami ucapkan terima kasih.</p><br/><p align="right">Hormat kami,<br/><br/><br/><b>Kepala Sekolah & Pembina Komputer</b></p>`,
+    targetPlainText: `SEKOLAH DASAR NEGERI SUKADAMAI 2 BOGOR\nJl. Kebon Pedes No. 22, Kota Bogor · Telp: (0251) 8321000\n\nNomor: 045/SDN2/KOMP/IX/2026\nHal: Undangan Rapat Sosialisasi Program Literasi Komputer\n\nKepada Yth.\nBapak/Ibu Orang Tua Siswa Kelas 5 dan 6\nDi Tempat\n\nDengan hormat,\nKami mengundang Bapak/Ibu untuk hadir pada rapat koordinasi yang akan dilaksanakan pada:\nHari, Tanggal: Sabtu, 24 Oktober 2026\nWaktu: Pukul 09.00 - 11.30 WIB\nTempat: Ruang Laboratorium Komputer Ceria Lt. 2\nAgenda: Sosialisasi modul pembelajaran digital dan teknik mengetik 10 jari.\n\nKehadiran Bapak/Ibu sangat kami harapkan tepat pada waktunya. Terima kasih.\n\nHormat kami,\nKepala Sekolah & Pembina Komputer`,
+    targetDocument: `<div style="text-align: center; border-bottom: 2px solid #334155; padding-bottom: 6px; margin-bottom: 10px;"><h4 style="margin: 0; font-weight: bold; color: #1e3a8a;">SEKOLAH DASAR NEGERI SUKADAMAI 2 BOGOR</h4><p style="margin: 2px 0 0 0; font-size: 11px; color: #64748b;">Jl. Kebon Pedes No. 22, Kota Bogor · Telp: (0251) 8321000</p></div><p style="margin: 2px 0; font-size: 13px;"><b>Nomor:</b> 045/SDN2/KOMP/IX/2026<br/><b>Hal:</b> Undangan Rapat Sosialisasi Program Literasi Komputer</p><br/><p style="margin: 2px 0; font-size: 13px;">Kepada Yth.<br/><b>Bapak/Ibu Orang Tua Siswa Kelas 5 dan 6</b><br/>Di Tempat</p><br/><p style="margin: 2px 0; font-size: 13px;">Dengan hormat,</p><p style="text-indent: 24px; text-align: justify; font-size: 13px; line-height: 1.5; margin: 4px 0;">Kami mengundang Bapak/Ibu untuk hadir pada rapat koordinasi yang akan dilaksanakan pada:</p><div style="margin-left: 24px; margin-top: 4px; margin-bottom: 4px; font-size: 13px;"><p style="margin: 2px 0;"><b>Hari, Tanggal:</b> Sabtu, 24 Oktober 2026</p><p style="margin: 2px 0;"><b>Waktu:</b> Pukul 09.00 - 11.30 WIB</p><p style="margin: 2px 0;"><b>Tempat:</b> Ruang Laboratorium Komputer Ceria Lt. 2</p><p style="margin: 2px 0;"><b>Agenda:</b> Sosialisasi modul pembelajaran digital dan teknik mengetik 10 jari.</p></div><p style="text-indent: 24px; text-align: justify; font-size: 13px; line-height: 1.5; margin: 4px 0;">Kehadiran Bapak/Ibu sangat kami harapkan tepat pada waktunya. Terima kasih.</p><br/><p align="right" style="font-size: 13px; margin: 4px 0;">Hormat kami,<br/><br/><b>Kepala Sekolah & Pembina Komputer</b></p>`,
     createdAt: new Date().toISOString(),
   },
   {
@@ -718,35 +1187,38 @@ export const INITIAL_TYPING_PRACTICES: TypingPractice[] = [
     allocatedPoints: 90,
     minAccuracy: 80,
     targetWpm: 30,
+    relatedQuizId: 'quiz-2',
     instructions: 'Ketik naskah jadwal pelajaran berikut dengan format judul tebal di tengah, daftar kegiatan berurutan, dan poin tata tertib.',
-    targetPlainText: `JADWAL PRAKTIKUM & TATA TERTIB LABORATORIUM KOMPUTER CERIA\nTAHUN AJARAN 2026/2027\n\nJadwal Kegiatan Pembelajaran:\n1. Hari Senin (08.00 - 09.30) : Pengenalan Perangkat Keras dan Perakitan Komputer\n2. Hari Selasa (08.00 - 09.30) : Pelatihan Kecepatan dan Ketepatan Mengetik 10 Jari\n3. Hari Rabu (08.00 - 09.30) : Pemformatan Dokumen dan Tabel Microsoft Word\n4. Hari Kamis (08.00 - 09.30) : Dasar Rumus dan Lembar Kerja Microsoft Excel\n5. Hari Jumat (08.00 - 09.30) : Keamanan Siber, Netiket, dan Kuis Interaktif\n6. Hari Sabtu (08.00 - 10.00) : Praktikum Mandiri, Desain Kreatif, dan Liga Mengetik\n\nTata Tertib Wajib Laboratorium Komputer:\n- Seluruh siswa wajib hadir tepat waktu dan melepas alas kaki di rak yang telah disediakan.\n- Dilarang keras membawa makanan, minuman, dan benda cair ke meja komputer.\n- Gunakan keyboard, mouse, dan monitor dengan wajar tanpa menekan tuts terlalu keras.\n- Lakukan proses penyimpanan (Save) dokumen secara berkala untuk menghindari kehilangan data.\n- Matikan komputer melalui prosedur Shut down yang benar sebelum meninggalkan ruangan.`,
-    targetDocument: `<h3 align="center" style="font-weight: bold; color: #1e3a8a; margin-bottom: 2px;">JADWAL PRAKTIKUM & TATA TERTIB LABORATORIUM KOMPUTER CERIA</h3><p align="center" style="font-size: 11px; font-style: italic; color: #64748b; margin-top: 0;">Tahun Ajaran 2026/2027</p><hr/><h4 style="font-weight: bold; color: #0f172a; margin-top: 10px; margin-bottom: 4px;">Jadwal Kegiatan Pembelajaran:</h4><ol style="margin-top: 4px; padding-left: 20px; line-height: 1.6;"><li><b>Hari Senin (08.00 - 09.30)</b> : Pengenalan Perangkat Keras dan Perakitan Komputer</li><li><b>Hari Selasa (08.00 - 09.30)</b> : Pelatihan Kecepatan dan Ketepatan Mengetik 10 Jari</li><li><b>Hari Rabu (08.00 - 09.30)</b> : Pemformatan Dokumen dan Tabel Microsoft Word</li><li><b>Hari Kamis (08.00 - 09.30)</b> : Dasar Rumus dan Lembar Kerja Microsoft Excel</li><li><b>Hari Jumat (08.00 - 09.30)</b> : Keamanan Siber, Netiket, dan Kuis Interaktif</li><li><b>Hari Sabtu (08.00 - 10.00)</b> : Praktikum Mandiri, Desain Kreatif, dan Liga Mengetik</li></ol><h4 style="font-weight: bold; color: #b91c1c; margin-top: 10px; margin-bottom: 4px;">Tata Tertib Wajib Laboratorium Komputer:</h4><ul style="margin-top: 4px; padding-left: 20px; line-height: 1.6; list-style-type: square;"><li>Seluruh siswa wajib hadir tepat waktu dan melepas alas kaki di rak yang telah disediakan.</li><li>Dilarang keras membawa makanan, minuman, dan benda cair ke meja komputer.</li><li>Gunakan keyboard, mouse, dan monitor dengan wajar tanpa menekan tuts terlalu keras.</li><li>Lakukan proses penyimpanan (Save) dokumen secara berkala untuk menghindari kehilangan data.</li><li>Matikan komputer melalui prosedur Shut down yang benar sebelum meninggalkan ruangan.</li></ul>`,
+    targetPlainText: `JADWAL PRAKTIKUM & TATA TERTIB LAB KOMPUTER CERIA\n\nJadwal Kegiatan (Pukul 08.00 - 09.30 WIB):\n- Senin: Pengenalan Perangkat Keras dan Perakitan Komputer\n- Selasa: Pelatihan Kecepatan dan Ketepatan Mengetik 10 Jari\n- Rabu: Pemformatan Dokumen dan Tabel Microsoft Word\n- Kamis: Dasar Rumus Lembar Kerja Microsoft Excel\n- Jumat: Keamanan Siber dan Kuis Interaktif\n\nTata Tertib Wajib Laboratorium:\n1. Seluruh siswa wajib hadir tepat waktu dan melepas alas kaki di rak.\n2. Dilarang membawa makanan dan minuman ke meja komputer.\n3. Matikan komputer melalui prosedur Shut down yang benar sebelum keluar lab.`,
+    targetDocument: `<h4 align="center" style="font-weight: bold; color: #1e3a8a; margin-bottom: 6px;">JADWAL PRAKTIKUM & TATA TERTIB LAB KOMPUTER CERIA</h4><hr style="margin-bottom: 8px;"/><p style="font-weight: bold; font-size: 13px; color: #0f172a; margin: 4px 0;">Jadwal Kegiatan (Pukul 08.00 - 09.30 WIB):</p><ul style="font-size: 13px; line-height: 1.5; margin-top: 4px; padding-left: 20px;"><li><b>Senin:</b> Pengenalan Perangkat Keras dan Perakitan Komputer</li><li><b>Selasa:</b> Pelatihan Kecepatan dan Ketepatan Mengetik 10 Jari</li><li><b>Rabu:</b> Pemformatan Dokumen dan Tabel Microsoft Word</li><li><b>Kamis:</b> Dasar Rumus Lembar Kerja Microsoft Excel</li><li><b>Jumat:</b> Keamanan Siber dan Kuis Interaktif</li></ul><p style="font-weight: bold; font-size: 13px; color: #b91c1c; margin: 8px 0 4px 0;">Tata Tertib Wajib Laboratorium:</p><ol style="font-size: 13px; line-height: 1.5; margin-top: 4px; padding-left: 20px;"><li>Seluruh siswa wajib hadir tepat waktu dan melepas alas kaki di rak.</li><li>Dilarang membawa makanan dan minuman ke meja komputer.</li><li>Matikan komputer melalui prosedur Shut down yang benar sebelum keluar lab.</li></ol>`,
     createdAt: new Date().toISOString(),
   },
   {
     id: 'tp-3',
-    title: 'Cerita Edukatif: "Petualangan Kucing Robot Di Dunia Koding"',
+    title: 'Cerita Edukatif: Petualangan Kucing Robot Di Dunia Koding',
     category: 'Format Word',
     difficulty: 'Sedang',
     allocatedPoints: 90,
     minAccuracy: 80,
     targetWpm: 30,
+    relatedQuizId: 'quiz-3',
     instructions: 'Ketik naskah cerita inspiratif berikut dengan format paragraf menjorok dan perataan Justify (Rata Kiri-Kanan).',
-    targetPlainText: `PETUALANGAN KUCING ROBOT DI DUNIA KODING\nKarya: Sahabat Komputer Ceria\n\nDi sebuah kota digital bernama Byteville, hiduplah seekor kucing robot pintar bernama Pixel. Pixel memiliki bulu bercahaya biru neon dan ekor antena lentur yang dapat memancarkan gelombang sinyal internet tercepat di dunia. Setiap fajar menyingsing, Pixel berkeliling ke sekolah-sekolah untuk membagikan semangat belajar teknologi kepada anak-anak.\n\n"Belajar komputer dan logika koding itu sesungguhnya sangat menyenangkan," kata Pixel sambil tersenyum ramah kepada para siswa. "Sama halnya seperti menyusun balok-balok lego warna-warni, kita hanya perlu menempatkan instruksi langkah demi langkah secara runtut dan teratur agar komputer dapat mengerti apa yang kita inginkan."\n\nSuatu siang, perpustakaan digital Byteville mendadak mengalami kendala teknis karena sebuah tanda titik koma yang terhapus dari baris kode utama. Dengan ketenangan dan ketangkasan mengetik sepuluh jari, Pixel bersama anak-anak kelas komputer bergotong royong memeriksa setiap baris perintah dan berhasil memperbaiki naskah program tersebut sebelum jam pelajaran berakhir.\n\nPeristiwa itu mengajarkan sebuah pelajaran berharga bahwa ketelitian, ketekunan, dan rasa ingin tahu yang tinggi adalah kunci utama untuk menaklukkan kecanggihan teknologi. Sejak saat itu, seluruh siswa semakin antusias berlatih mengetik dan berkreasi membuat karya digital yang membanggakan.`,
-    targetDocument: `<h3 align="center" style="font-weight: bold; color: #1e3a8a; margin-bottom: 2px;">PETUALANGAN KUCING ROBOT DI DUNIA KODING</h3><p align="center" style="font-size: 11px; font-style: italic; color: #64748b; margin-top: 0;">Karya: Sahabat Komputer Ceria</p><br/><p style="text-indent: 28px; text-align: justify; line-height: 1.6;">Di sebuah kota digital bernama Byteville, hiduplah seekor kucing robot pintar bernama <b>Pixel</b>. Pixel memiliki bulu bercahaya biru neon dan ekor antena lentur yang dapat memancarkan gelombang sinyal internet tercepat di dunia. Setiap fajar menyingsing, Pixel berkeliling ke sekolah-sekolah untuk membagikan semangat belajar teknologi kepada anak-anak.</p><p style="text-indent: 28px; text-align: justify; line-height: 1.6;"><i>"Belajar komputer dan logika koding itu sesungguhnya sangat menyenangkan,"</i> kata Pixel sambil tersenyum ramah kepada para siswa. <i>"Sama halnya seperti menyusun balok-balok lego warna-warni, kita hanya perlu menempatkan instruksi langkah demi langkah secara runtut dan teratur agar komputer dapat mengerti apa yang kita inginkan."</i></p><p style="text-indent: 28px; text-align: justify; line-height: 1.6;">Suatu siang, perpustakaan digital Byteville mendadak mengalami kendala teknis karena sebuah tanda titik koma yang terhapus dari baris kode utama. Dengan ketenangan dan ketangkasan mengetik sepuluh jari, Pixel bersama anak-anak kelas komputer bergotong royong memeriksa setiap baris perintah dan berhasil memperbaiki naskah program tersebut sebelum jam pelajaran berakhir.</p><p style="text-indent: 28px; text-align: justify; line-height: 1.6;">Peristiwa itu mengajarkan sebuah pelajaran berharga bahwa <b>ketelitian, ketekunan, dan rasa ingin tahu yang tinggi</b> adalah kunci utama untuk menaklukkan kecanggihan teknologi. Sejak saat itu, seluruh siswa semakin antusias berlatih mengetik dan berkreasi membuat karya digital yang membanggakan.</p>`,
+    targetPlainText: `PETUALANGAN KUCING ROBOT DI DUNIA KODING\n\nDi sebuah kota digital bernama Byteville, hiduplah seekor kucing robot pintar bernama Pixel. Pixel memiliki bulu bercahaya biru neon dan ekor antena lentur penyebar sinyal internet.\n\nSetiap hari, Pixel berkeliling sekolah untuk mengajari anak-anak logika komputer. "Belajar koding itu menyenangkan, mirip menyusun balok lego warna-warni," kata Pixel ramah.\n\nSuatu hari, komputer perpustakaan mengalami gangguan karena tanda titik koma terhapus dari baris kode. Dengan ketelitian dan kecepatan mengetik sepuluh jari, Pixel bersama para siswa berhasil menemukan kesalahan kode tersebut dan memperbaikinya dengan cepat.\n\nPeristiwa itu membuktikan bahwa ketelitian dan ketekunan adalah kunci utama kesuksesan teknologi.`,
+    targetDocument: `<h4 align="center" style="font-weight: bold; color: #1e3a8a; margin-bottom: 8px;">PETUALANGAN KUCING ROBOT DI DUNIA KODING</h4><p style="text-indent: 24px; text-align: justify; font-size: 13px; line-height: 1.6; margin: 6px 0;">Di sebuah kota digital bernama <b>Byteville</b>, hiduplah seekor kucing robot pintar bernama <b>Pixel</b>. Pixel memiliki bulu bercahaya <i>biru neon</i> dan ekor antena lentur penyebar sinyal internet.</p><p style="text-indent: 24px; text-align: justify; font-size: 13px; line-height: 1.6; margin: 6px 0;">Setiap hari, Pixel berkeliling sekolah untuk mengajari anak-anak logika komputer. <i>"Belajar koding itu menyenangkan, mirip menyusun balok lego warna-warni,"</i> kata Pixel ramah.</p><p style="text-indent: 24px; text-align: justify; font-size: 13px; line-height: 1.6; margin: 6px 0;">Suatu hari, komputer perpustakaan mengalami gangguan karena tanda titik koma terhapus dari baris kode. Dengan ketelitian dan kecepatan mengetik sepuluh jari, Pixel bersama para siswa berhasil menemukan kesalahan kode tersebut dan memperbaikinya dengan cepat.</p><p style="text-indent: 24px; text-align: justify; font-size: 13px; line-height: 1.6; margin: 6px 0;">Peristiwa itu membuktikan bahwa <b>ketelitian dan ketekunan</b> adalah kunci utama kesuksesan teknologi.</p>`,
     createdAt: new Date().toISOString(),
   },
   {
     id: 'tp-4',
-    title: 'Laporan Sains & Teknologi: Arsitektur Komputer Modern',
+    title: 'Laporan Sains: Anatomi & Perangkat Keras Komputer',
     category: 'Dasar Komputer',
     difficulty: 'Mahir',
     allocatedPoints: 100,
     minAccuracy: 85,
     targetWpm: 35,
+    relatedQuizId: 'quiz-4',
     instructions: 'Ketik laporan observasi perangkat keras komputer dengan format subjudul angka, teks tebal, dan paragraf penjelas.',
-    targetPlainText: `LAPORAN PENGAMATAN LABORATORIUM KOMPUTER\nTopik: Anatomi dan Arsitektur Komputer Desktop Modern\n\n1. Unit Pemrosesan Pusat (Central Processing Unit / CPU)\nProcessor bertindak sebagai otak utama dari seluruh arsitektur komputer. Komponen ini bertanggung jawab mengeksekusi miliaran instruksi komputasi per detik dan bekerja sama dengan chipset motherboard untuk mengoordinasikan arus data secara stabil.\n\n2. Memori Utama (RAM) dan Media Penyimpanan (SSD NVMe)\nRandom Access Memory (RAM) bertugas menyimpan data sementara aplikasi yang sedang aktif agar dapat diakses seketika tanpa hambatan. Sementara itu, Solid State Drive (SSD) berbasis teknologi chip flash menyimpan sistem operasi dan berkas pengguna secara permanen dengan kecepatan transfer berkali lipat lebih cepat daripada cakram magnetik konvensional.\n\n3. Unit Pemroses Grafis (GPU) dan Monitor Tampilan\nKartu grafis modern bertugas merender tampilan visual dua dimensi maupun objek tiga dimensi secara halus. Output visual tersebut diproyeksikan ke monitor berpanel IPS dengan refresh rate optimal agar mata pengguna tetap nyaman selama beraktivitas.\n\n4. Perangkat Input Ergonomis dan Antarmuka Interaktif\nPapan ketik mekanikal dan mouse optik presisi tinggi memastikan setiap sentuhan jari terkonversi menjadi perintah digital yang responsif, akurat, dan minim kesalahan ketik.\n\nKesimpulan Observasi:\nKombinasi harmonis antara perangkat keras yang terawat baik dan penerapan sistem operasi yang bersih akan menghasilkan performa komputasi optimal yang mendukung produktivitas belajar siswa.`,
-    targetDocument: `<h3 align="center" style="font-weight: bold; color: #1e3a8a; margin-bottom: 2px;">LAPORAN PENGAMATAN LABORATORIUM KOMPUTER</h3><p align="center" style="font-size: 11px; text-decoration: underline; color: #475569; margin-top: 0;">Topik: Anatomi dan Arsitektur Komputer Desktop Modern</p><br/><h4 style="font-weight: bold; color: #0f172a; margin-bottom: 2px;">1. Unit Pemrosesan Pusat (Central Processing Unit / CPU)</h4><p style="text-align: justify; line-height: 1.6; margin-top: 2px;">Processor bertindak sebagai otak utama dari seluruh arsitektur komputer. Komponen ini bertanggung jawab mengeksekusi miliaran instruksi komputasi per detik dan bekerja sama dengan chipset motherboard untuk mengoordinasikan arus data secara stabil.</p><h4 style="font-weight: bold; color: #0f172a; margin-bottom: 2px;">2. Memori Utama (RAM) dan Media Penyimpanan (SSD NVMe)</h4><p style="text-align: justify; line-height: 1.6; margin-top: 2px;">Random Access Memory (RAM) bertugas menyimpan data sementara aplikasi yang sedang aktif agar dapat diakses seketika tanpa hambatan. Sementara itu, Solid State Drive (SSD) berbasis teknologi chip flash menyimpan sistem operasi dan berkas pengguna secara permanen dengan kecepatan transfer berkali lipat lebih cepat daripada cakram magnetik konvensional.</p><h4 style="font-weight: bold; color: #0f172a; margin-bottom: 2px;">3. Unit Pemroses Grafis (GPU) dan Monitor Tampilan</h4><p style="text-align: justify; line-height: 1.6; margin-top: 2px;">Kartu grafis modern bertugas merender tampilan visual dua dimensi maupun objek tiga dimensi secara halus. Output visual tersebut diproyeksikan ke monitor berpanel IPS dengan refresh rate optimal agar mata pengguna tetap nyaman selama beraktivitas.</p><h4 style="font-weight: bold; color: #0f172a; margin-bottom: 2px;">4. Perangkat Input Ergonomis dan Antarmuka Interaktif</h4><p style="text-align: justify; line-height: 1.6; margin-top: 2px;">Papan ketik mekanikal dan mouse optik presisi tinggi memastikan setiap sentuhan jari terkonversi menjadi perintah digital yang responsif, akurat, dan minim kesalahan ketik.</p><br/><p style="text-align: justify; line-height: 1.6;"><b>Kesimpulan Observasi:</b><br/><i>Kombinasi harmonis antara perangkat keras yang terawat baik dan penerapan sistem operasi yang bersih akan menghasilkan performa komputasi optimal yang mendukung produktivitas belajar siswa.</i></p>`,
+    targetPlainText: `LAPORAN OBSERVASI PERANGKAT KERAS KOMPUTER DESKTOP\n\n1. Central Processing Unit (CPU) bertindak sebagai otak utama pengolah perintah komputasi yang bekerja sama dengan motherboard.\n2. Random Access Memory (RAM) menyimpan data sementara saat program aktif, sedangkan SSD NVMe menyimpan berkas secara permanen dengan kecepatan transfer tinggi.\n3. Kartu Grafis (GPU) memproses tampilan visual dan merendernya ke monitor panel IPS agar mata tetap nyaman.\n4. Keyboard mekanikal dan mouse optik memberikan kendali input presisi bagi pengguna.\n\nKesimpulan: Perangkat keras yang terawat baik dan sistem operasi yang bersih akan menghasilkan performa komputer yang cepat dan stabil.`,
+    targetDocument: `<h4 align="center" style="font-weight: bold; color: #1e3a8a; margin-bottom: 8px;">LAPORAN OBSERVASI PERANGKAT KERAS KOMPUTER DESKTOP</h4><p style="font-size: 13px; line-height: 1.5; margin: 5px 0;"><b>1. Central Processing Unit (CPU)</b> bertindak sebagai otak utama pengolah perintah komputasi yang bekerja sama dengan motherboard.</p><p style="font-size: 13px; line-height: 1.5; margin: 5px 0;"><b>2. Random Access Memory (RAM)</b> menyimpan data sementara saat program aktif, sedangkan SSD NVMe menyimpan berkas secara permanen dengan kecepatan transfer tinggi.</p><p style="font-size: 13px; line-height: 1.5; margin: 5px 0;"><b>3. Kartu Grafis (GPU)</b> memproses tampilan visual dan merendernya ke monitor panel IPS agar mata tetap nyaman.</p><p style="font-size: 13px; line-height: 1.5; margin: 5px 0;"><b>4. Keyboard mekanikal</b> dan mouse optik memberikan kendali input presisi bagi pengguna.</p><div style="margin-top: 10px; padding: 8px; background-color: #f1f5f9; border-left: 4px solid #3b82f6; font-size: 12px; color: #1e293b;"><b>Kesimpulan:</b> Perangkat keras yang terawat baik dan sistem operasi yang bersih akan menghasilkan performa komputer yang cepat dan stabil.</div>`,
     createdAt: new Date().toISOString(),
   },
   {
@@ -757,48 +1229,80 @@ export const INITIAL_TYPING_PRACTICES: TypingPractice[] = [
     allocatedPoints: 90,
     minAccuracy: 80,
     targetWpm: 30,
+    relatedQuizId: 'quiz-5',
     instructions: 'Ketik naskah proposal kegiatan berikut dengan format subjudul tebal, butir tujuan, dan estimasi waktu yang teratur.',
-    targetPlainText: `PROPOSAL KEGIATAN PEKAN KREATIVITAS DIGITAL PELAJAR\nTEMA: "BERKARYA NYATA MENUJU GENERASI EMAS DIGITAL"\n\nI. Latar Belakang Kegiatan\nPerkembangan teknologi informasi saat ini menuntut generasi muda untuk tidak sekadar menjadi konsumen digital, melainkan mampu menjadi pencipta karya yang berdaya guna. Melalui ajang Pekan Kreativitas Digital, siswa diajak untuk mengekspresikan bakat dan keterampilan komputer secara sportif dan kompetitif.\n\nII. Tujuan Penyelenggaraan\n1. Menumbuhkan minat dan rasa percaya diri siswa dalam mengoperasikan aplikasi komputer perkantoran dan desain visual.\n2. Melatih ketangkasan serta kecepatan mengetik sepuluh jari sebagai modal berharga tugas sekolah masa kini.\n3. Mempererat tali persahabatan antaranggota ekstrakurikuler komputer melalui kompetisi yang sehat.\n\nIII. Cabang Lomba yang Diselenggarakan\n- Lomba Kecepatan dan Akurasi Mengetik Naskah Word (Liga 10 Jari)\n- Lomba Desain Poster Digital Menggunakan Aplikasi Paint dan Canva\n- Lomba Cerdas Cermat Komputer dan Keamanan Siber Cilik\n\nIV. Waktu dan Lokasi Pelaksanaan\nHari, Tanggal: Senin - Rabu, 16 - 18 November 2026\nWaktu: Pukul 13.30 - 16.00 WIB\nTempat: Gedung Laboratorium Komputer dan Multimedia Sekolah\n\nDemikian rancangan proposal kegiatan ini kami susun dengan sungguh-sungguh. Bimbingan dan dukungan dari Bapak/Ibu guru sangat kami harapkan demi kesuksesan agenda ini.`,
-    targetDocument: `<h3 align="center" style="font-weight: bold; color: #1e3a8a; margin-bottom: 2px;">PROPOSAL KEGIATAN PEKAN KREATIVITAS DIGITAL PELAJAR</h3><p align="center" style="font-size: 11px; font-weight: bold; color: #b45309; margin-top: 0;">TEMA: "BERKARYA NYATA MENUJU GENERASI EMAS DIGITAL"</p><hr/><h4 style="font-weight: bold; color: #0f172a; margin-bottom: 2px;">I. Latar Belakang Kegiatan</h4><p style="text-indent: 28px; text-align: justify; line-height: 1.6; margin-top: 2px;">Perkembangan teknologi informasi saat ini menuntut generasi muda untuk tidak sekadar menjadi konsumen digital, melainkan mampu menjadi pencipta karya yang berdaya guna. Melalui ajang Pekan Kreativitas Digital, siswa diajak untuk mengekspresikan bakat dan keterampilan komputer secara sportif dan kompetitif.</p><h4 style="font-weight: bold; color: #0f172a; margin-bottom: 2px;">II. Tujuan Penyelenggaraan</h4><ol style="margin-top: 2px; padding-left: 20px; line-height: 1.6;"><li>Menumbuhkan minat dan rasa percaya diri siswa dalam mengoperasikan aplikasi komputer perkantoran dan desain visual.</li><li>Melatih ketangkasan serta kecepatan mengetik sepuluh jari sebagai modal berharga tugas sekolah masa kini.</li><li>Mempererat tali persahabatan antaranggota ekstrakurikuler komputer melalui kompetisi yang sehat.</li></ol><h4 style="font-weight: bold; color: #0f172a; margin-bottom: 2px;">III. Cabang Lomba yang Diselenggarakan</h4><ul style="margin-top: 2px; padding-left: 20px; line-height: 1.6; list-style-type: square;"><li>Lomba Kecepatan dan Akurasi Mengetik Naskah Word (Liga 10 Jari)</li><li>Lomba Desain Poster Digital Menggunakan Aplikasi Paint dan Canva</li><li>Lomba Cerdas Cermat Komputer dan Keamanan Siber Cilik</li></ul><h4 style="font-weight: bold; color: #0f172a; margin-bottom: 2px;">IV. Waktu dan Lokasi Pelaksanaan</h4><p style="margin-left: 20px; line-height: 1.6;"><b>Hari, Tanggal:</b> Senin - Rabu, 16 - 18 November 2026<br/><b>Waktu:</b> Pukul 13.30 - 16.00 WIB<br/><b>Tempat:</b> Gedung Laboratorium Komputer dan Multimedia Sekolah</p><p style="text-indent: 28px; text-align: justify; line-height: 1.6;">Demikian rancangan proposal kegiatan ini kami susun dengan sungguh-sungguh. Bimbingan dan dukungan dari Bapak/Ibu guru sangat kami harapkan demi kesuksesan agenda ini.</p>`,
+    targetPlainText: `PROPOSAL PEKAN KREATIVITAS DIGITAL PELAJAR\nTema: "Berkarya Nyata Menuju Generasi Emas Digital"\n\nI. Tujuan Kegiatan:\n1. Melatih ketangkasan dan kecepatan mengetik 10 jari para siswa.\n2. Menumbuhkan daya kreativitas dan sportivitas melalui lomba teknologi.\n\nII. Cabang Lomba:\n- Lomba Kecepatan Mengetik Naskah Word (Liga 10 Jari)\n- Lomba Desain Poster Digital Kreatif\n- Lomba Cerdas Cermat Komputer Cilik\n\nIII. Waktu dan Tempat:\nHari, Tanggal: Senin - Rabu, 16 - 18 November 2026\nWaktu: Pukul 13.30 - 15.30 WIB\nTempat: Laboratorium Komputer dan Multimedia Sekolah\n\nDukungan dari Bapak/Ibu guru sangat kami harapkan demi kesuksesan acara ini.`,
+    targetDocument: `<h4 align="center" style="font-weight: bold; color: #1e3a8a; margin-bottom: 2px;">PROPOSAL PEKAN KREATIVITAS DIGITAL PELAJAR</h4><p align="center" style="font-size: 11px; font-weight: bold; color: #b45309; margin-top: 0; margin-bottom: 8px;">Tema: "Berkarya Nyata Menuju Generasi Emas Digital"</p><hr style="margin-bottom: 8px;"/><p style="font-size: 13px; font-weight: bold; color: #0f172a; margin: 4px 0;">I. Tujuan Kegiatan:</p><ol style="font-size: 13px; line-height: 1.5; margin-top: 2px; padding-left: 20px;"><li>Melatih ketangkasan dan kecepatan mengetik 10 jari para siswa.</li><li>Menumbuhkan daya kreativitas dan sportivitas melalui lomba teknologi.</li></ol><p style="font-size: 13px; font-weight: bold; color: #0f172a; margin: 6px 0 2px 0;">II. Cabang Lomba:</p><ul style="font-size: 13px; line-height: 1.5; margin-top: 2px; padding-left: 20px;"><li>Lomba Kecepatan Mengetik Naskah Word (Liga 10 Jari)</li><li>Lomba Desain Poster Digital Kreatif</li><li>Lomba Cerdas Cermat Komputer Cilik</li></ul><p style="font-size: 13px; font-weight: bold; color: #0f172a; margin: 6px 0 2px 0;">III. Waktu dan Tempat:</p><p style="font-size: 13px; line-height: 1.5; margin: 2px 0; padding-left: 10px;"><b>Hari, Tanggal:</b> Senin - Rabu, 16 - 18 November 2026<br/><b>Waktu:</b> Pukul 13.30 - 15.30 WIB<br/><b>Tempat:</b> Laboratorium Komputer dan Multimedia Sekolah</p><p style="font-size: 12px; font-style: italic; color: #64748b; margin-top: 8px;">Dukungan dari Bapak/Ibu guru sangat kami harapkan demi kesuksesan acara ini.</p>`,
     createdAt: new Date().toISOString(),
   },
   {
     id: 'tp-6',
-    title: 'Artikel Edukasi: "Netiket & Panduan Bijak Menjaga Jejak Digital"',
+    title: 'Artikel Edukasi: Netiket & Panduan Jejak Digital',
     category: 'Dasar Komputer',
     difficulty: 'Sedang',
     allocatedPoints: 90,
     minAccuracy: 80,
     targetWpm: 30,
+    relatedQuizId: 'quiz-6',
     instructions: 'Ketik artikel panduan berinternet sehat berikut dengan format subjudul bernomor dan kutipan berbingkai rapi.',
-    targetPlainText: `ETIKA BERINTERNET (NETIKET) DAN JEJAK DIGITAL POSITIF\nDisusun oleh Tim Edukasi Siber Komputer Ceria\n\nRuang maya internet adalah dunia kedua bagi masyarakat modern saat ini. Segala aktivitas, tulisan komentar, maupun foto yang kita unggah akan meninggalkan jejak digital permanen yang sulit untuk dihapus sepenuhnya. Oleh karena itu, memahami etika berkomunikasi digital (Netiket) merupakan benteng utama bagi keselamatan generasi muda.\n\nEmpat Prinsip Emas Berselancar Sehat di Dunia Maya:\n\n1. Terapkan Rumus T.H.I.N.K Sebelum Menulis Komentar\nPastikan apa yang kita ketik memenuhi kriteria: True (Benar faktanya), Helpful (Membantu sesama), Inspiring (Menginspirasi), Necessary (Diperlukan), dan Kind (Santun tanpa menyinggung perasaan orang lain).\n\n2. Lindungi Informasi Rahasia Akun Pribadi\nJangan pernah membagikan kata sandi (password), nomor induk siswa, nomor telepon keluarga, maupun alamat tempat tinggal kepada orang asing di internet atau game online.\n\n3. Hargai Hak Cipta dan Karya Orang Lain\nKetika menyalin informasi atau mengunduh gambar untuk kebutuhan tugas sekolah, biasakan untuk selalu menyertakan nama pencipta dan tautan sumber referensi resmi.\n\n4. Berani Melaporkan Modus Kejahatan Siber\nApabila menerima tautan mencurigakan yang meminta data rahasia atau menjumpai perilaku perundungan maya (cyberbullying), segera laporkan kepada orang tua atau guru pembina.\n\nKesimpulan:\nMari bersama-sama membangun lingkungan digital Indonesia yang cerdas, aman, ramah, dan penuh dengan karya-karya yang membanggakan bangsa.`,
-    targetDocument: `<h3 align="center" style="font-weight: bold; color: #1e3a8a; margin-bottom: 2px;">ETIKA BERINTERNET (NETIKET) DAN JEJAK DIGITAL POSITIF</h3><p align="center" style="font-size: 11px; font-style: italic; color: #64748b; margin-top: 0;">Disusun oleh Tim Edukasi Siber Komputer Ceria</p><br/><p style="text-indent: 28px; text-align: justify; line-height: 1.6;">Ruang maya internet adalah dunia kedua bagi masyarakat modern saat ini. Segala aktivitas, tulisan komentar, maupun foto yang kita unggah akan meninggalkan jejak digital permanen yang sulit untuk dihapus sepenuhnya. Oleh karena itu, memahami etika berkomunikasi digital (Netiket) merupakan benteng utama bagi keselamatan generasi muda.</p><h4 style="font-weight: bold; color: #0284c7; margin-top: 10px; margin-bottom: 4px;">Empat Prinsip Emas Berselancar Sehat di Dunia Maya:</h4><p style="text-align: justify; line-height: 1.6;"><b>1. Terapkan Rumus T.H.I.N.K Sebelum Menulis Komentar</b><br/>Pastikan apa yang kita ketik memenuhi kriteria: True (Benar faktanya), Helpful (Membantu sesama), Inspiring (Menginspirasi), Necessary (Diperlukan), dan Kind (Santun tanpa menyinggung perasaan orang lain).</p><p style="text-align: justify; line-height: 1.6;"><b>2. Lindungi Informasi Rahasia Akun Pribadi</b><br/>Jangan pernah membagikan kata sandi (password), nomor induk siswa, nomor telepon keluarga, maupun alamat tempat tinggal kepada orang asing di internet atau game online.</p><p style="text-align: justify; line-height: 1.6;"><b>3. Hargai Hak Cipta dan Karya Orang Lain</b><br/>Ketika menyalin informasi atau mengunduh gambar untuk kebutuhan tugas sekolah, biasakan untuk selalu menyertakan nama pencipta dan tautan sumber referensi resmi.</p><p style="text-align: justify; line-height: 1.6;"><b>4. Berani Melaporkan Modus Kejahatan Siber</b><br/>Apabila menerima tautan mencurigakan yang meminta data rahasia atau menjumpai perilaku perundungan maya (cyberbullying), segera laporkan kepada orang tua atau guru pembina.</p><br/><div style="background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 10px; font-size: 12px; color: #166534;"><b>Kesimpulan:</b> Mari bersama-sama membangun lingkungan digital Indonesia yang cerdas, aman, ramah, dan penuh dengan karya-karya yang membanggakan bangsa.</div>`,
+    targetPlainText: `ETIKA BERINTERNET (NETIKET) DAN JEJAK DIGITAL POSITIF\n\nInternet merupakan ruang belajar kedua kita. Segala aktivitas, tulisan, dan foto yang diunggah akan meninggalkan jejak digital permanen.\n\nPedomani 4 Prinsip Berselancar Sehat:\n1. Rumus T.H.I.N.K: Pastikan kata-katamu True (Benar), Helpful (Membantu), Inspiring (Menginspirasi), Necessary (Penting), dan Kind (Santun).\n2. Lindungi Privasi: Jangan bagikan password, NISN, dan alamat rumah kepada orang asing.\n3. Hargai Hak Cipta: Selalu cantumkan sumber referensi saat mengutip artikel atau gambar.\n4. Berani Melapor: Laporkan tautan penipuan dan perilaku cyberbullying kepada orang tua atau guru.\n\nMari kita jadikan internet ruang belajar yang cerdas, aman, dan beradab.`,
+    targetDocument: `<h4 align="center" style="font-weight: bold; color: #1e3a8a; margin-bottom: 6px;">ETIKA BERINTERNET (NETIKET) DAN JEJAK DIGITAL POSITIF</h4><p style="text-indent: 24px; text-align: justify; font-size: 13px; line-height: 1.5; margin: 5px 0;">Internet merupakan ruang belajar kedua kita. Segala aktivitas, tulisan, dan foto yang diunggah akan meninggalkan jejak digital permanen.</p><p style="font-weight: bold; font-size: 13px; color: #0284c7; margin: 6px 0 2px 0;">Pedomani 4 Prinsip Berselancar Sehat:</p><ol style="font-size: 13px; line-height: 1.5; margin-top: 2px; padding-left: 20px;"><li><b>Rumus T.H.I.N.K:</b> Pastikan kata-katamu True (Benar), Helpful (Membantu), Inspiring (Menginspirasi), Necessary (Penting), dan Kind (Santun).</li><li><b>Lindungi Privasi:</b> Jangan bagikan password, NISN, dan alamat rumah kepada orang asing.</li><li><b>Hargai Hak Cipta:</b> Selalu cantumkan sumber referensi saat mengutip artikel atau gambar.</li><li><b>Berani Melapor:</b> Laporkan tautan penipuan dan perilaku cyberbullying kepada orang tua atau guru.</li></ol><div style="margin-top: 8px; padding: 6px 10px; background-color: #f0fdf4; border-left: 4px solid #16a34a; font-size: 12px; color: #166534;"><b>Mari kita jadikan internet ruang belajar yang cerdas, aman, dan beradab.</b></div>`,
     createdAt: new Date().toISOString(),
   },
   {
     id: 'tp-7',
-    title: 'Standar Operasional Prosedur (SOP) Perawatan Komputer',
+    title: 'SOP Laboratorium Komputer: Perawatan & Prosedur Shutdown',
     category: 'Aplikasi Kantor',
     difficulty: 'Mahir',
     allocatedPoints: 95,
     minAccuracy: 85,
     targetWpm: 32,
+    relatedQuizId: 'quiz-7',
     instructions: 'Ketik naskah prosedur operasional berikut dengan format tiga tahapan terstruktur dan daftar poin penjelas.',
-    targetPlainText: `STANDAR OPERASIONAL PROSEDUR (SOP) LABORATORIUM KOMPUTER\nBAGIAN: PENGGUNAAN DAN PERAWATAN PERANGKAT KERAS SEKOLAH\n\nTahap 1: Persiapan Sebelum Menyalakan Komputer\n1. Pastikan area meja komputer dan lantai dalam keadaan kering dan bersih dari tumpahan cairan.\n2. Periksa colokan kabel power pada stopkontak dan stabilizer untuk memastikan aliran listrik tersambung dengan aman.\n3. Tekan tombol Power pada unit CPU terlebih dahulu, kemudian nyalakan layar monitor dan tunggu proses booting sistem operasi selesai sempurna.\n\nTahap 2: Selama Sesi Praktikum Berlangsung\n1. Masuk ke akun siswa menggunakan username dan kata sandi yang telah dibagikan secara resmi.\n2. Dilarang mengubah konfigurasi sistem operasi atau wallpaper komputer tanpa izin guru pembina.\n3. Jangan mencabut flashdisk secara mendadak; gunakan selalu fitur "Eject / Safely Remove Hardware" pada taskbar Windows.\n4. Apabila terjadi kendala blue screen atau aplikasi berhenti mendadak, segera hubungi instruktur lab.\n\nTahap 3: Prosedur Selesai dan Shutdown\n1. Simpan seluruh dokumen pekerjaan ke folder pribadi dan tutup seluruh jendela aplikasi yang terbuka.\n2. Klik menu Start, pilih ikon Power, lalu klik tombol "Shut down". Tunggu hingga lampu indikator CPU padam sepenuhnya.\n3. Matikan monitor melalui tombol fisik di sisi bawah layar, rapikan posisi mouse dan keyboard, lalu masukkan kursi ke bawah meja dengan rapi.`,
-    targetDocument: `<h3 align="center" style="font-weight: bold; color: #1e3a8a; margin-bottom: 2px;">STANDAR OPERASIONAL PROSEDUR (SOP) LABORATORIUM KOMPUTER</h3><p align="center" style="font-size: 11px; font-weight: bold; color: #64748b; margin-top: 0;">BAGIAN: PENGGUNAAN DAN PERAWATAN PERANGKAT KERAS SEKOLAH</p><hr/><h4 style="font-weight: bold; color: #0f172a; margin-bottom: 2px;">Tahap 1: Persiapan Sebelum Menyalakan Komputer</h4><ol style="margin-top: 2px; padding-left: 20px; line-height: 1.6;"><li>Pastikan area meja komputer dan lantai dalam keadaan kering dan bersih dari tumpahan cairan.</li><li>Periksa colokan kabel power pada stopkontak dan stabilizer untuk memastikan aliran listrik tersambung dengan aman.</li><li>Tekan tombol Power pada unit CPU terlebih dahulu, kemudian nyalakan layar monitor dan tunggu proses booting sistem operasi selesai sempurna.</li></ol><h4 style="font-weight: bold; color: #0f172a; margin-bottom: 2px;">Tahap 2: Selama Sesi Praktikum Berlangsung</h4><ol style="margin-top: 2px; padding-left: 20px; line-height: 1.6;"><li>Masuk ke akun siswa menggunakan username dan kata sandi yang telah dibagikan secara resmi.</li><li>Dilarang mengubah konfigurasi sistem operasi atau wallpaper komputer tanpa izin guru pembina.</li><li>Jangan mencabut flashdisk secara mendadak; gunakan selalu fitur "Eject / Safely Remove Hardware" pada taskbar Windows.</li><li>Apabila terjadi kendala blue screen atau aplikasi berhenti mendadak, segera hubungi instruktur lab.</li></ol><h4 style="font-weight: bold; color: #0f172a; margin-bottom: 2px;">Tahap 3: Prosedur Selesai dan Shutdown</h4><ol style="margin-top: 2px; padding-left: 20px; line-height: 1.6;"><li>Simpan seluruh dokumen pekerjaan ke folder pribadi dan tutup seluruh jendela aplikasi yang terbuka.</li><li>Klik menu Start, pilih ikon Power, lalu klik tombol "Shut down". Tunggu hingga lampu indikator CPU padam sepenuhnya.</li><li>Matikan monitor melalui tombol fisik di sisi bawah layar, rapikan posisi mouse dan keyboard, lalu masukkan kursi ke bawah meja dengan rapi.</li></ol>`,
+    targetPlainText: `SOP PENGGUNAAN DAN PERAWATAN KOMPUTER LABORATORIUM\n\nTahap 1: Persiapan Awal\n- Pastikan meja dan lantai kering dari cairan sebelum menyalakan listrik.\n- Tekan tombol Power CPU terlebih dahulu, kemudian nyalakan monitor.\n\nTahap 2: Selama Praktikum\n- Masuk menggunakan akun siswa resmi dan jangan mengubah pengaturan wallpaper tanpa izin.\n- Gunakan fitur "Safely Remove Hardware / Eject" sebelum mencabut flashdisk dari port USB.\n\nTahap 3: Prosedur Shutdown\n- Simpan seluruh pekerjaan dokumen dan tutup semua aplikasi yang aktif.\n- Klik Start, pilih tombol Power, lalu klik "Shut down".\n- Matikan monitor, rapikan keyboard serta mouse, dan masukkan kursi ke bawah meja.`,
+    targetDocument: `<h4 align="center" style="font-weight: bold; color: #1e3a8a; margin-bottom: 6px;">SOP PENGGUNAAN DAN PERAWATAN KOMPUTER LABORATORIUM</h4><hr style="margin-bottom: 8px;"/><p style="font-weight: bold; font-size: 13px; color: #0f172a; margin: 4px 0;">Tahap 1: Persiapan Awal</p><ul style="font-size: 13px; line-height: 1.5; margin-top: 2px; padding-left: 20px;"><li>Pastikan meja dan lantai kering dari cairan sebelum menyalakan listrik.</li><li>Tekan tombol Power CPU terlebih dahulu, kemudian nyalakan monitor.</li></ul><p style="font-weight: bold; font-size: 13px; color: #0f172a; margin: 6px 0 2px 0;">Tahap 2: Selama Praktikum</p><ul style="font-size: 13px; line-height: 1.5; margin-top: 2px; padding-left: 20px;"><li>Masuk menggunakan akun siswa resmi dan jangan mengubah pengaturan wallpaper tanpa izin.</li><li>Gunakan fitur <i>"Safely Remove Hardware / Eject"</i> sebelum mencabut flashdisk dari port USB.</li></ul><p style="font-weight: bold; font-size: 13px; color: #0f172a; margin: 6px 0 2px 0;">Tahap 3: Prosedur Shutdown</p><ul style="font-size: 13px; line-height: 1.5; margin-top: 2px; padding-left: 20px;"><li>Simpan seluruh pekerjaan dokumen dan tutup semua aplikasi yang aktif.</li><li>Klik Start, pilih tombol Power, lalu klik "Shut down".</li><li>Matikan monitor, rapikan keyboard serta mouse, dan masukkan kursi ke bawah meja.</li></ul>`,
     createdAt: new Date().toISOString(),
   },
   {
     id: 'tp-8',
-    title: 'Naskah Pidato Pelajar: "Generasi Muda Tangguh Cerdas Digital"',
+    title: 'Naskah Pidato Pelajar: Generasi Cerdas Digital',
     category: 'Format Word',
     difficulty: 'Mahir',
     allocatedPoints: 100,
     minAccuracy: 85,
     targetWpm: 35,
+    relatedQuizId: 'quiz-8',
     instructions: 'Ketik naskah pidato resmi berikut dengan format paragraf pidato, penekanan teks tebal, dan salam penutup santun.',
-    targetPlainText: `GENERASI MUDA TANGGUH CERDAS DIGITAL MENATAP MASA DEPAN\nNaskah Pidato Perwakilan Siswa Ekstrakurikuler Komputer\n\nSelamat pagi kepada Bapak dan Ibu guru yang kami muliakan, serta rekan-rekan seperjuangan yang kami banggakan.\n\nMarilah kita panjatkan puji dan rasa syukur ke hadirat Tuhan Yang Maha Kuasa, karena berkat limpahan rahmat-Nya kita dapat berkumpul di ruangan laboratorium komputer yang penuh inspirasi ini dalam keadaan sehat walafiat.\n\nHadirin yang kami hormati,\nKita saat ini tengah berdiri di ambang peradaban modern abad kedua puluh satu, di mana kecerdasan buatan, jaringan internet, dan teknologi komputasi telah merasuk ke dalam setiap sendi kehidupan manusia. Komputer tidak lagi sekadar menjadi perangkat untuk mengetik lembaran tugas atau menonton video hiburan, melainkan telah bermetamorfosis menjadi jendela ilmu pengetahuan dunia tanpa batas.\n\nUntuk menyongsong masa depan yang gemilang tersebut, ada tiga kunci utama yang harus kita genggam teguh bersama-sama:\nPertama, miliki rasa ingin tahu yang tidak pernah padam untuk terus mempelajari hal-hal baru di bidang teknologi.\nKedua, biasakan diri untuk bekerja dengan teliti, disiplin, dan pantang berputus asa ketika menghadapi kegagalan program.\nKetiga, jadikan etika dan moral digital sebagai pedoman utama agar setiap karya yang kita ciptakan membawa maslahat bagi nusa dan bangsa.\n\nMari kita manfaatkan setiap detik di laboratorium komputer ceria ini untuk menempa potensi diri, menari lincah di atas papan ketik sepuluh jari, dan mencetak prestasi gemilang yang mengharumkan nama sekolah tercinta.\n\nSekian pidato yang dapat kami sampaikan. Mohon maaf atas segala kekhilafan kata. Terima kasih atas perhatian hadirin sekalian.\n\nSelamat pagi dan salam semangat teknologi!`,
-    targetDocument: `<h3 align="center" style="font-weight: bold; color: #1e3a8a; margin-bottom: 2px;">GENERASI MUDA TANGGUH CERDAS DIGITAL MENATAP MASA DEPAN</h3><p align="center" style="font-size: 11px; font-style: italic; color: #64748b; margin-top: 0;">Naskah Pidato Perwakilan Siswa Ekstrakurikuler Komputer</p><br/><p style="text-indent: 28px; text-align: justify; line-height: 1.6;">Selamat pagi kepada Bapak dan Ibu guru yang kami muliakan, serta rekan-rekan seperjuangan yang kami banggakan.</p><p style="text-indent: 28px; text-align: justify; line-height: 1.6;">Marilah kita panjatkan puji dan rasa syukur ke hadirat Tuhan Yang Maha Kuasa, karena berkat limpahan rahmat-Nya kita dapat berkumpul di ruangan laboratorium komputer yang penuh inspirasi ini dalam keadaan sehat walafiat.</p><p style="text-indent: 28px; text-align: justify; line-height: 1.6;">Hadirin yang kami hormati,<br/>Kita saat ini tengah berdiri di ambang peradaban modern abad kedua puluh satu, di mana kecerdasan buatan, jaringan internet, dan teknologi komputasi telah merasuk ke dalam setiap sendi kehidupan manusia. Komputer tidak lagi sekadar menjadi perangkat untuk mengetik lembaran tugas atau menonton video hiburan, melainkan telah bermetamorfosis menjadi jendela ilmu pengetahuan dunia tanpa batas.</p><p style="text-indent: 28px; text-align: justify; line-height: 1.6;">Untuk menyongsong masa depan yang gemilang tersebut, ada <b>tiga kunci utama</b> yang harus kita genggam teguh bersama-sama:<br/><b>Pertama</b>, miliki rasa ingin tahu yang tidak pernah padam untuk terus mempelajari hal-hal baru di bidang teknologi.<br/><b>Kedua</b>, biasakan diri untuk bekerja dengan teliti, disiplin, dan pantang berputus asa ketika menghadapi kegagalan program.<br/><b>Ketiga</b>, jadikan etika dan moral digital sebagai pedoman utama agar setiap karya yang kita ciptakan membawa maslahat bagi nusa dan bangsa.</p><p style="text-indent: 28px; text-align: justify; line-height: 1.6;">Mari kita manfaatkan setiap detik di laboratorium komputer ceria ini untuk menempa potensi diri, menari lincah di atas papan ketik sepuluh jari, dan mencetak prestasi gemilang yang mengharumkan nama sekolah tercinta.</p><p style="text-indent: 28px; text-align: justify; line-height: 1.6;">Sekian pidato yang dapat kami sampaikan. Mohon maaf atas segala kekhilafan kata. Terima kasih atas perhatian hadirin sekalian.<br/><br/><b>Selamat pagi dan salam semangat teknologi!</b></p>`,
+    targetPlainText: `PIDATO PERWAKILAN SISWA: MENYONGSONG MASA DEPAN DIGITAL\n\nSelamat pagi Bapak dan Ibu guru serta teman-teman yang saya banggakan.\nPuji syukur kita panjatkan ke hadirat Tuhan Yang Maha Kuasa atas kesehatan dan kesempatan belajar teknologi di laboratorium ceria ini.\nKomputer saat ini bukan hanya alat mengetik biasa, melainkan jendela ilmu pengetahuan dunia tanpa batas.\n\nAda tiga kunci sukses bagi generasi muda digital:\nPertama, miliki rasa ingin tahu yang tinggi untuk terus belajar hal baru.\nKedua, bersikap teliti, disiplin, dan pantang menyerah ketika program mengalami kendala.\nKetiga, junjung tinggi etika moral agar karya kita membawa manfaat bagi bangsa.\n\nMari terus giat berlatih mengetik 10 jari dan raih prestasi terbaik! Terima kasih.`,
+    targetDocument: `<h4 align="center" style="font-weight: bold; color: #1e3a8a; margin-bottom: 6px;">PIDATO PERWAKILAN SISWA: MENYONGSONG MASA DEPAN DIGITAL</h4><p style="text-indent: 24px; text-align: justify; font-size: 13px; line-height: 1.6; margin: 5px 0;">Selamat pagi Bapak dan Ibu guru serta teman-teman yang saya banggakan. Puji syukur kita panjatkan ke hadirat Tuhan Yang Maha Kuasa atas kesehatan dan kesempatan belajar teknologi di laboratorium ceria ini. Komputer saat ini bukan hanya alat mengetik biasa, melainkan jendela ilmu pengetahuan dunia tanpa batas.</p><p style="text-indent: 24px; text-align: justify; font-size: 13px; line-height: 1.6; margin: 5px 0;">Ada <b>tiga kunci sukses</b> bagi generasi muda digital:<br/><b>Pertama</b>, miliki rasa ingin tahu yang tinggi untuk terus belajar hal baru.<br/><b>Kedua</b>, bersikap teliti, disiplin, dan pantang menyerah ketika program mengalami kendala.<br/><b>Ketiga</b>, junjung tinggi etika moral agar karya kita membawa manfaat bagi bangsa.</p><p style="text-indent: 24px; text-align: justify; font-size: 13px; line-height: 1.6; margin: 5px 0;">Mari terus giat berlatih mengetik 10 jari dan raih prestasi terbaik! Terima kasih.</p>`,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'tp-9',
+    title: 'Tabel Rekapitulasi Nilai & Jadwal Ekstrakurikuler Komputer',
+    category: 'Aplikasi Kantor',
+    difficulty: 'Sedang',
+    allocatedPoints: 90,
+    minAccuracy: 80,
+    targetWpm: 30,
+    relatedQuizId: 'quiz-9',
+    instructions: 'Ketik ulang tabel rekapitulasi nilai latihan mengetik berikut dengan format tabel rapi, persentase akurasi, dan WPM.',
+    targetPlainText: `REKAPITULASI NILAI LATIHAN MENGETIK KELAS 5 DAN 6\nKegiatan: Ekstrakurikuler Komputer Ceria Tahun Ajaran 2026/2027\n\nDaftar Nilai Siswa Terbaik:\n1. Ahmad Fauzi (Kelas 5A): Kecepatan 38 WPM, Akurasi 96%, Nilai A\n2. Siti Rahmawati (Kelas 5B): Kecepatan 35 WPM, Akurasi 98%, Nilai A\n3. Budi Santoso (Kelas 6A): Kecepatan 42 WPM, Akurasi 95%, Nilai A+\n4. Citra Kirana (Kelas 6B): Kecepatan 40 WPM, Akurasi 97%, Nilai A+\n\nKriteria Penilaian: Kecepatan minimal 30 WPM dan akurasi minimal 90%.\nCatatan Pembina: Seluruh siswa menunjukkan peningkatan ketangkasan jari yang membanggakan.`,
+    targetDocument: `<h4 align="center" style="font-weight: bold; color: #1e3a8a; margin-bottom: 2px;">REKAPITULASI NILAI LATIHAN MENGETIK KELAS 5 DAN 6</h4><p align="center" style="font-size: 11px; color: #64748b; margin-top: 0; margin-bottom: 8px;">Kegiatan: Ekstrakurikuler Komputer Ceria Tahun Ajaran 2026/2027</p><table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 8px;"><tr style="background-color: #e2e8f0;"><th style="border: 1px solid #cbd5e1; padding: 4px;">Nama Siswa</th><th style="border: 1px solid #cbd5e1; padding: 4px;">Kelas</th><th style="border: 1px solid #cbd5e1; padding: 4px;">Kecepatan</th><th style="border: 1px solid #cbd5e1; padding: 4px;">Akurasi</th><th style="border: 1px solid #cbd5e1; padding: 4px;">Nilai</th></tr><tr><td style="border: 1px solid #cbd5e1; padding: 4px;">Ahmad Fauzi</td><td style="border: 1px solid #cbd5e1; padding: 4px; text-align: center;">5A</td><td style="border: 1px solid #cbd5e1; padding: 4px; text-align: center;">38 WPM</td><td style="border: 1px solid #cbd5e1; padding: 4px; text-align: center;">96%</td><td style="border: 1px solid #cbd5e1; padding: 4px; text-align: center; font-weight: bold;">A</td></tr><tr><td style="border: 1px solid #cbd5e1; padding: 4px;">Siti Rahmawati</td><td style="border: 1px solid #cbd5e1; padding: 4px; text-align: center;">5B</td><td style="border: 1px solid #cbd5e1; padding: 4px; text-align: center;">35 WPM</td><td style="border: 1px solid #cbd5e1; padding: 4px; text-align: center;">98%</td><td style="border: 1px solid #cbd5e1; padding: 4px; text-align: center; font-weight: bold;">A</td></tr><tr><td style="border: 1px solid #cbd5e1; padding: 4px;">Budi Santoso</td><td style="border: 1px solid #cbd5e1; padding: 4px; text-align: center;">6A</td><td style="border: 1px solid #cbd5e1; padding: 4px; text-align: center;">42 WPM</td><td style="border: 1px solid #cbd5e1; padding: 4px; text-align: center;">95%</td><td style="border: 1px solid #cbd5e1; padding: 4px; text-align: center; font-weight: bold;">A+</td></tr><tr><td style="border: 1px solid #cbd5e1; padding: 4px;">Citra Kirana</td><td style="border: 1px solid #cbd5e1; padding: 4px; text-align: center;">6B</td><td style="border: 1px solid #cbd5e1; padding: 4px; text-align: center;">40 WPM</td><td style="border: 1px solid #cbd5e1; padding: 4px; text-align: center;">97%</td><td style="border: 1px solid #cbd5e1; padding: 4px; text-align: center; font-weight: bold;">A+</td></tr></table><p style="font-size: 12px; margin: 4px 0;"><b>Kriteria Penilaian:</b> Kecepatan minimal 30 WPM dan akurasi minimal 90%.</p><p style="font-size: 12px; font-style: italic; color: #166534; margin: 2px 0;">Catatan Pembina: Seluruh siswa menunjukkan peningkatan ketangkasan jari yang membanggakan.</p>`,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'tp-10',
+    title: 'Tips Kesehatan: Merawat Mata & Postur Saat Mengetik Komputer',
+    category: 'Dasar Komputer',
+    difficulty: 'Mudah',
+    allocatedPoints: 85,
+    minAccuracy: 75,
+    targetWpm: 25,
+    relatedQuizId: 'quiz-10',
+    instructions: 'Ketik panduan kesehatan ergonomis berikut dengan format daftar nomor dan tips praktis.',
+    targetPlainText: `PANDUAN KESEHATAN MATA DAN POSTUR DUDUK SAAT MENGETIK\n\n1. Terapkan Aturan 20-20-20: Setiap menatap layar selama 20 menit, alihkan pandangan ke objek berjarak 20 kaki (sekitar 6 meter) selama 20 detik untuk mengistirahatkan otot mata.\n2. Atur Jarak Aman Monitor: Posisikan layar monitor sekitar 50 sampai 60 sentimeter dari mata, sejajar atau sedikit di bawah garis pandang.\n3. Postur Punggung dan Kaki: Duduklah dengan punggung tegak bersandar pada sandaran kursi, dan kedua telapak kaki menapak rata di lantai.\n4. Sering Berkedip: Berkedip secara teratur menjaga kelembapan kornea mata agar tidak perih atau lelah.`,
+    targetDocument: `<h4 align="center" style="font-weight: bold; color: #1e3a8a; margin-bottom: 8px;">PANDUAN KESEHATAN MATA DAN POSTUR DUDUK SAAT MENGETIK</h4><ol style="font-size: 13px; line-height: 1.6; margin-top: 4px; padding-left: 20px;"><li><b>Terapkan Aturan 20-20-20:</b> Setiap menatap layar selama 20 menit, alihkan pandangan ke objek berjarak 20 kaki (sekitar 6 meter) selama 20 detik untuk mengistirahatkan otot mata.</li><li><b>Atur Jarak Aman Monitor:</b> Posisikan layar monitor sekitar 50 sampai 60 sentimeter dari mata, sejajar atau sedikit di bawah garis pandang.</li><li><b>Postur Punggung dan Kaki:</b> Duduklah dengan punggung tegak bersandar pada sandaran kursi, dan kedua telapak kaki menapak rata di lantai.</li><li><b>Sering Berkedip:</b> Berkedip secara teratur menjaga kelembapan kornea mata agar tidak perih atau lelah.</li></ol>`,
     createdAt: new Date().toISOString(),
   },
 ];

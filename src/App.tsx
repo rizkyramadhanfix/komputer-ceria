@@ -167,6 +167,15 @@ function MainAppContent() {
         {currentView === 'student-glossary' && (
           <StudentDashboard initialTab="tech-glossary" />
         )}
+        {currentView === 'student-pizza-tycoon' && (
+          <StudentDashboard initialTab="pizza-tycoon" />
+        )}
+        {currentView === 'student-code-a-pet' && (
+          <StudentDashboard initialTab="code-a-pet" />
+        )}
+        {currentView === 'student-detective-hoax' && (
+          <StudentDashboard initialTab="detective-hoax" />
+        )}
 
         {/* ADMIN VIEWS */}
         {currentView === 'admin-dashboard' && (

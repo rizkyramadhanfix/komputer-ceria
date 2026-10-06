@@ -52,7 +52,16 @@ import {
   Play,
   Save,
   Trash2,
+  Volume2,
+  VolumeX,
+  Pizza,
+  Search,
+  QrCode,
 } from 'lucide-react';
+import { ExcelPizzaTycoon } from '../games/ExcelPizzaTycoon';
+import { CodeAPetGame } from '../games/CodeAPetGame';
+import { DetectiveHoaxGame } from '../games/DetectiveHoaxGame';
+import { soundEffects } from '../../utils/soundEffects';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import {
@@ -113,6 +122,7 @@ import { RhythmTypingGame } from '../games/RhythmTypingGame';
 import { StorageMasterGame } from '../games/StorageMasterGame';
 import { MiniPosterStudio } from '../games/MiniPosterStudio';
 import { ActivityCalendarModal } from '../common/ActivityCalendarModal';
+import { ShareAppModal } from '../common/ShareAppModal';
 
 interface StudentDashboardProps {
   initialTab?:
@@ -148,7 +158,10 @@ interface StudentDashboardProps {
     | 'lan-crimping'
     | 'rhythm-typing'
     | 'storage-master'
-    | 'mini-poster';
+    | 'mini-poster'
+    | 'pizza-tycoon'
+    | 'code-a-pet'
+    | 'detective-hoax';
 }
 
 export const StudentDashboard: React.FC<StudentDashboardProps> = ({
@@ -190,11 +203,15 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
     | 'rhythm-typing'
     | 'storage-master'
     | 'mini-poster'
+    | 'pizza-tycoon'
+    | 'code-a-pet'
+    | 'detective-hoax'
   >(initialTab);
   const [gamesConfig, setGamesConfig] = useState(() => getGamesConfig());
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [showActivityCalendar, setShowActivityCalendar] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   // Typing Drafts state
   const [studentDrafts, setStudentDrafts] = useState<Record<string, TypingDraft>>(() =>
@@ -238,6 +255,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const [quizFinished, setQuizFinished] = useState(false);
+  const [quizSoundEnabled, setQuizSoundEnabled] = useState(() => soundEffects.isEnabled());
   const [quizResult, setQuizResult] = useState<{
     score: number;
     correctCount: number;
@@ -350,7 +368,18 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
   // Handle Answer Selection
   const handleSelectOption = (questionIdx: number, optionIdx: number) => {
-    if (quizFinished) return;
+    if (quizFinished || !activeQuiz) return;
+    
+    // Play cheerful chime if correct, or soft oops tone if incorrect
+    const currentQ = activeQuiz.questions[questionIdx];
+    if (currentQ) {
+      if (optionIdx === currentQ.correctAnswerIndex) {
+        soundEffects.playQuizCorrect();
+      } else {
+        soundEffects.playQuizIncorrect();
+      }
+    }
+
     setSelectedAnswers((prev) => ({
       ...prev,
       [questionIdx]: optionIdx,
@@ -370,6 +399,9 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
     const totalQuestions = activeQuiz.questions.length;
     const score = Math.round((correctCount / totalQuestions) * 100);
     const rawPointsEarned = Math.round((score / 100) * (activeQuiz.allocatedPoints || 100));
+
+    // Play triumphant fanfare for completing quiz
+    soundEffects.playSuccessFanfare();
 
     // Anti-Cheat: Check if this quiz was already submitted today with a high score
     const todayStr = new Date().toISOString().split('T')[0];
@@ -893,6 +925,13 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Agenda Ekskul</span>
                   </button>
                   <button
+                    onClick={() => setShowShareModal(true)}
+                    className="flex flex-col items-center justify-center p-3 bg-gradient-to-b from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/30 border-2 border-indigo-300 dark:border-indigo-800 rounded-xl hover:scale-105 transition-all group shadow-xs cursor-pointer"
+                  >
+                    <QrCode className="w-6 h-6 text-indigo-600 dark:text-indigo-400 mb-2 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-black text-indigo-900 dark:text-indigo-200 text-center">Hubungkan HP</span>
+                  </button>
+                  <button
                     onClick={() => setActiveTab('typing-league')}
                     className="flex flex-col items-center justify-center p-3 bg-gradient-to-b from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/30 border-2 border-amber-400 dark:border-amber-500/60 rounded-xl hover:scale-105 transition-all group shadow-sm cursor-pointer relative overflow-hidden"
                   >
@@ -978,6 +1017,36 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   >
                     <Stethoscope className="w-6 h-6 text-rose-500 mb-2 group-hover:scale-110 transition-transform" />
                     <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Dokter PC</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('pizza-tycoon')}
+                    className="flex flex-col items-center justify-center p-3 bg-gradient-to-b from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/20 border-2 border-amber-300 dark:border-amber-700 rounded-xl hover:border-amber-500 transition-all group shadow-xs cursor-pointer relative"
+                  >
+                    <div className="absolute -top-2 bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-tighter">
+                      Baru!
+                    </div>
+                    <span className="text-2xl mb-1 group-hover:scale-125 transition-transform">🍕</span>
+                    <span className="text-[10px] font-black text-amber-900 dark:text-amber-200 text-center">Pizza Tycoon</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('code-a-pet')}
+                    className="flex flex-col items-center justify-center p-3 bg-gradient-to-b from-pink-50 to-purple-50 dark:from-pink-950/40 dark:to-purple-950/20 border-2 border-pink-300 dark:border-pink-700 rounded-xl hover:border-pink-500 transition-all group shadow-xs cursor-pointer relative"
+                  >
+                    <div className="absolute -top-2 bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-tighter">
+                      Baru!
+                    </div>
+                    <span className="text-2xl mb-1 group-hover:scale-125 transition-transform">🐾</span>
+                    <span className="text-[10px] font-black text-pink-900 dark:text-pink-200 text-center">Code-A-Pet</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('detective-hoax')}
+                    className="flex flex-col items-center justify-center p-3 bg-gradient-to-b from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/20 border-2 border-blue-300 dark:border-blue-700 rounded-xl hover:border-blue-500 transition-all group shadow-xs cursor-pointer relative"
+                  >
+                    <div className="absolute -top-2 bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-tighter">
+                      Baru!
+                    </div>
+                    <span className="text-2xl mb-1 group-hover:scale-125 transition-transform">🕵️‍♂️</span>
+                    <span className="text-[10px] font-black text-blue-900 dark:text-blue-200 text-center">Detektif Hoax</span>
                   </button>
                   <button
                     onClick={() => setActiveTab('typing-hero')}
@@ -1244,12 +1313,30 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     {activeQuiz.title}
                   </h2>
                 </div>
-                <button
-                  onClick={() => setActiveQuiz(null)}
-                  className="px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
-                >
-                  Keluar Kuis
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = soundEffects.toggle();
+                      setQuizSoundEnabled(next);
+                    }}
+                    className={`p-1.5 text-xs font-medium rounded-lg border transition-colors cursor-pointer flex items-center gap-1 ${
+                      quizSoundEnabled
+                        ? 'border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300'
+                        : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-slate-600'
+                    }`}
+                    title={quizSoundEnabled ? 'Suara Kuis Aktif (Klik untuk Matikan)' : 'Suara Kuis Mati (Klik untuk Nyalakan)'}
+                  >
+                    {quizSoundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+                    <span className="hidden sm:inline text-[11px] font-semibold">{quizSoundEnabled ? 'Suara: ON' : 'Suara: OFF'}</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveQuiz(null)}
+                    className="px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  >
+                    Keluar Kuis
+                  </button>
+                </div>
               </div>
 
               {!quizFinished ? (
@@ -1591,9 +1678,17 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     >
                       <div className="space-y-2">
                         <div className="flex items-center justify-between text-xs text-slate-500">
-                          <span className="font-semibold text-indigo-600 dark:text-indigo-400">
-                            {practice.category}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+                              {practice.category}
+                            </span>
+                            {practice.relatedQuizId && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded border border-purple-200 dark:border-purple-800">
+                                <HelpCircle className="w-3 h-3 text-purple-500" />
+                                Ada Kuis Terkait
+                              </span>
+                            )}
+                          </div>
                           <div className="flex items-center gap-2">
                             {draft && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
@@ -1699,6 +1794,47 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                       </span>
                     </div>
                   </div>
+
+                  {/* RELATED QUIZ OPTION CARD */}
+                  {(() => {
+                    const matchedQuiz = activeTyping?.relatedQuizId
+                      ? quizzes.find((q) => q.id === activeTyping.relatedQuizId)
+                      : quizzes.find((q) => q.category === activeTyping?.category);
+
+                    if (!matchedQuiz) return null;
+
+                    return (
+                      <div className="p-4 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-indigo-200 dark:border-indigo-800/80 rounded-xl space-y-2 text-left animate-in fade-in">
+                        <div className="flex items-center justify-between text-indigo-700 dark:text-indigo-300 font-bold text-xs">
+                          <div className="flex items-center gap-1.5">
+                            <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
+                            <span>Lanjut Kerjakan Kuis Terkait Naskah Ini?</span>
+                          </div>
+                          <span className="text-[10px] font-mono font-bold bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-200 px-2 py-0.5 rounded">
+                            +{matchedQuiz.allocatedPoints || 100} Poin
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600 dark:text-slate-300">
+                          <strong>{matchedQuiz.title}</strong>: Uji seberapa baik kamu memahami materi dari naskah yang baru saja kamu ketik!
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const qToStart = matchedQuiz;
+                            setActiveTyping(null);
+                            setTypingSuccess(null);
+                            setActiveTab('quizzes');
+                            handleStartQuiz(qToStart);
+                          }}
+                          className="w-full mt-2 py-2.5 px-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-bold text-xs shadow-md shadow-indigo-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer hover:scale-[1.02]"
+                        >
+                          <span>🎯 Mulai Kuis Terkait Naskah Ini (+100 Poin)</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    );
+                  })()}
+
                   <button
                     onClick={() => {
                       setActiveTyping(null);
@@ -1707,9 +1843,9 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         setStudentDrafts(getStudentDrafts(currentUser.id));
                       }
                     }}
-                    className="px-6 py-2.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-xs"
+                    className="w-full py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors cursor-pointer"
                   >
-                    Selesai & Pilih Latihan Lain
+                    Kembali ke Daftar Latihan Mengetik
                   </button>
                 </div>
               ) : (
@@ -1804,6 +1940,15 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
       {/* TAB: TYPING HERO GAME */}
       {activeTab === 'typing-hero' && (isFeatureEnabled('typing-hero') ? <TypingHeroGame /> : renderLockedFeatureScreen('Typing RPG Quest'))}
+
+      {/* TAB: EXCEL PIZZA TYCOON */}
+      {activeTab === 'pizza-tycoon' && <ExcelPizzaTycoon />}
+
+      {/* TAB: CODE-A-PET ROBOT */}
+      {activeTab === 'code-a-pet' && <CodeAPetGame />}
+
+      {/* TAB: DETEKTIF HOAX */}
+      {activeTab === 'detective-hoax' && <DetectiveHoaxGame />}
 
       {/* TAB 7: LENCANA PRESTASI & PENCAPAIAN */}
       {activeTab === 'achievements' && <AchievementsWidget student={currentUser} />}
@@ -1933,6 +2078,11 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
         isDanger={true}
         onConfirm={handleConfirmDeleteDraft}
         onClose={() => setDraftToDelete(null)}
+      />
+      {/* Share & Connect Multi-Device Modal */}
+      <ShareAppModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
       />
     </div>
   );
