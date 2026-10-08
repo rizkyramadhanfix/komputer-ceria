@@ -443,7 +443,6 @@ export const ExcelPizzaTycoon: React.FC = () => {
                   value={userFormula}
                   onChange={(e) => {
                     setUserFormula(e.target.value);
-                    soundEffects.playKeypress(e.target.value.slice(-1));
                   }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {

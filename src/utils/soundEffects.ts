@@ -45,71 +45,14 @@ class SoundEffectsManager {
   public toggle(): boolean {
     const nextState = !this.soundEnabled;
     this.setEnabled(nextState);
-    if (nextState) {
-      this.playKeypress();
-    }
     return nextState;
   }
 
   /**
-   * Crisp, soft mechanical keyboard switch sound effect on keypress.
-   * Pitch slightly varies per stroke to give realistic typing feel.
+   * Keyboard click sound is completely disabled to keep typing silent, peaceful, and non-distracting for children.
    */
-  public playKeypress(key?: string): void {
-    if (!this.soundEnabled) return;
-    const ctx = this.getAudioContext();
-    if (!ctx) return;
-
-    try {
-      const now = ctx.currentTime;
-      this.keyAudioBufferIndex = (this.keyAudioBufferIndex + 1) % 5;
-
-      // Special sound for Enter or Space
-      const isSpace = key === ' ';
-      const isEnter = key === 'Enter';
-      const isBackspace = key === 'Backspace';
-
-      // 1. Subtle mechanical click (Filtered Noise or micro-oscillator)
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const filter = ctx.createBiquadFilter();
-
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(isEnter ? 1200 : isSpace ? 800 : 1800, now);
-
-      osc.connect(filter);
-      filter.connect(gain);
-      gain.connect(ctx.destination);
-
-      // Pitch variation based on key or random cycle
-      const baseFreq = isEnter ? 220 : isSpace ? 180 : isBackspace ? 280 : 360 + (this.keyAudioBufferIndex * 25);
-      osc.type = isSpace ? 'triangle' : 'sine';
-      osc.frequency.setValueAtTime(baseFreq, now);
-      osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.45, now + 0.04);
-
-      // Fast tactile click envelope
-      const vol = isEnter ? 0.08 : isSpace ? 0.06 : 0.05;
-      gain.gain.setValueAtTime(vol, now);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
-
-      osc.start(now);
-      osc.stop(now + 0.05);
-
-      // Second layer: slight plastic thud
-      const thud = ctx.createOscillator();
-      const thudGain = ctx.createGain();
-      thud.type = 'triangle';
-      thud.frequency.setValueAtTime(110 + (this.keyAudioBufferIndex * 10), now);
-      thud.frequency.exponentialRampToValueAtTime(45, now + 0.035);
-      thudGain.gain.setValueAtTime(0.04, now);
-      thudGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
-      thud.connect(thudGain);
-      thudGain.connect(ctx.destination);
-      thud.start(now);
-      thud.stop(now + 0.04);
-    } catch {
-      // Audio playback failed silently
-    }
+  public playKeypress(_key?: string): void {
+    // Intentionally silent: keyboard typing sound removed as requested
   }
 
   /**

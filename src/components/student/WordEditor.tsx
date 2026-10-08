@@ -497,11 +497,6 @@ export const WordEditor: React.FC<WordEditorProps> = ({
         }
       }
     }
-
-    // Play tactile mechanical keypress sound on valid typing keys
-    if (!e.ctrlKey && !e.altKey && !e.metaKey && e.key.length === 1 || ['Enter', 'Backspace', 'Space', ' '].includes(e.key)) {
-      soundEffects.playKeypress(e.key);
-    }
   };
 
   // Similarity & Accuracy calculation
@@ -802,7 +797,7 @@ export const WordEditor: React.FC<WordEditorProps> = ({
                   ? 'border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300'
                   : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-slate-600'
               }`}
-              title={soundEnabled ? 'Suara Ketikan Aktif (Klik untuk Matikan)' : 'Suara Ketikan Mati (Klik untuk Nyalakan)'}
+              title={soundEnabled ? 'Efek Suara Selesai/Fanfare Aktif (Klik untuk Matikan)' : 'Efek Suara Mati (Klik untuk Nyalakan)'}
             >
               {soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
               <span className="hidden sm:inline text-[11px] font-semibold">{soundEnabled ? 'Suara: ON' : 'Suara: OFF'}</span>

@@ -67,13 +67,11 @@ export const CodeAPetGame: React.FC = () => {
     if (scriptQueue.length >= 8) {
       return;
     }
-    soundEffects.playKeypress();
     setScriptQueue((prev) => [...prev, block]);
   };
 
   const removeBlock = (index: number) => {
     if (isRunning) return;
-    soundEffects.playKeypress();
     setScriptQueue((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -95,7 +93,6 @@ export const CodeAPetGame: React.FC = () => {
 
     for (let i = 0; i < scriptQueue.length; i++) {
       const block = scriptQueue[i];
-      soundEffects.playKeypress();
 
       if (block.type === 'FEED') {
         curBat = Math.min(100, curBat + 25);
@@ -155,7 +152,6 @@ export const CodeAPetGame: React.FC = () => {
         showStarReward(3, `Selamat! ${petName} berevolusi ke Level ${level + 1}!`);
       }
     } else {
-      soundEffects.playKeypress();
       setCurrentThought('Instruksi selesai dijalankan. Coba tambahkan perintah agar semua indikator hijau!');
     }
 
