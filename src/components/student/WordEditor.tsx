@@ -6,8 +6,10 @@ import {
   AlignRight,
   ArrowDown,
   Bold,
+  CaseSensitive,
   Check,
   CheckCircle2,
+  ChevronDown,
   Clock,
   Columns,
   Eraser,
@@ -98,6 +100,52 @@ export const WordEditor: React.FC<WordEditorProps> = ({
   const [copyPasteWarning, setCopyPasteWarning] = useState<string | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(() => soundEffects.isEnabled());
 
+  // Active text formatting states for clear visual feedback
+  const [isBold, setIsBold] = useState(false);
+  const [isItalic, setIsItalic] = useState(false);
+  const [isUnderline, setIsUnderline] = useState(false);
+  const [isStrikeThrough, setIsStrikeThrough] = useState(false);
+  const [textAlign, setTextAlign] = useState<'left' | 'center' | 'right' | 'justify'>('left');
+  const [showChangeCaseMenu, setShowChangeCaseMenu] = useState(false);
+
+  // Check current selection formatting states
+  const checkFormattingState = () => {
+    try {
+      setIsBold(document.queryCommandState('bold'));
+      setIsItalic(document.queryCommandState('italic'));
+      setIsUnderline(document.queryCommandState('underline'));
+      setIsStrikeThrough(document.queryCommandState('strikeThrough'));
+
+      if (document.queryCommandState('justifyCenter')) setTextAlign('center');
+      else if (document.queryCommandState('justifyRight')) setTextAlign('right');
+      else if (document.queryCommandState('justifyFull')) setTextAlign('justify');
+      else setTextAlign('left');
+    } catch {
+      // ignore
+    }
+  };
+
+  // Listen to selection changes to update formatting indicators in real time
+  useEffect(() => {
+    const handleSelection = () => {
+      checkFormattingState();
+    };
+    document.addEventListener('selectionchange', handleSelection);
+    return () => document.removeEventListener('selectionchange', handleSelection);
+  }, []);
+
+  // Close change case menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.change-case-container')) {
+        setShowChangeCaseMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const triggerCopyPasteWarning = (action: 'copy' | 'paste' | 'cut') => {
     const text =
       action === 'paste'
@@ -130,11 +178,121 @@ export const WordEditor: React.FC<WordEditorProps> = ({
 
   // Execute formatting command on contenteditable
   const executeCommand = (command: string, value: string | undefined = undefined) => {
-    document.execCommand(command, false, value);
+    try {
+      document.execCommand(command, false, value);
+    } catch (e) {
+      console.warn('execCommand error:', e);
+    }
     setHasUnsavedChanges(true);
+
+    // Responsive optimistic state toggle
+    if (command === 'bold') setIsBold((prev) => !prev);
+    else if (command === 'italic') setIsItalic((prev) => !prev);
+    else if (command === 'underline') setIsUnderline((prev) => !prev);
+    else if (command === 'strikeThrough') setIsStrikeThrough((prev) => !prev);
+
+    checkFormattingState();
+    setTimeout(checkFormattingState, 30);
+
     if (editorRef.current) {
       editorRef.current.focus();
       updateMetrics();
+    }
+  };
+
+  // Change Case (Ubah Kapitalisasi Huruf)
+  type CaseOption = 'sentence' | 'lowercase' | 'uppercase' | 'capitalize' | 'toggle';
+
+  const applyChangeCase = (type: CaseOption) => {
+    const selection = window.getSelection();
+    let textToTransform = '';
+    let isFullDocument = false;
+
+    if (selection && selection.rangeCount > 0 && !selection.isCollapsed && selection.toString().trim()) {
+      textToTransform = selection.toString();
+    } else if (editorRef.current) {
+      // If no text is selected, transform the entire document so a student who typed everything in Caps Lock can fix it all!
+      textToTransform = editorRef.current.innerText || '';
+      isFullDocument = true;
+    }
+
+    if (!textToTransform) {
+      showInfo('Ketik atau pilih teks terlebih dahulu untuk mengubah kapitalisasi huruf.', 'Change Case');
+      setShowChangeCaseMenu(false);
+      return;
+    }
+
+    const transformString = (str: string): string => {
+      switch (type) {
+        case 'lowercase':
+          return str.toLowerCase();
+        case 'uppercase':
+          return str.toUpperCase();
+        case 'capitalize':
+          return str.replace(/\b\w/g, (char) => char.toUpperCase());
+        case 'toggle':
+          return str
+            .split('')
+            .map((char) => (char === char.toUpperCase() ? char.toLowerCase() : char.toUpperCase()))
+            .join('');
+        case 'sentence':
+        default:
+          return str
+            .toLowerCase()
+            .replace(/(^\s*|[\.\?\!\n]\s*)(\w)/g, (_match, prefix, char) => prefix + char.toUpperCase());
+      }
+    };
+
+    if (isFullDocument && editorRef.current) {
+      // Walk all text nodes using TreeWalker to preserve HTML formatting and table structure
+      try {
+        const walker = document.createTreeWalker(editorRef.current, NodeFilter.SHOW_TEXT);
+        let node: Node | null;
+        let count = 0;
+        while ((node = walker.nextNode())) {
+          if (node.nodeValue && node.nodeValue.trim().length > 0) {
+            node.nodeValue = transformString(node.nodeValue);
+            count++;
+          }
+        }
+        if (count === 0 && editorRef.current.innerText) {
+          editorRef.current.innerText = transformString(editorRef.current.innerText);
+        }
+      } catch {
+        editorRef.current.innerText = transformString(textToTransform);
+      }
+
+      showSuccess(
+        `Seluruh naskah berhasil diubah ke format ${
+          type === 'sentence'
+            ? 'Sentence case (Kapital awal kalimat)'
+            : type === 'lowercase'
+            ? 'huruf kecil semua (Caps Lock dinonaktifkan)'
+            : type === 'uppercase'
+            ? 'HURUF BESAR SEMUA'
+            : type === 'capitalize'
+            ? 'Kapital Setiap Kata'
+            : 'Balik Kapital (Toggle Case)'
+        }!`,
+        'Change Case Berhasil'
+      );
+    } else if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const transformed = transformString(textToTransform);
+      try {
+        document.execCommand('insertText', false, transformed);
+      } catch {
+        range.deleteContents();
+        range.insertNode(document.createTextNode(transformed));
+      }
+      showSuccess('Teks terpilih berhasil diubah format hurufnya!', 'Change Case');
+    }
+
+    setHasUnsavedChanges(true);
+    updateMetrics();
+    setShowChangeCaseMenu(false);
+    if (editorRef.current) {
+      editorRef.current.focus();
     }
   };
 
@@ -436,13 +594,19 @@ export const WordEditor: React.FC<WordEditorProps> = ({
       return;
     }
 
-    // Strictly block Ctrl+C / Ctrl+V / Ctrl+X / Cmd+C / Cmd+V / Cmd+X
+    // Strictly block Ctrl+C / Ctrl+V / Ctrl+X / Cmd+C / Cmd+V / Cmd+X / Shift+Insert
     if (
       (e.ctrlKey || e.metaKey) &&
       ['c', 'v', 'x', 'insert'].includes(e.key.toLowerCase())
     ) {
       e.preventDefault();
-      triggerCopyPasteWarning(e.key.toLowerCase() === 'v' ? 'paste' : 'copy');
+      triggerCopyPasteWarning(e.key.toLowerCase() === 'v' || e.key.toLowerCase() === 'insert' ? 'paste' : 'copy');
+      return;
+    }
+
+    if (e.shiftKey && e.key.toLowerCase() === 'insert') {
+      e.preventDefault();
+      triggerCopyPasteWarning('paste');
       return;
     }
 
@@ -1030,41 +1194,156 @@ export const WordEditor: React.FC<WordEditorProps> = ({
                     <option value="24px">24 pt</option>
                   </select>
 
+                  {/* Change Case Dropdown (Aa) */}
+                  <div className="relative change-case-container">
+                    <button
+                      type="button"
+                      onClick={() => setShowChangeCaseMenu((prev) => !prev)}
+                      title="Ubah Kapitalisasi Huruf (Change Case) - Ubah jika salah ketik huruf besar/kecil"
+                      className={`h-8 px-2.5 text-xs rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 font-bold ${
+                        showChangeCaseMenu
+                          ? 'bg-blue-600 text-white border-blue-600 ring-2 ring-blue-300 dark:ring-blue-700 shadow-sm'
+                          : 'bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <CaseSensitive className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      <span className="font-extrabold text-sm">Aa</span>
+                      <ChevronDown className="w-3 h-3 opacity-70" />
+                    </button>
+
+                    {showChangeCaseMenu && (
+                      <div className="absolute top-full left-0 mt-1 w-64 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border-2 border-blue-500/30 dark:border-blue-600/50 py-1.5 z-50 animate-in fade-in zoom-in-95">
+                        <div className="px-3 py-1.5 border-b border-slate-100 dark:border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                          <span>Ubah Kapitalisasi (Change Case)</span>
+                          <span className="text-blue-600 font-bold">Word Ribbon</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => applyChangeCase('sentence')}
+                          className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/60 hover:text-blue-700 dark:hover:text-blue-300 flex items-center justify-between transition-colors cursor-pointer"
+                        >
+                          <span className="font-bold">Sentence case.</span>
+                          <span className="text-[10px] text-slate-400">Kapital awal kalimat</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => applyChangeCase('lowercase')}
+                          className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/60 hover:text-blue-700 dark:hover:text-blue-300 flex items-center justify-between transition-colors cursor-pointer bg-blue-50/50 dark:bg-blue-950/30"
+                        >
+                          <span className="font-bold text-blue-600 dark:text-blue-400">lowercase (huruf kecil)</span>
+                          <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Solusi Caps Lock</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => applyChangeCase('uppercase')}
+                          className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/60 hover:text-blue-700 dark:hover:text-blue-300 flex items-center justify-between transition-colors cursor-pointer"
+                        >
+                          <span className="font-bold">UPPERCASE</span>
+                          <span className="text-[10px] text-slate-400">HURUF BESAR SEMUA</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => applyChangeCase('capitalize')}
+                          className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/60 hover:text-blue-700 dark:hover:text-blue-300 flex items-center justify-between transition-colors cursor-pointer"
+                        >
+                          <span className="font-bold">Capitalize Each Word</span>
+                          <span className="text-[10px] text-slate-400">Kapital Setiap Kata</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => applyChangeCase('toggle')}
+                          className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/60 hover:text-blue-700 dark:hover:text-blue-300 flex items-center justify-between transition-colors cursor-pointer"
+                        >
+                          <span className="font-bold">tOGGLE cASE</span>
+                          <span className="text-[10px] text-slate-400">bALIK kAPITAL</span>
+                        </button>
+                        <div className="px-3 py-2 mt-1 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-500 dark:text-slate-400 bg-slate-50/80 dark:bg-slate-800/50 rounded-b-xl">
+                          💡 <strong>Tips:</strong> Jika anak salah mengetik huruf besar semua, langsung klik <strong>lowercase</strong> untuk memperbaikinya secara otomatis.
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <span className="w-px h-5 bg-slate-300 dark:bg-slate-700 mx-1" />
 
-                  {/* Text Formatting: Bold, Italic, Underline, Strikethrough */}
-                  <button
-                    type="button"
-                    onClick={() => executeCommand('bold')}
-                    title="Tebal (Bold / Ctrl+B)"
-                    className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
-                  >
-                    <Bold className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => executeCommand('italic')}
-                    title="Miring (Italic / Ctrl+I)"
-                    className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
-                  >
-                    <Italic className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => executeCommand('underline')}
-                    title="Garis Bawah (Underline / Ctrl+U)"
-                    className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
-                  >
-                    <Underline className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => executeCommand('strikeThrough')}
-                    title="Coret Teks (Strikethrough)"
-                    className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
-                  >
-                    <Strikethrough className="w-4 h-4" />
-                  </button>
+                  {/* Text Formatting: Bold, Italic, Underline, Strikethrough with Ultra-Clear Active Highlight */}
+                  <div className="flex items-center gap-1 bg-slate-100/70 dark:bg-slate-900/60 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                    <button
+                      type="button"
+                      onClick={() => executeCommand('bold')}
+                      title="Tebal (Bold / Ctrl+B)"
+                      className={`relative h-8 min-w-[32px] px-2 rounded-md transition-all cursor-pointer font-bold flex items-center justify-center ${
+                        isBold
+                          ? 'bg-blue-600 text-white dark:bg-blue-600 dark:text-white shadow-md ring-2 ring-blue-500 ring-offset-1 dark:ring-offset-slate-900 font-black scale-105 border border-blue-700'
+                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <Bold className="w-4 h-4 stroke-[2.5]" />
+                      {isBold && (
+                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-3 h-1 bg-amber-400 rounded-full shadow-xs" />
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => executeCommand('italic')}
+                      title="Miring (Italic / Ctrl+I)"
+                      className={`relative h-8 min-w-[32px] px-2 rounded-md transition-all cursor-pointer flex items-center justify-center ${
+                        isItalic
+                          ? 'bg-blue-600 text-white dark:bg-blue-600 dark:text-white shadow-md ring-2 ring-blue-500 ring-offset-1 dark:ring-offset-slate-900 font-black scale-105 border border-blue-700'
+                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <Italic className="w-4 h-4 stroke-[2.5]" />
+                      {isItalic && (
+                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-3 h-1 bg-amber-400 rounded-full shadow-xs" />
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => executeCommand('underline')}
+                      title="Garis Bawah (Underline / Ctrl+U)"
+                      className={`relative h-8 min-w-[32px] px-2 rounded-md transition-all cursor-pointer flex items-center justify-center ${
+                        isUnderline
+                          ? 'bg-blue-600 text-white dark:bg-blue-600 dark:text-white shadow-md ring-2 ring-blue-500 ring-offset-1 dark:ring-offset-slate-900 font-black scale-105 border border-blue-700'
+                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <Underline className="w-4 h-4 stroke-[2.5]" />
+                      {isUnderline && (
+                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-3 h-1 bg-amber-400 rounded-full shadow-xs" />
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => executeCommand('strikeThrough')}
+                      title="Coret Teks (Strikethrough)"
+                      className={`relative h-8 min-w-[32px] px-2 rounded-md transition-all cursor-pointer flex items-center justify-center ${
+                        isStrikeThrough
+                          ? 'bg-blue-600 text-white dark:bg-blue-600 dark:text-white shadow-md ring-2 ring-blue-500 ring-offset-1 dark:ring-offset-slate-900 font-black scale-105 border border-blue-700'
+                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <Strikethrough className="w-4 h-4 stroke-[2.5]" />
+                      {isStrikeThrough && (
+                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-3 h-1 bg-amber-400 rounded-full shadow-xs" />
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Live Active Format Text Indicator */}
+                  {(isBold || isItalic || isUnderline || isStrikeThrough) && (
+                    <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-100 dark:bg-blue-950/80 border border-blue-300 dark:border-blue-700 text-[10px] font-black text-blue-800 dark:text-blue-200 shadow-xs">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
+                      <span className="font-semibold text-blue-600 dark:text-blue-400">Aktif:</span>
+                      {isBold && <span className="px-1 bg-blue-600 text-white rounded text-[9px]">TEBAL</span>}
+                      {isItalic && <span className="px-1 bg-blue-600 text-white rounded italic text-[9px]">MIRING</span>}
+                      {isUnderline && <span className="px-1 bg-blue-600 text-white rounded underline text-[9px]">GARIS BAWAH</span>}
+                      {isStrikeThrough && <span className="px-1 bg-blue-600 text-white rounded line-through text-[9px]">CORET</span>}
+                    </div>
+                  )}
 
                   <span className="w-px h-5 bg-slate-300 dark:bg-slate-700 mx-1" />
 
@@ -1092,36 +1371,64 @@ export const WordEditor: React.FC<WordEditorProps> = ({
 
                   <span className="w-px h-5 bg-slate-300 dark:bg-slate-700 mx-1" />
 
-                  {/* Alignments */}
+                  {/* Alignments with active highlight */}
                   <button
                     type="button"
-                    onClick={() => executeCommand('justifyLeft')}
+                    onClick={() => {
+                      executeCommand('justifyLeft');
+                      setTextAlign('left');
+                    }}
                     title="Rata Kiri (Align Left)"
-                    className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                    className={`p-1.5 rounded transition-all cursor-pointer ${
+                      textAlign === 'left'
+                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300 font-bold ring-1 ring-blue-400'
+                        : 'hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
+                    }`}
                   >
                     <AlignLeft className="w-4 h-4" />
                   </button>
                   <button
                     type="button"
-                    onClick={() => executeCommand('justifyCenter')}
+                    onClick={() => {
+                      executeCommand('justifyCenter');
+                      setTextAlign('center');
+                    }}
                     title="Rata Tengah (Center)"
-                    className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                    className={`p-1.5 rounded transition-all cursor-pointer ${
+                      textAlign === 'center'
+                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300 font-bold ring-1 ring-blue-400'
+                        : 'hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
+                    }`}
                   >
                     <AlignCenter className="w-4 h-4" />
                   </button>
                   <button
                     type="button"
-                    onClick={() => executeCommand('justifyRight')}
+                    onClick={() => {
+                      executeCommand('justifyRight');
+                      setTextAlign('right');
+                    }}
                     title="Rata Kanan (Align Right)"
-                    className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                    className={`p-1.5 rounded transition-all cursor-pointer ${
+                      textAlign === 'right'
+                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300 font-bold ring-1 ring-blue-400'
+                        : 'hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
+                    }`}
                   >
                     <AlignRight className="w-4 h-4" />
                   </button>
                   <button
                     type="button"
-                    onClick={() => executeCommand('justifyFull')}
+                    onClick={() => {
+                      executeCommand('justifyFull');
+                      setTextAlign('justify');
+                    }}
                     title="Rata Kiri-Kanan (Justify)"
-                    className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                    className={`p-1.5 rounded transition-all cursor-pointer ${
+                      textAlign === 'justify'
+                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300 font-bold ring-1 ring-blue-400'
+                        : 'hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
+                    }`}
                   >
                     <AlignJustify className="w-4 h-4" />
                   </button>
@@ -1297,8 +1604,23 @@ export const WordEditor: React.FC<WordEditorProps> = ({
                 ref={editorRef}
                 contentEditable
                 suppressContentEditableWarning={true}
-                onInput={updateMetrics}
-                onKeyUp={updateMetrics}
+                onBeforeInput={(e: any) => {
+                  if (e.inputType === 'insertFromPaste' || e.inputType === 'insertFromDrop') {
+                    e.preventDefault();
+                    triggerCopyPasteWarning('paste');
+                  }
+                }}
+                onInput={() => {
+                  updateMetrics();
+                  checkFormattingState();
+                }}
+                onKeyUp={() => {
+                  updateMetrics();
+                  checkFormattingState();
+                }}
+                onMouseUp={() => {
+                  checkFormattingState();
+                }}
                 onKeyDown={handleKeyDown}
                 onPaste={(e) => {
                   e.preventDefault();

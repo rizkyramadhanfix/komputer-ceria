@@ -106,7 +106,7 @@ const ENEMY_POOL: Enemy[] = [
 
 export const TypingHeroGame: React.FC = () => {
   const { currentUser, refreshUser } = useAuth();
-  const { showSuccess, showError, showStarReward } = useToast();
+  const { showSuccess, showError, showWarning, showStarReward } = useToast();
 
   const [gameState, setGameState] = useState<'intro' | 'playing' | 'gameover' | 'victory'>('intro');
   const [currentEnemyIdx, setCurrentEnemyIdx] = useState(0);
@@ -179,6 +179,16 @@ export const TypingHeroGame: React.FC = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (showStageVictory) return;
     const val = e.target.value;
+
+    // Block paste of multiple characters
+    if (val.length - inputValue.length > 1) {
+      showWarning('Paste dinonaktifkan! Ketik langsung untuk menyerang monster ⚔️', 'Anti Copy-Paste');
+      if (inputRef.current) {
+        inputRef.current.value = inputValue;
+      }
+      return;
+    }
+
     setInputValue(val);
 
     // If matches perfectly, hit enemy!
@@ -471,7 +481,15 @@ export const TypingHeroGame: React.FC = () => {
               <span className="text-[10px] text-slate-400 uppercase font-extrabold tracking-widest block">
                 {enemy.stageTitle} — Ketik kalimat penawar siber:
               </span>
-              <p className="text-base sm:text-lg font-mono font-extrabold text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 px-6 py-4 rounded-2xl border border-indigo-100 dark:border-indigo-900/60 select-none leading-relaxed">
+              <p
+                onCopy={(e) => {
+                  e.preventDefault();
+                  showWarning('Teks kalimat dilindungi dan tidak dapat disalin!', 'Anti Copy-Paste');
+                }}
+                onContextMenu={(e) => e.preventDefault()}
+                style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+                className="text-base sm:text-lg font-mono font-extrabold text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 px-6 py-4 rounded-2xl border border-indigo-100 dark:border-indigo-900/60 select-none leading-relaxed"
+              >
                 {activeSentence}
               </p>
             </div>
@@ -482,6 +500,19 @@ export const TypingHeroGame: React.FC = () => {
                 type="text"
                 value={inputValue}
                 onChange={handleInputChange}
+                onPaste={(e) => {
+                  e.preventDefault();
+                  showWarning('Paste dinonaktifkan! Ketik langsung untuk menyerang monster ⚔️', 'Anti Copy-Paste');
+                }}
+                onCopy={(e) => e.preventDefault()}
+                onDrop={(e) => e.preventDefault()}
+                onContextMenu={(e) => e.preventDefault()}
+                onKeyDown={(e) => {
+                  if ((e.ctrlKey || e.metaKey) && ['v', 'V', 'c', 'C', 'x', 'X'].includes(e.key)) {
+                    e.preventDefault();
+                    showWarning('Shortcut Copy/Paste dinonaktifkan!', 'Anti Copy-Paste');
+                  }
+                }}
                 placeholder="Ketik kalimat di atas secepat mungkin untuk tebasan pedang..."
                 className="w-full px-5 py-3.5 rounded-2xl border-2 border-rose-200 dark:border-rose-900/60 bg-white dark:bg-slate-950 text-slate-900 dark:text-white text-sm text-center font-mono focus:border-rose-500 focus:ring-4 focus:ring-rose-200 dark:focus:ring-rose-900/40 outline-hidden transition-all shadow-inner"
               />

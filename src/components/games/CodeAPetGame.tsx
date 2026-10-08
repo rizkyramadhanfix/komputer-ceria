@@ -23,7 +23,7 @@ type PetMood = 'happy' | 'hungry' | 'sleepy' | 'dirty' | 'playful';
 
 interface CodeCommand {
   id: string;
-  type: 'FEED' | 'CLEAN' | 'PLAY' | 'SLEEP' | 'REPEAT_2X' | 'IF_HUNGRY';
+  type: 'FEED' | 'CLEAN' | 'PLAY' | 'SLEEP' | 'REPEAT_2X' | 'IF_HUNGRY' | 'TURBO_CHARGE' | 'DEFENSE_SHIELD';
   label: string;
   icon: string;
   color: string;
@@ -36,6 +36,8 @@ const AVAILABLE_BLOCKS: CodeCommand[] = [
   { id: 'b-sleep', type: 'SLEEP', label: 'Mode Hemat Daya (Sleep)', icon: '🌙', color: 'bg-purple-500 hover:bg-purple-600 text-white' },
   { id: 'b-rep', type: 'REPEAT_2X', label: 'Ulangi 2x (Loop)', icon: '🔄', color: 'bg-indigo-600 hover:bg-indigo-700 text-white' },
   { id: 'b-if', type: 'IF_HUNGRY', label: 'Jika Baterai < 50% (If Condition)', icon: '❓', color: 'bg-rose-500 hover:bg-rose-600 text-white' },
+  { id: 'b-turbo', type: 'TURBO_CHARGE', label: 'Overclock CPU (Turbo Boost)', icon: '⚡🔋', color: 'bg-cyan-500 hover:bg-cyan-600 text-white' },
+  { id: 'b-shield', type: 'DEFENSE_SHIELD', label: 'Perisai Antivirus (Shield)', icon: '🛡️', color: 'bg-teal-600 hover:bg-teal-700 text-white' },
 ];
 
 export const CodeAPetGame: React.FC = () => {
@@ -55,16 +57,22 @@ export const CodeAPetGame: React.FC = () => {
   const [totalPoints, setTotalPoints] = useState(0);
   const [soundEnabled, setSoundEnabled] = useState(() => soundEffects.isEnabled());
 
-  // Pet evolutionary stages
+  // Pet evolutionary stages (8 Levels)
   useEffect(() => {
     if (level === 1) setPetSprite('🐱🤖');
     else if (level === 2) setPetSprite('🦊⚡');
     else if (level === 3) setPetSprite('🐲🚀');
+    else if (level === 4) setPetSprite('🦅🔥');
+    else if (level === 5) setPetSprite('👑🤖');
+    else if (level === 6) setPetSprite('💎🦾');
+    else if (level === 7) setPetSprite('🪐🚀');
+    else setPetSprite('🌌👑');
   }, [level]);
 
   const addBlockToQueue = (block: CodeCommand) => {
     if (isRunning) return;
-    if (scriptQueue.length >= 8) {
+    const maxSlots = level >= 6 ? 16 : level >= 4 ? 12 : level >= 3 ? 10 : 8;
+    if (scriptQueue.length >= maxSlots) {
       return;
     }
     setScriptQueue((prev) => [...prev, block]);
@@ -127,6 +135,16 @@ export const CodeAPetGame: React.FC = () => {
         } else {
           setCurrentThought('Kondisi salah (baterai masih cukup), lanjut ke baris berikutnya!');
         }
+      } else if (block.type === 'TURBO_CHARGE') {
+        curBat = Math.min(100, curBat + 20);
+        curHap = Math.min(100, curHap + 20);
+        gainedExp += 25;
+        setCurrentThought('Overclocking CPU sukses! Performa robot melesat tinggi! ⚡🔋');
+      } else if (block.type === 'DEFENSE_SHIELD') {
+        curClean = Math.min(100, curClean + 25);
+        curBat = Math.min(100, curBat + 10);
+        gainedExp += 20;
+        setCurrentThought('Perisai Antivirus aktif! Sistem robot terlindungi dan stabil 🛡️');
       }
 
       setBattery(curBat);
@@ -146,10 +164,13 @@ export const CodeAPetGame: React.FC = () => {
       setTotalPoints((prev) => prev + 40);
       setCurrentThought('🎉 Bip bop! Kondisi robot sangat prima! Algoritma kamu hebat!');
 
-      if (newExp >= 80 && level < 3) {
+      const expNeeded = level * 65;
+      if (newExp >= expNeeded && level < 8) {
         setLevel((prev) => prev + 1);
         soundEffects.playSuccessFanfare();
-        showStarReward(3, `Selamat! ${petName} berevolusi ke Level ${level + 1}!`);
+        showStarReward(4, `Selamat! ${petName} berevolusi ke Level ${level + 1}!`);
+      } else if (level === 8) {
+        setCurrentThought('👑 Mode Dewa Robot Tertinggi (Galaxy Overlord) aktif!');
       }
     } else {
       setCurrentThought('Instruksi selesai dijalankan. Coba tambahkan perintah agar semua indikator hijau!');
@@ -161,6 +182,17 @@ export const CodeAPetGame: React.FC = () => {
       refreshUser();
     }
   };
+
+  const LEVEL_TITLES = [
+    'Robo-Kitten (Sekuensial Dasar)',
+    'Cyber-Fox (Logika Cepat)',
+    'Astro-Dragon (Kekuatan Loop)',
+    'Phoenix-Cyber (Percabangan If)',
+    'Mecha-King (Master Algoritma)',
+    'Crystal-Titan (Prosesor Quantum)',
+    'Cosmic-Voyager (Multithread AI)',
+    'Galaxy-Overlord (Kesadaran Super AI)',
+  ];
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -175,11 +207,11 @@ export const CodeAPetGame: React.FC = () => {
               <span className="text-[10px] uppercase font-black tracking-widest bg-white/20 px-2 py-0.5 rounded text-pink-200">
                 Logika Koding Visual & Robotik
               </span>
-              <span className="text-xs text-white/90">Evolusi Level {level} / 3</span>
+              <span className="text-xs text-white/90">Evolusi Level {level} / 8</span>
             </div>
             <h2 className="text-2xl font-black">Code-A-Pet / Robot Cilik 🐾</h2>
             <p className="text-xs text-purple-100 mt-0.5">
-              Program robot peliharaan digitalmu menggunakan blok logika urutan (Sequence), perulangan (Loop), dan syarat (If-Else)!
+              {LEVEL_TITLES[level - 1]} — Program robot peliharaan digitalmu dengan urutan, perulangan, percabangan, overclock, dan proteksi antivirus!
             </p>
           </div>
         </div>

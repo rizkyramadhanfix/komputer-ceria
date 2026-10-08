@@ -53,7 +53,15 @@ const TEMPLATES: Record<string, { size: number; grid: string[] }> = {
   },
 };
 
-export const PixelArtStudio: React.FC = () => {
+interface PixelArtStudioProps {
+  onPublished?: () => void;
+  onCancel?: () => void;
+}
+
+export const PixelArtStudio: React.FC<PixelArtStudioProps> = ({
+  onPublished,
+  onCancel,
+}) => {
   const [gridSize, setGridSize] = useState<16 | 24>(16);
   const [pixels, setPixels] = useState<string[]>(() =>
     Array(16 * 16).fill('#ffffff')
@@ -222,8 +230,8 @@ export const PixelArtStudio: React.FC = () => {
       studentGrade: user.grade,
       studentSchool: user.school,
       title: `Pixel Art Kreasi ${user.name}`,
-      category: 'Desain Grafis Komputer',
-      type: 'paint',
+      category: 'Pixel Art 8-Bit',
+      type: 'pixel-art',
       imageUrl: dataUrl,
       previewText: `Karya seni 8-bit dibuat di Pixel Art Studio Komputer Ceria (${gridSize}x${gridSize}).`,
     });
@@ -237,6 +245,11 @@ export const PixelArtStudio: React.FC = () => {
     }
 
     setShareSuccess(true);
+    if (onPublished) {
+      setTimeout(() => {
+        onPublished();
+      }, 1500);
+    }
     setTimeout(() => {
       setShareSuccess(false);
       setShareNotice(null);
@@ -257,7 +270,7 @@ export const PixelArtStudio: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 flex items-center gap-1">
               <Sparkles className="w-3 h-3" />
-              Studio Desain Grafis
+              Studio Desain Grafis & Galeri
             </span>
             <span className="text-xs text-slate-500">Resolusi Retro {gridSize}x{gridSize}</span>
           </div>
@@ -269,7 +282,15 @@ export const PixelArtStudio: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {onCancel && (
+            <button
+              onClick={onCancel}
+              className="px-3.5 py-1.5 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
+            >
+              ← Kembali ke Galeri
+            </button>
+          )}
           <button
             onClick={handleDownload}
             className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
@@ -283,7 +304,7 @@ export const PixelArtStudio: React.FC = () => {
             className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-md shadow-indigo-500/20"
           >
             <Share2 className="w-3.5 h-3.5" />
-            <span>Bagikan (+50 Poin)</span>
+            <span>Bagikan ke Galeri (+50 Poin)</span>
           </button>
         </div>
       </div>

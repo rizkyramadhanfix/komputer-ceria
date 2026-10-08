@@ -229,6 +229,20 @@ export interface Achievement {
   rewardPoints: number;
 }
 
+export interface GalleryComment {
+  id: string;
+  workId: string;
+  studentId: string;
+  studentName: string;
+  studentAvatar?: string;
+  studentGrade?: string;
+  studentSchool?: string;
+  comment: string;
+  category?: 'apresiasi' | 'masukan' | 'umum';
+  stickerTag?: string; // e.g. '🎨 Keren Banget!', '⭐ Sangat Rapi!', '👏 Luar Biasa!', '💡 Ide Menarik!'
+  createdAt: string;
+}
+
 export interface StudentGalleryWork {
   id: string;
   studentId: string;
@@ -238,12 +252,13 @@ export interface StudentGalleryWork {
   studentSchool?: string;
   title: string;
   category: string;
-  type: 'paint' | 'word';
+  type: 'paint' | 'word' | 'pixel-art';
   imageUrl?: string;
   contentHtml?: string;
   previewText: string;
   starLikes: number;
   likedByStudentIds: string[];
+  commentsCount?: number;
   createdAt: string;
 }
 

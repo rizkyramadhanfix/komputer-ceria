@@ -21,6 +21,7 @@ import {
   Quiz,
   QuizSubmission,
   StudentGalleryWork,
+  GalleryComment,
   StudentGradeSummary,
   ShopItem,
   TypingPractice,
@@ -61,6 +62,7 @@ const STORAGE_KEYS = {
   VISITOR_STATS: 'ekskul_visitor_stats',
   CURRENT_USER: 'ekskul_active_user',
   GALLERY_WORKS: 'ekskul_gallery_works',
+  GALLERY_COMMENTS: 'ekskul_gallery_comments',
   GAME_SCORES: 'ekskul_game_scores',
   GAMES_CONFIG: 'ekskul_games_config',
   LOGIN_LOGS: 'ekskul_login_logs',
@@ -499,35 +501,47 @@ initFirestoreListeners();
 seedServerDbIfEmpty();
 
 // --- Users Management ---
+const DELETED_USER_IDS_KEY = 'ekskul_deleted_user_ids';
+export function getDeletedUserIds(): Set<string> {
+  const list = getStoredItem<string[]>(DELETED_USER_IDS_KEY, []);
+  return new Set(Array.isArray(list) ? list : []);
+}
+
+export function recordDeletedUserId(id: string): void {
+  const current = getDeletedUserIds();
+  current.add(id);
+  setStoredItem(DELETED_USER_IDS_KEY, Array.from(current));
+}
+
 export function getUsers(): User[] {
   const rawUsers = getStoredItem<User[]>(STORAGE_KEYS.USERS, INITIAL_USERS);
+  const deletedIds = getDeletedUserIds();
   let hasModified = false;
   
   // Robust Deduplication & Merge Map
-  // Keyed by best unique identifier: id -> username -> nisn -> (name + school)
+  // Keyed by canonical student alias: id, username, nisn, or normalized student name
   const usersMap = new Map<string, User>();
-  const idToKeyMap = new Map<string, string>();
-  const usernameToKeyMap = new Map<string, string>();
-  const nisnToKeyMap = new Map<string, string>();
-  const nameSchoolToKeyMap = new Map<string, string>();
+  const aliasToKeyMap = new Map<string, string>();
+
+  const normalizeStr = (str?: string) =>
+    (str || '').toLowerCase().replace(/[^a-z0-9]/g, '').trim();
 
   for (const raw of (Array.isArray(rawUsers) ? rawUsers : [])) {
-    if (!raw || typeof raw !== 'object' || !raw.id) {
+    if (!raw || typeof raw !== 'object' || !raw.id || deletedIds.has(raw.id)) {
       hasModified = true;
       continue;
     }
 
-    const lowerUsername = raw.username ? raw.username.toLowerCase().trim() : '';
+    const normUsername = normalizeStr(raw.username);
+    const normName = normalizeStr(raw.name);
     const cleanNisn = raw.nisn ? raw.nisn.trim() : '';
-    const cleanName = raw.name ? raw.name.toLowerCase().trim() : '';
-    const cleanSchool = raw.school ? raw.school.toLowerCase().trim() : '';
 
     // Filter out dummy pembina accounts
     if (
       raw.id === 'usr-pembina-sukadamai' ||
       raw.id === 'usr-pembina-serikat' ||
-      lowerUsername === 'pembina_sukadamai' ||
-      lowerUsername === 'pembina_serikat'
+      normUsername === 'pembinasukadamai' ||
+      normUsername === 'pembinaserikat'
     ) {
       hasModified = true;
       continue;
@@ -551,21 +565,21 @@ export function getUsers(): User[] {
       lastActiveAt: raw.lastActiveAt || raw.createdAt || new Date().toISOString(),
     };
 
-    // Find if user already recognized by id, username, nisn, or (name + school for student)
-    let existingKey = idToKeyMap.get(cleanUser.id);
-    if (!existingKey && lowerUsername) {
-      existingKey = usernameToKeyMap.get(lowerUsername);
+    // Find if user already recognized by id, nisn, username, or normalized name
+    let canonicalKey: string | undefined = aliasToKeyMap.get(`id_${cleanUser.id}`);
+    if (!canonicalKey && cleanNisn && cleanNisn.length >= 4) {
+      canonicalKey = aliasToKeyMap.get(`nisn_${cleanNisn}`);
     }
-    if (!existingKey && cleanNisn) {
-      existingKey = nisnToKeyMap.get(cleanNisn);
+    if (!canonicalKey && normUsername) {
+      canonicalKey = aliasToKeyMap.get(`usr_${normUsername}`);
     }
-    if (!existingKey && cleanUser.role === 'student' && cleanName && cleanSchool) {
-      existingKey = nameSchoolToKeyMap.get(`${cleanName}__${cleanSchool}`);
+    if (!canonicalKey && cleanUser.role === 'student' && normName && normName.length >= 3) {
+      canonicalKey = aliasToKeyMap.get(`name_${normName}`);
     }
 
-    if (existingKey && usersMap.has(existingKey)) {
+    if (canonicalKey && usersMap.has(canonicalKey)) {
       hasModified = true;
-      const existing = usersMap.get(existingKey)!;
+      const existing = usersMap.get(canonicalKey)!;
       // Merge: keep higher points, combined lessons, and richer profile
       const mergedPoints = Math.max(existing.totalPoints || 0, cleanUser.totalPoints || 0);
       const mergedStars = Math.max(existing.totalStars || 0, cleanUser.totalStars || 0, Math.floor(mergedPoints / 10));
@@ -586,15 +600,15 @@ export function getUsers(): User[] {
         schoolFaction: cleanUser.schoolFaction || existing.schoolFaction,
         lastActiveAt: (cleanUser.lastActiveAt && cleanUser.lastActiveAt > (existing.lastActiveAt || '')) ? cleanUser.lastActiveAt : existing.lastActiveAt,
       };
-      usersMap.set(existingKey, mergedUser);
+      usersMap.set(canonicalKey, mergedUser);
     } else {
       const primaryKey = cleanUser.id;
       usersMap.set(primaryKey, cleanUser);
-      idToKeyMap.set(cleanUser.id, primaryKey);
-      if (lowerUsername) usernameToKeyMap.set(lowerUsername, primaryKey);
-      if (cleanNisn) nisnToKeyMap.set(cleanNisn, primaryKey);
-      if (cleanUser.role === 'student' && cleanName && cleanSchool) {
-        nameSchoolToKeyMap.set(`${cleanName}__${cleanSchool}`, primaryKey);
+      aliasToKeyMap.set(`id_${cleanUser.id}`, primaryKey);
+      if (cleanNisn && cleanNisn.length >= 4) aliasToKeyMap.set(`nisn_${cleanNisn}`, primaryKey);
+      if (normUsername) aliasToKeyMap.set(`usr_${normUsername}`, primaryKey);
+      if (cleanUser.role === 'student' && normName && normName.length >= 3) {
+        aliasToKeyMap.set(`name_${normName}`, primaryKey);
       }
     }
   }
@@ -2218,23 +2232,187 @@ export const INITIAL_GALLERY_WORKS: StudentGalleryWork[] = [
   },
 ];
 
+// Initial seed comments for student gallery
+export const INITIAL_GALLERY_COMMENTS: GalleryComment[] = [
+  {
+    id: 'gcom-seed-1',
+    workId: 'gal-seed-1',
+    studentId: 'std-seed-3',
+    studentName: 'Bima Pratama',
+    studentGrade: 'Kelas 6B',
+    studentSchool: 'SD Bintang Pelajar',
+    comment: 'Pilihan warnanya sejuk banget Aisyah! Garis sawah dan gunungnya kelihatan rapi sekali.',
+    category: 'apresiasi',
+    stickerTag: '🎨 Keren & Kreatif!',
+    createdAt: new Date(Date.now() - 3600000 * 30).toISOString(),
+  },
+  {
+    id: 'gcom-seed-2',
+    workId: 'gal-seed-1',
+    studentId: 'std-seed-4',
+    studentName: 'Dimas Aditya',
+    studentGrade: 'Kelas 6A',
+    studentSchool: 'SMP Terpadu',
+    comment: 'Coba nanti tambahkan sedikit awan di puncak gunung supaya efek pemandangannya makin hidup.',
+    category: 'masukan',
+    stickerTag: '💡 Ide Menarik!',
+    createdAt: new Date(Date.now() - 3600000 * 20).toISOString(),
+  },
+  {
+    id: 'gcom-seed-3',
+    workId: 'gal-seed-2',
+    studentId: 'std-seed-1',
+    studentName: 'Aisyah Putri',
+    studentGrade: 'Kelas 5A',
+    studentSchool: 'SDN Ceria 01',
+    comment: 'Tabel hardwarenya sangat jelas dan mudah dipelajari! Sangat membantu buat persiapan praktikum besok.',
+    category: 'apresiasi',
+    stickerTag: '⭐ Sangat Rapi!',
+    createdAt: new Date(Date.now() - 3600000 * 18).toISOString(),
+  },
+  {
+    id: 'gcom-seed-4',
+    workId: 'gal-seed-3',
+    studentId: 'std-seed-2',
+    studentName: 'Nabila Syahrani',
+    studentGrade: 'Kelas 5B',
+    studentSchool: 'SDN Nusantara',
+    comment: 'Robotnya lucu banget! Kombinasi bentuk persegi dan layarnya pas sekali.',
+    category: 'apresiasi',
+    stickerTag: '👏 Luar Biasa!',
+    createdAt: new Date(Date.now() - 3600000 * 12).toISOString(),
+  },
+  {
+    id: 'gcom-seed-5',
+    workId: 'gal-seed-4',
+    studentId: 'std-seed-5',
+    studentName: 'Rizky Ramadhan',
+    studentGrade: 'Kelas 4C',
+    studentSchool: 'SD Harapan Bangsa',
+    comment: 'Tips posisi tuts ASDF-JKL sangat bermanfaat, aku lagi belajar ngetik 10 jari di liga mengetik!',
+    category: 'apresiasi',
+    stickerTag: '🚀 Menginspirasi!',
+    createdAt: new Date(Date.now() - 3600000 * 8).toISOString(),
+  },
+];
+
+export function getGalleryComments(workId?: string): GalleryComment[] {
+  const raw = localStorage.getItem(STORAGE_KEYS.GALLERY_COMMENTS);
+  let comments: GalleryComment[] = [];
+  if (raw === null) {
+    comments = INITIAL_GALLERY_COMMENTS;
+    setStoredItem(STORAGE_KEYS.GALLERY_COMMENTS, comments);
+  } else {
+    try {
+      comments = JSON.parse(raw) as GalleryComment[];
+    } catch {
+      comments = [];
+    }
+  }
+  if (workId) {
+    return comments.filter((c) => String(c.workId) === String(workId));
+  }
+  return comments;
+}
+
+export function addGalleryComment(
+  workId: string,
+  commentData: Omit<GalleryComment, 'id' | 'workId' | 'createdAt'> & { id?: string; createdAt?: string }
+): GalleryComment {
+  const allComments = getGalleryComments();
+  const id = commentData.id || `gcom-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+  const newComment: GalleryComment = {
+    ...commentData,
+    id,
+    workId,
+    createdAt: commentData.createdAt || new Date().toISOString(),
+  };
+
+  allComments.unshift(newComment);
+  setStoredItem(STORAGE_KEYS.GALLERY_COMMENTS, allComments);
+  syncDocToFirestore('galleryComments', id, newComment);
+
+  // Update comments count on gallery work
+  const rawWorks = localStorage.getItem(STORAGE_KEYS.GALLERY_WORKS);
+  if (rawWorks) {
+    try {
+      const works = JSON.parse(rawWorks) as StudentGalleryWork[];
+      const wIdx = works.findIndex((w) => String(w.id) === String(workId));
+      if (wIdx !== -1) {
+        const count = allComments.filter((c) => String(c.workId) === String(workId)).length;
+        works[wIdx].commentsCount = count;
+        setStoredItem(STORAGE_KEYS.GALLERY_WORKS, works);
+        syncDocToFirestore('galleryWorks', workId, works[wIdx]);
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  notifyDataUpdated();
+  return newComment;
+}
+
+export function deleteGalleryComment(commentId: string, workId?: string): boolean {
+  const allComments = getGalleryComments();
+  const target = allComments.find((c) => c.id === commentId);
+  const targetWorkId = workId || target?.workId;
+  const filtered = allComments.filter((c) => c.id !== commentId);
+  setStoredItem(STORAGE_KEYS.GALLERY_COMMENTS, filtered);
+  removeDocFromFirestore('galleryComments', commentId);
+
+  if (targetWorkId) {
+    const rawWorks = localStorage.getItem(STORAGE_KEYS.GALLERY_WORKS);
+    if (rawWorks) {
+      try {
+        const works = JSON.parse(rawWorks) as StudentGalleryWork[];
+        const wIdx = works.findIndex((w) => String(w.id) === String(targetWorkId));
+        if (wIdx !== -1) {
+          const count = filtered.filter((c) => String(c.workId) === String(targetWorkId)).length;
+          works[wIdx].commentsCount = count;
+          setStoredItem(STORAGE_KEYS.GALLERY_WORKS, works);
+          syncDocToFirestore('galleryWorks', targetWorkId, works[wIdx]);
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  notifyDataUpdated();
+  return true;
+}
+
 export function getGalleryWorks(): StudentGalleryWork[] {
   const raw = localStorage.getItem(STORAGE_KEYS.GALLERY_WORKS);
+  let works: StudentGalleryWork[] = [];
   if (raw === null) {
+    works = INITIAL_GALLERY_WORKS;
     setStoredItem(STORAGE_KEYS.GALLERY_WORKS, INITIAL_GALLERY_WORKS);
-    return INITIAL_GALLERY_WORKS;
+  } else {
+    try {
+      works = JSON.parse(raw) as StudentGalleryWork[];
+    } catch (e) {
+      works = [];
+    }
   }
-  try {
-    return JSON.parse(raw) as StudentGalleryWork[];
-  } catch (e) {
-    return [];
+  // Calculate dynamic commentsCount from stored comments
+  const allComments = getGalleryComments();
+  const commentCountMap = new Map<string, number>();
+  for (const c of allComments) {
+    commentCountMap.set(String(c.workId), (commentCountMap.get(String(c.workId)) || 0) + 1);
   }
+  return works.map((w) => ({
+    ...w,
+    commentsCount: commentCountMap.get(String(w.id)) ?? w.commentsCount ?? 0,
+  }));
 }
 
 export function saveGalleryWork(
   work: Omit<StudentGalleryWork, 'id' | 'createdAt' | 'starLikes' | 'likedByStudentIds'> & {
     starLikes?: number;
     likedByStudentIds?: string[];
+    commentsCount?: number;
   }
 ): StudentGalleryWork {
   const works = getGalleryWorks();
@@ -2244,6 +2422,7 @@ export function saveGalleryWork(
     createdAt: new Date().toISOString(),
     starLikes: work.starLikes || 0,
     likedByStudentIds: work.likedByStudentIds || [],
+    commentsCount: 0,
   };
   works.unshift(newWork);
   setStoredItem(STORAGE_KEYS.GALLERY_WORKS, works);
@@ -2259,6 +2438,16 @@ export function deleteGalleryWork(id: string): boolean {
   const filtered = works.filter((w) => String(w.id) !== String(id));
   setStoredItem(STORAGE_KEYS.GALLERY_WORKS, filtered);
   removeDocFromFirestore('galleryWorks', id);
+
+  // Also clean up any comments associated with this artwork
+  const allComments = getGalleryComments();
+  const remainingComments = allComments.filter((c) => String(c.workId) !== String(id));
+  const deletedComments = allComments.filter((c) => String(c.workId) === String(id));
+  setStoredItem(STORAGE_KEYS.GALLERY_COMMENTS, remainingComments);
+  deletedComments.forEach((c) => {
+    removeDocFromFirestore('galleryComments', c.id);
+  });
+
   notifyDataUpdated();
   return true;
 }
@@ -2963,6 +3152,28 @@ export function saveTypingLeagueScore(
   return newScore;
 }
 
+export function deleteTypingLeagueScore(id: string): boolean {
+  const scores = getStoredItem<TypingLeagueScore[]>(STORAGE_KEYS.TYPING_LEAGUE_SCORES, []);
+  const filtered = scores.filter((s) => s.id !== id);
+  setStoredItem(STORAGE_KEYS.TYPING_LEAGUE_SCORES, filtered);
+  removeDocFromFirestore('typingLeagueScores', id);
+  notifyDataUpdated();
+  return true;
+}
+
+export function deleteTypingLeagueScoresBatch(ids: string[]): boolean {
+  if (!ids || ids.length === 0) return false;
+  const idSet = new Set(ids);
+  const scores = getStoredItem<TypingLeagueScore[]>(STORAGE_KEYS.TYPING_LEAGUE_SCORES, []);
+  const filtered = scores.filter((s) => !idSet.has(s.id));
+  setStoredItem(STORAGE_KEYS.TYPING_LEAGUE_SCORES, filtered);
+  ids.forEach((id) => {
+    removeDocFromFirestore('typingLeagueScores', id);
+  });
+  notifyDataUpdated();
+  return true;
+}
+
 export function getTypingLeagueLeaderboard(textId?: string, school?: string): TypingLeagueScore[] {
   const scores = getTypingLeagueScores();
   let filtered = scores;
@@ -2975,12 +3186,13 @@ export function getTypingLeagueLeaderboard(textId?: string, school?: string): Ty
     filtered = filtered.filter((s) => !s.studentSchool || s.studentSchool === school);
   }
 
-  // Group by studentId to keep only their best score for the given filter
+  // Group by canonical student to keep only their best score for the given filter
   const bestMap = new Map<string, TypingLeagueScore>();
   for (const s of filtered) {
-    const existing = bestMap.get(s.studentId);
+    const canonicalKey = (s.studentName || '').toLowerCase().replace(/[^a-z0-9]/g, '').trim() || s.studentId;
+    const existing = bestMap.get(canonicalKey);
     if (!existing || s.score > existing.score || (s.score === existing.score && s.wpm > existing.wpm)) {
-      bestMap.set(s.studentId, s);
+      bestMap.set(canonicalKey, s);
     }
   }
 
@@ -3230,6 +3442,8 @@ export async function pullLatestDataFromCloud(): Promise<boolean> {
       { name: 'typingLeagueTexts', key: STORAGE_KEYS.TYPING_LEAGUE_TEXTS },
       { name: 'announcements', key: STORAGE_KEYS.ANNOUNCEMENTS },
       { name: 'galleryWorks', key: STORAGE_KEYS.GALLERY_WORKS },
+      { name: 'galleryComments', key: STORAGE_KEYS.GALLERY_COMMENTS },
+      { name: 'typingLeagueScores', key: STORAGE_KEYS.TYPING_LEAGUE_SCORES },
       { name: 'schoolRewards', key: STORAGE_KEYS.SCHOOL_REWARDS },
     ];
     for (const c of collectionsToSync) {

@@ -6,6 +6,7 @@ import {
   Filter,
   Heart,
   Image as ImageIcon,
+  MessageSquare,
   Palette,
   Plus,
   Search,
@@ -28,6 +29,8 @@ import { Avatar } from '../common/Avatar';
 import { ConfirmModal } from '../common/ConfirmModal';
 import { PaintCanvas } from './PaintCanvas';
 import { RichWordPublisher } from './RichWordPublisher';
+import { PixelArtStudio } from '../games/PixelArtStudio';
+import { GalleryCommentsSection } from './GalleryCommentsSection';
 
 interface StudentGalleryProps {
   isAdminView?: boolean;
@@ -42,9 +45,9 @@ export const StudentGallery: React.FC<StudentGalleryProps> = ({
   const { showSuccess, showError } = useToast();
 
   const [works, setWorks] = useState<StudentGalleryWork[]>([]);
-  const [creationMode, setCreationMode] = useState<'none' | 'paint' | 'word'>('none');
+  const [creationMode, setCreationMode] = useState<'none' | 'paint' | 'word' | 'pixel-art'>('none');
   const [activeViewingWork, setActiveViewingWork] = useState<StudentGalleryWork | null>(null);
-  const [filterType, setFilterType] = useState<'ALL' | 'paint' | 'word'>('ALL');
+  const [filterType, setFilterType] = useState<'ALL' | 'paint' | 'word' | 'pixel-art'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<{
     isOpen: boolean;
@@ -58,6 +61,9 @@ export const StudentGallery: React.FC<StudentGalleryProps> = ({
 
   useEffect(() => {
     reloadWorks();
+    const handleUpdate = () => reloadWorks();
+    window.addEventListener('ekskul_data_updated', handleUpdate);
+    return () => window.removeEventListener('ekskul_data_updated', handleUpdate);
   }, []);
 
   const handleToggleLike = (workId: string) => {
@@ -113,9 +119,19 @@ export const StudentGallery: React.FC<StudentGalleryProps> = ({
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xs space-y-6">
-      {/* Creation Mode View (Paint Canvas or Word Publisher) */}
+      {/* Creation Mode View (Paint Canvas, Word Publisher, or Pixel Art Studio) */}
       {creationMode === 'paint' && (
         <PaintCanvas
+          onPublished={() => {
+            setCreationMode('none');
+            reloadWorks();
+          }}
+          onCancel={() => setCreationMode('none')}
+        />
+      )}
+
+      {creationMode === 'pixel-art' && (
+        <PixelArtStudio
           onPublished={() => {
             setCreationMode('none');
             reloadWorks();
@@ -141,19 +157,19 @@ export const StudentGallery: React.FC<StudentGalleryProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
-                  <Sparkles className="w-4 h-4" />
-                  Pameran Karya Digital Siswa
+                  <Sparkles className="w-4 h-4 text-amber-500" />
+                  Mading Kreatif Siswa
                 </span>
                 <span className="text-slate-300 dark:text-slate-700">·</span>
                 <span className="text-xs text-slate-500">
                   {works.length} Karya Siswa dari Berbagai Sekolah
                 </span>
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-0.5">
-                Galeri Lukisan Paint & Dokumen Word Siswa
+              <h2 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5">
+                Galeri Karya Digital Siswa
               </h2>
-              <p className="text-xs text-slate-500">
-                Lihat hasil karya menggambar Paint dan pengetikan naskah Microsoft Word berisikan foto/tabel kreatif dari teman-temanmu!
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Pameran karya kreatif siswa: Lukisan Paint, Seni Pixel Art 8-Bit, dan Naskah Microsoft Word berformat rapi!
               </p>
             </div>
 
@@ -163,15 +179,23 @@ export const StudentGallery: React.FC<StudentGalleryProps> = ({
                 <button
                   type="button"
                   onClick={() => setCreationMode('paint')}
-                  className="px-3.5 py-2 text-xs font-semibold text-white bg-pink-600 hover:bg-pink-700 rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                  className="px-3.5 py-2 text-xs font-bold text-white bg-pink-600 hover:bg-pink-700 rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
                 >
                   <Palette className="w-4 h-4" />
-                  <span>+ Gambar di Paint</span>
+                  <span>+ Gambar Paint</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCreationMode('pixel-art')}
+                  className="px-3.5 py-2 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-300" />
+                  <span>+ Studio Pixel Art</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setCreationMode('word')}
-                  className="px-3.5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                  className="px-3.5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
                 >
                   <FileText className="w-4 h-4" />
                   <span>+ Buat Naskah Word</span>
@@ -217,6 +241,7 @@ export const StudentGallery: React.FC<StudentGalleryProps> = ({
               >
                 <option value="ALL">Semua Jenis Karya</option>
                 <option value="paint">🎨 Lukisan Paint</option>
+                <option value="pixel-art">👾 Studio Pixel Art</option>
                 <option value="word">📝 Naskah Word</option>
               </select>
             </div>
@@ -259,7 +284,7 @@ export const StudentGallery: React.FC<StudentGalleryProps> = ({
                       onClick={() => setActiveViewingWork(work)}
                       className="relative h-44 bg-slate-100 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 cursor-pointer overflow-hidden flex items-center justify-center p-2"
                     >
-                      {work.type === 'paint' && work.imageUrl ? (
+                      {(work.type === 'paint' || work.type === 'pixel-art') && work.imageUrl ? (
                         <img
                           src={work.imageUrl}
                           alt={work.title}
@@ -278,12 +303,19 @@ export const StudentGallery: React.FC<StudentGalleryProps> = ({
                       {/* Type Badge Tag */}
                       <span
                         className={`absolute top-2.5 left-2.5 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1 ${
-                          work.type === 'paint'
+                          work.type === 'pixel-art'
+                            ? 'bg-purple-600 text-white'
+                            : work.type === 'paint'
                             ? 'bg-pink-500 text-white'
                             : 'bg-indigo-600 text-white'
                         }`}
                       >
-                        {work.type === 'paint' ? (
+                        {work.type === 'pixel-art' ? (
+                          <>
+                            <Sparkles className="w-3 h-3 text-amber-300" />
+                            <span>Pixel Art</span>
+                          </>
+                        ) : work.type === 'paint' ? (
                           <>
                             <Palette className="w-3 h-3" />
                             <span>Lukisan Paint</span>
@@ -336,19 +368,31 @@ export const StudentGallery: React.FC<StudentGalleryProps> = ({
 
                     {/* Bottom Actions Bar */}
                     <div className="px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                      {/* Bintang Likes Button */}
-                      <button
-                        type="button"
-                        onClick={() => handleToggleLike(work.id)}
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-semibold transition-colors cursor-pointer ${
-                          isLiked
-                            ? 'text-amber-600 bg-amber-50 dark:bg-amber-950/60 border border-amber-300'
-                            : 'text-slate-500 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
-                      >
-                        <Star className={`w-3.5 h-3.5 ${isLiked ? 'fill-amber-500' : ''}`} />
-                        <span>{work.starLikes} Bintang</span>
-                      </button>
+                      {/* Bintang Likes Button & Komentar Counter */}
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleLike(work.id)}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-semibold transition-colors cursor-pointer ${
+                            isLiked
+                              ? 'text-amber-600 bg-amber-50 dark:bg-amber-950/60 border border-amber-300'
+                              : 'text-slate-500 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-800'
+                          }`}
+                        >
+                          <Star className={`w-3.5 h-3.5 ${isLiked ? 'fill-amber-500' : ''}`} />
+                          <span>{work.starLikes} Bintang</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setActiveViewingWork(work)}
+                          className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg font-semibold text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 transition-colors cursor-pointer"
+                          title="Lihat apresiasi & masukan"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5 text-indigo-500" />
+                          <span>{work.commentsCount || 0} Masukan</span>
+                        </button>
+                      </div>
 
                       <div className="flex items-center gap-1">
                         <button
@@ -437,87 +481,106 @@ export const StudentGallery: React.FC<StudentGalleryProps> = ({
               </div>
             </div>
 
-            {/* Content Area */}
-            <div className="p-4 sm:p-8 overflow-y-auto flex-1 bg-slate-100 dark:bg-slate-950/60 flex justify-center">
-              {activeViewingWork.type === 'paint' && activeViewingWork.imageUrl ? (
-                <div className="max-w-full text-center space-y-3 flex flex-col items-center">
-                  <div className="p-2 sm:p-4 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border-2 border-slate-200 dark:border-slate-800 inline-block max-w-full">
-                    <img
-                      src={activeViewingWork.imageUrl}
-                      alt={activeViewingWork.title}
-                      className="max-w-full max-h-[65vh] object-contain rounded-xl bg-white"
-                    />
-                  </div>
-                  {activeViewingWork.previewText && (
-                    <p className="text-xs text-slate-500 dark:text-slate-400 italic max-w-lg bg-white/60 dark:bg-slate-900/60 backdrop-blur-xs py-2 px-4 rounded-xl border border-slate-200 dark:border-slate-800">
-                      "{activeViewingWork.previewText}"
-                    </p>
-                  )}
-                </div>
-              ) : (
-                /* Authentic Word / Paper Document Sheet Viewer */
-                <div className="w-full max-w-3xl bg-white text-slate-900 rounded-2xl shadow-xl border border-slate-200 p-6 sm:p-12 font-sans space-y-6">
-                  {/* Paper Header Ribbon */}
-                  <div className="border-b-2 border-indigo-500/80 pb-4 space-y-2">
-                    <div className="flex items-center justify-between text-[11px] text-slate-500">
-                      <span className="font-mono font-bold tracking-wider text-indigo-700 uppercase">
-                        DOKUMEN PRAKTIKUM KOMPUTER
-                      </span>
-                      <span>
-                        {new Date(activeViewingWork.createdAt).toLocaleDateString('id-ID', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                        })}
-                      </span>
-                    </div>
-                    <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                      {activeViewingWork.title}
-                    </h1>
-                    <div className="flex items-center gap-3 text-xs text-slate-600 font-medium">
-                      <span>Penulis: <strong>{activeViewingWork.studentName}</strong></span>
-                      <span>·</span>
-                      <span>{activeViewingWork.studentSchool}</span>
-                      <span>·</span>
-                      <span>{activeViewingWork.studentGrade}</span>
-                    </div>
-                  </div>
-
-                  {/* Formatted Body Content */}
-                  <div className="text-slate-800 text-sm sm:text-base leading-relaxed space-y-4">
-                    {activeViewingWork.contentHtml ? (
-                      <div
-                        className="prose prose-indigo max-w-none text-slate-800 [&_table]:w-full [&_table]:border-collapse [&_table]:my-4 [&_table]:border [&_table]:border-slate-300 [&_th]:border [&_th]:border-slate-300 [&_th]:p-2.5 [&_th]:bg-indigo-50 [&_th]:text-indigo-950 [&_th]:font-bold [&_th]:text-left [&_td]:border [&_td]:border-slate-300 [&_td]:p-2.5 [&_p]:my-2.5 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-indigo-900 [&_h2]:mt-4 [&_h2]:mb-2 [&_h3]:text-base [&_h3]:font-bold [&_h3]:text-slate-900 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
-                        dangerouslySetInnerHTML={{
-                          __html: activeViewingWork.contentHtml,
-                        }}
+            {/* Content Area & Comments Column */}
+            <div className="overflow-y-auto flex-1 flex flex-col bg-slate-100 dark:bg-slate-950/60 divide-y divide-slate-200 dark:divide-slate-800">
+              {/* Artwork View Body */}
+              <div className="p-4 sm:p-8 flex justify-center">
+                {(activeViewingWork.type === 'paint' || activeViewingWork.type === 'pixel-art') && activeViewingWork.imageUrl ? (
+                  <div className="max-w-full text-center space-y-3 flex flex-col items-center">
+                    <div className="p-2 sm:p-4 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border-2 border-slate-200 dark:border-slate-800 inline-block max-w-full">
+                      <img
+                        src={activeViewingWork.imageUrl}
+                        alt={activeViewingWork.title}
+                        className="max-w-full max-h-[65vh] object-contain rounded-xl bg-white"
                       />
-                    ) : (
-                      <div className="whitespace-pre-line leading-relaxed text-slate-800">
-                        {activeViewingWork.previewText}
-                      </div>
+                    </div>
+                    {activeViewingWork.previewText && (
+                      <p className="text-xs text-slate-500 dark:text-slate-400 italic max-w-lg bg-white/60 dark:bg-slate-900/60 backdrop-blur-xs py-2 px-4 rounded-xl border border-slate-200 dark:border-slate-800">
+                        "{activeViewingWork.previewText}"
+                      </p>
                     )}
                   </div>
-
-                  {/* Document Footer Signature Seal */}
-                  <div className="pt-8 mt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center font-black text-xs">
-                        KC
+                ) : (
+                  /* Authentic Word / Paper Document Sheet Viewer */
+                  <div className="w-full max-w-3xl bg-white text-slate-900 rounded-2xl shadow-xl border border-slate-200 p-6 sm:p-12 font-sans space-y-6">
+                    {/* Paper Header Ribbon */}
+                    <div className="border-b-2 border-indigo-500/80 pb-4 space-y-2">
+                      <div className="flex items-center justify-between text-[11px] text-slate-500">
+                        <span className="font-mono font-bold tracking-wider text-indigo-700 uppercase">
+                          DOKUMEN PRAKTIKUM KOMPUTER
+                        </span>
+                        <span>
+                          {new Date(activeViewingWork.createdAt).toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                          })}
+                        </span>
                       </div>
-                      <div>
-                        <p className="font-bold text-slate-800 text-[11px]">Ekstrakurikuler Komputer Ceria</p>
-                        <p className="text-[10px] text-slate-400">Pusat Kreativitas & Portofolio Siswa</p>
+                      <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                        {activeViewingWork.title}
+                      </h1>
+                      <div className="flex items-center gap-3 text-xs text-slate-600 font-medium">
+                        <span>Penulis: <strong>{activeViewingWork.studentName}</strong></span>
+                        <span>·</span>
+                        <span>{activeViewingWork.studentSchool}</span>
+                        <span>·</span>
+                        <span>{activeViewingWork.studentGrade}</span>
                       </div>
                     </div>
-                    <div className="text-right text-[11px]">
-                      <span className="inline-flex items-center gap-1 text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                        ✓ Karya Terverifikasi
-                      </span>
+
+                    {/* Formatted Body Content */}
+                    <div className="text-slate-800 text-sm sm:text-base leading-relaxed space-y-4">
+                      {activeViewingWork.contentHtml ? (
+                        <div
+                          className="prose prose-indigo max-w-none text-slate-800 [&_table]:w-full [&_table]:border-collapse [&_table]:my-4 [&_table]:border [&_table]:border-slate-300 [&_th]:border [&_th]:border-slate-300 [&_th]:p-2.5 [&_th]:bg-indigo-50 [&_th]:text-indigo-950 [&_th]:font-bold [&_th]:text-left [&_td]:border [&_td]:border-slate-300 [&_td]:p-2.5 [&_p]:my-2.5 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-indigo-900 [&_h2]:mt-4 [&_h2]:mb-2 [&_h3]:text-base [&_h3]:font-bold [&_h3]:text-slate-900 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
+                          dangerouslySetInnerHTML={{
+                            __html: activeViewingWork.contentHtml,
+                          }}
+                        />
+                      ) : (
+                        <div className="whitespace-pre-line leading-relaxed text-slate-800">
+                          {activeViewingWork.previewText}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Document Footer Signature Seal */}
+                    <div className="pt-8 mt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center font-black text-xs">
+                          KC
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-800 text-[11px]">Ekstrakurikuler Komputer Ceria</p>
+                          <p className="text-[10px] text-slate-400">Pusat Kreativitas & Portofolio Siswa</p>
+                        </div>
+                      </div>
+                      <div className="text-right text-[11px]">
+                        <span className="inline-flex items-center gap-1 text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                          ✓ Karya Terverifikasi
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+
+              {/* Dedicated Comments Column (Kolom Komentar, Apresiasi & Masukan) */}
+              <GalleryCommentsSection
+                workId={activeViewingWork.id}
+                workTitle={activeViewingWork.title}
+                workAuthorId={activeViewingWork.studentId}
+                workAuthorName={activeViewingWork.studentName}
+                onOpenAuthModal={onOpenAuthModal}
+                onCommentsCountChange={(newCount) => {
+                  setWorks((prev) =>
+                    prev.map((w) =>
+                      w.id === activeViewingWork.id ? { ...w, commentsCount: newCount } : w
+                    )
+                  );
+                }}
+              />
             </div>
 
             {/* Footer Bar */}

@@ -128,6 +128,25 @@
       },
       "required": ["id", "studentName", "title", "type"]
     },
+    "GalleryComment": {
+      "title": "GalleryComment",
+      "description": "Student comment, appreciation, and constructive feedback on gallery artwork.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Comment ID" },
+        "workId": { "type": "string", "description": "Target gallery work ID" },
+        "studentId": { "type": "string", "description": "Author student ID" },
+        "studentName": { "type": "string", "description": "Author name" },
+        "studentAvatar": { "type": "string", "description": "Author avatar URL" },
+        "studentGrade": { "type": "string", "description": "Author grade or class" },
+        "studentSchool": { "type": "string", "description": "Author school origin" },
+        "comment": { "type": "string", "description": "Appreciation or constructive feedback text" },
+        "category": { "type": "string", "enum": ["apresiasi", "masukan", "umum"], "description": "Feedback category" },
+        "stickerTag": { "type": "string", "description": "Praise sticker tag" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
+      },
+      "required": ["id", "workId", "studentId", "studentName", "comment"]
+    },
     "ForumThread": {
       "title": "ForumThread",
       "description": "Discussion question or topic.",
@@ -224,6 +243,10 @@
     "/galleryWorks/{workId}": {
       "schema": { "$ref": "#/entities/GalleryWork" },
       "description": "Student gallery drawings and documents"
+    },
+    "/galleryComments/{commentId}": {
+      "schema": { "$ref": "#/entities/GalleryComment" },
+      "description": "Student comments, appreciations, and constructive feedback on gallery artworks"
     },
     "/forumThreads/{threadId}": {
       "schema": { "$ref": "#/entities/ForumThread" },

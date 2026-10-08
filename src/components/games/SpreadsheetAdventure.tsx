@@ -314,8 +314,21 @@ export const SpreadsheetAdventure: React.FC = () => {
           <input
             type="text"
             value={formulaInput}
-            onChange={(e) => setFormulaInput(e.target.value)}
-            placeholder="Ketik rumus di sini, misal: =SUM(C2:C5)"
+            onChange={(e) => {
+              if (e.target.value.length - formulaInput.length > 2) {
+                return;
+              }
+              setFormulaInput(e.target.value);
+            }}
+            onPaste={(e) => e.preventDefault()}
+            onDrop={(e) => e.preventDefault()}
+            onContextMenu={(e) => e.preventDefault()}
+            onKeyDown={(e) => {
+              if ((e.ctrlKey || e.metaKey) && ['v', 'V'].includes(e.key)) {
+                e.preventDefault();
+              }
+            }}
+            placeholder="Ketik rumus manual, misal: =SUM(C2:C5) (No Paste)"
             className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
           />
           <button

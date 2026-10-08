@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   AlertCircle,
   ArrowRight,
+  ArrowLeft,
   Award,
   BookOpen,
   Calendar,
@@ -123,6 +124,8 @@ import { StorageMasterGame } from '../games/StorageMasterGame';
 import { MiniPosterStudio } from '../games/MiniPosterStudio';
 import { ActivityCalendarModal } from '../common/ActivityCalendarModal';
 import { ShareAppModal } from '../common/ShareAppModal';
+import { StudentNavigatorModal } from '../common/StudentNavigatorModal';
+import { StudentNavSubBar } from './StudentNavSubBar';
 
 interface StudentDashboardProps {
   initialTab?:
@@ -212,6 +215,61 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [showActivityCalendar, setShowActivityCalendar] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showNavigatorModal, setShowNavigatorModal] = useState(false);
+  const [overviewGameCategory, setOverviewGameCategory] = useState<'all' | 'coding' | 'hardware' | 'security' | 'creative'>('all');
+
+  const getActivityTitle = (tab: string): string => {
+    switch (tab) {
+      case 'overview': return 'Ringkasan Beranda';
+      case 'lessons': return 'Modul Materi Belajar';
+      case 'quizzes': return 'Kuis Mandiri Pemahaman';
+      case 'typing': return 'Mengetik Naskah MS Word';
+      case 'typing-league': return 'Liga Mengetik 10 Jari Cepat';
+      case 'typing-hero': return 'Typing Hero RPG';
+      case 'rhythm-typing': return 'Rhythm Typing Beats';
+      case 'coding-lab': return 'Lab Koding Blockly (15 Level)';
+      case 'robot-maze': return 'Robot Maze Runner (14 Level)';
+      case 'grid-robot': return 'Grid Robot Navigator (16 Level)';
+      case 'code-a-pet': return 'Code-A-Pet Robot (8 Evolusi)';
+      case 'binary-code': return 'Detektif Kode Biner (8 Level)';
+      case 'pc-builder': return 'Rakit PC Simulator';
+      case 'pc-doctor': return 'Dokter PC (Troubleshooting)';
+      case 'port-master': return 'Master Colokan & Port';
+      case 'lan-crimping': return 'Simulator Crimping Kabel LAN';
+      case 'network-builder': return 'Rakit Jaringan Network';
+      case 'storage-master': return 'Master Media Penyimpanan';
+      case 'cyber-shield': return 'Cyber Shield Firewall';
+      case 'detective-hoax': return 'Detektif Hoax & Fakta';
+      case 'anti-phishing': return 'Detektif Anti-Phishing';
+      case 'cyber-safety': return 'Edukasi Keamanan Siber';
+      case 'pizza-tycoon': return 'Excel Pizza Tycoon';
+      case 'spreadsheet': return 'Petualangan Excel Cilik';
+      case 'pixel-art': return 'Studio Pixel Art 8-Bit';
+      case 'mini-poster': return 'Mini Poster Designer';
+      case 'file-explorer': return 'Misi File Explorer';
+      case 'games': return 'Kata Jatuh (Falling Words)';
+      case 'gallery': return 'Galeri Karya Siswa';
+      case 'leaderboard': return 'Papan Peringkat Prestasi';
+      case 'reward-shop': return 'Toko Hadiah Sekolah';
+      case 'star-shop': return 'Toko Avatar & Bingkai';
+      case 'forum': return 'Forum Diskusi Siswa';
+      case 'tech-glossary': return 'Kamus A-Z Teknologi';
+      case 'shortcuts': return 'Koleksi Shortcut Keyboard';
+      default: return 'Aktivitas Belajar';
+    }
+  };
+
+  const handleNavigateFromNavigator = (view: string) => {
+    const clean = view.replace(/^student-/, '');
+    if (clean === 'dashboard') {
+      setActiveTab('overview');
+    } else if (clean === 'glossary') {
+      setActiveTab('tech-glossary');
+    } else {
+      setActiveTab(clean as any);
+    }
+    setShowNavigatorModal(false);
+  };
 
   // Typing Drafts state
   const [studentDrafts, setStudentDrafts] = useState<Record<string, TypingDraft>>(() =>
@@ -688,6 +746,14 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
           </div>
         </div>
 
+        {/* Student Visual Navigation Hub & Sub-Bar */}
+        <StudentNavSubBar
+          activeTab={activeTab}
+          onSelectTab={(tab) => setActiveTab(tab as any)}
+          onOpenNavigator={() => setShowNavigatorModal(true)}
+          student={currentUser}
+        />
+
         <main className="w-full space-y-6 min-w-0">
           {/* Faction Selection Banner if student hasn't joined yet */}
           {!currentUser.schoolFaction && (
@@ -806,283 +872,357 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Quick Action 1: Materi */}
-                <div
-                  onClick={() => setActiveTab('lessons')}
-                  className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-indigo-400 dark:hover:border-indigo-600 shadow-sm cursor-pointer transition-all group relative overflow-hidden"
+              {/* Special Banners: Liga Mengetik & Galeri Karya */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Banner 1: Liga Mengetik */}
+                <div 
+                  onClick={() => setActiveTab('typing-league')}
+                  className="p-5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white rounded-2xl shadow-lg shadow-orange-500/20 flex items-center justify-between gap-4 cursor-pointer hover:scale-[1.01] transition-all relative overflow-hidden group"
                 >
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-sky-50 dark:bg-sky-900/10 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-110" />
-                  <div className="relative z-10">
-                    <div className="w-12 h-12 rounded-xl bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 flex items-center justify-center mb-4">
-                      <BookOpen className="w-6 h-6" />
+                  <div className="flex items-center gap-3.5 relative z-10">
+                    <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-white shrink-0 group-hover:rotate-6 transition-transform">
+                      <Trophy className="w-7 h-7 text-amber-200" />
                     </div>
-                    <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight">Materi Belajar</h3>
-                    <p className="text-[11px] text-slate-500 mt-2 line-clamp-2">Pelajari modul komputer dan klaim poin bintang secara instan.</p>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black uppercase tracking-wider bg-white text-orange-600 px-2 py-0.5 rounded-full shadow-xs">
+                          KOMPETISI RESMI
+                        </span>
+                        <span className="text-xs font-bold text-amber-100">Live WPM & Leaderboard</span>
+                      </div>
+                      <h3 className="text-base font-black mt-0.5">Liga Mengetik Cepat 10 Jari 🏆</h3>
+                      <p className="text-[11px] text-orange-50 line-clamp-1">
+                        Pilih naskah dari Guru Pembina, ketik 10 jari, dan raih posisi puncak!
+                      </p>
+                    </div>
                   </div>
+                  <button 
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('typing-league');
+                    }}
+                    className="px-4 py-2 bg-white text-orange-600 hover:bg-orange-50 rounded-xl font-bold text-xs shadow-md shrink-0 transition-colors cursor-pointer"
+                  >
+                    Mulai →
+                  </button>
                 </div>
 
-                {/* Quick Action 2: Kuis */}
-                <div
-                  onClick={() => setActiveTab('quizzes')}
-                  className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-amber-400 dark:hover:border-amber-600 shadow-sm cursor-pointer transition-all group relative overflow-hidden"
+                {/* Banner 2: Galeri Karya & Pixel Art */}
+                <div 
+                  onClick={() => setActiveTab('gallery')}
+                  className="p-5 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 text-white rounded-2xl shadow-lg shadow-pink-500/20 flex items-center justify-between gap-4 cursor-pointer hover:scale-[1.01] transition-all relative overflow-hidden group"
                 >
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-amber-50 dark:bg-amber-900/10 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-110" />
-                  <div className="relative z-10">
-                    <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-4">
-                      <HelpCircle className="w-6 h-6" />
+                  <div className="flex items-center gap-3.5 relative z-10">
+                    <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-white shrink-0 group-hover:rotate-6 transition-transform">
+                      <Palette className="w-7 h-7 text-pink-200" />
                     </div>
-                    <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight">Kuis Interaktif</h3>
-                    <p className="text-[11px] text-slate-500 mt-2 line-clamp-2">Uji kemampuanmu dan kumpulkan poin skor tertinggi.</p>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black uppercase tracking-wider bg-white text-pink-600 px-2 py-0.5 rounded-full shadow-xs">
+                          KARYA SISWA
+                        </span>
+                        <span className="text-xs font-bold text-pink-100">Studio Seni Digital</span>
+                      </div>
+                      <h3 className="text-base font-black mt-0.5">Galeri Karya Siswa & Pixel Art 🎨</h3>
+                      <p className="text-[11px] text-pink-50 line-clamp-1">
+                        Pamerkan lukisan digital dan buat karakter unik di Studio Pixel Art 8-bit!
+                      </p>
+                    </div>
                   </div>
+                  <button 
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('gallery');
+                    }}
+                    className="px-4 py-2 bg-white text-pink-600 hover:bg-pink-50 rounded-xl font-bold text-xs shadow-md shrink-0 transition-colors cursor-pointer"
+                  >
+                    Buka →
+                  </button>
                 </div>
+              </div>
 
-                {/* Quick Action 3: Mengetik */}
-                <div
-                  onClick={() => setActiveTab('typing')}
-                  className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-emerald-400 dark:hover:border-emerald-600 shadow-sm cursor-pointer transition-all group relative overflow-hidden"
-                >
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50 dark:bg-emerald-900/10 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-110" />
-                  <div className="relative z-10">
-                    <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4">
-                      <Keyboard className="w-6 h-6" />
+              {/* 4 Pilar Utama Pembelajaran Ceria */}
+              <div>
+                <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-indigo-500" />
+                  <span>4 Menu Belajar Utama</span>
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Pilar 1: Materi */}
+                  <div
+                    onClick={() => setActiveTab('lessons')}
+                    className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-blue-400 dark:hover:border-blue-500 shadow-xs hover:shadow-md cursor-pointer transition-all group relative overflow-hidden flex flex-col justify-between"
+                  >
+                    <div className="space-y-3">
+                      <div className="w-11 h-11 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <BookOpen className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">Teori Dasar</span>
+                        <h4 className="text-sm font-black text-slate-900 dark:text-white mt-0.5">Modul Materi Belajar</h4>
+                        <p className="text-[11px] text-slate-500 mt-1 leading-relaxed line-clamp-2">Pelajari komputer dan klaim poin bintang materi secara mandiri.</p>
+                      </div>
                     </div>
-                    <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight">Mengetik Word</h3>
-                    <p className="text-[11px] text-slate-500 mt-2 line-clamp-2">Latihan mengetik 10 jari dengan naskah acuan Microsoft Word.</p>
+                    <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-blue-600 dark:text-blue-400 group-hover:translate-x-0.5 transition-transform">
+                      <span>Buka Modul</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
+                  </div>
+
+                  {/* Pilar 2: Kuis */}
+                  <div
+                    onClick={() => setActiveTab('quizzes')}
+                    className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-amber-400 dark:hover:border-amber-500 shadow-xs hover:shadow-md cursor-pointer transition-all group relative overflow-hidden flex flex-col justify-between"
+                  >
+                    <div className="space-y-3">
+                      <div className="w-11 h-11 rounded-xl bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <HelpCircle className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">Uji Pemahaman</span>
+                        <h4 className="text-sm font-black text-slate-900 dark:text-white mt-0.5">Kuis Mandiri Interaktif</h4>
+                        <p className="text-[11px] text-slate-500 mt-1 leading-relaxed line-clamp-2">Kuis bersuara dengan perlindungan anti-curang berhadiah bintang.</p>
+                      </div>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-amber-600 dark:text-amber-400 group-hover:translate-x-0.5 transition-transform">
+                      <span>Mulai Kuis</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
+                  </div>
+
+                  {/* Pilar 3: Mengetik */}
+                  <div
+                    onClick={() => setActiveTab('typing')}
+                    className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-emerald-400 dark:hover:border-emerald-500 shadow-xs hover:shadow-md cursor-pointer transition-all group relative overflow-hidden flex flex-col justify-between"
+                  >
+                    <div className="space-y-3">
+                      <div className="w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Keyboard className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">10 Jari Word</span>
+                        <h4 className="text-sm font-black text-slate-900 dark:text-white mt-0.5">Latihan Mengetik Naskah</h4>
+                        <p className="text-[11px] text-slate-500 mt-1 leading-relaxed line-clamp-2">Latihan jari telunjuk hingga kelingking dengan naskah Word rapi.</p>
+                      </div>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-emerald-600 dark:text-emerald-400 group-hover:translate-x-0.5 transition-transform">
+                      <span>Latihan Ketik</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
+                  </div>
+
+                  {/* Pilar 4: 20 Game Edukasi */}
+                  <div
+                    onClick={() => {
+                      const el = document.getElementById('arena-game-section');
+                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="p-5 bg-gradient-to-br from-purple-500/10 via-indigo-500/10 to-transparent border border-purple-200 dark:border-purple-800 rounded-2xl hover:border-purple-400 dark:hover:border-purple-500 shadow-xs hover:shadow-md cursor-pointer transition-all group relative overflow-hidden flex flex-col justify-between"
+                  >
+                    <div className="space-y-3">
+                      <div className="w-11 h-11 rounded-xl bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Gamepad2 className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400">20 Game Siap Main</span>
+                        <h4 className="text-sm font-black text-slate-900 dark:text-white mt-0.5">Arena Game & Koding</h4>
+                        <p className="text-[11px] text-slate-500 mt-1 leading-relaxed line-clamp-2">Blockly, Robot Maze, Rakit PC, Dokter PC, Pizza Tycoon, dll.</p>
+                      </div>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-purple-600 dark:text-purple-400 group-hover:translate-x-0.5 transition-transform">
+                      <span>Jelajah Game</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Mini Features List - Clean Grid for Games */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between px-1">
-                  <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest flex items-center gap-2">
-                    <Gamepad2 className="w-4 h-4 text-indigo-500" />
-                    Game & Simulasi Terpopuler
-                  </h3>
-                  <button onClick={() => setActiveTab('pc-doctor')} className="text-[10px] font-bold text-indigo-600 hover:underline uppercase tracking-widest cursor-pointer">Lihat Semua Game →</button>
+              {/* Arena 20 Game Edukasi dengan Filter Kategori */}
+              <div id="arena-game-section" className="space-y-4 pt-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100 dark:border-slate-800">
+                  <div>
+                    <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+                      <Gamepad2 className="w-5 h-5 text-indigo-500" />
+                      <span>Arena 20 Game Edukasi Komputer & Koding</span>
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      Pilih kategori untuk memainkan simulator favoritmu dan kumpulkan poin prestasi!
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowNavigatorModal(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-extrabold text-xs hover:bg-indigo-100 cursor-pointer transition-colors self-start sm:self-auto"
+                  >
+                    <Search className="w-3.5 h-3.5" />
+                    <span>Pencarian Cepat (Ctrl+K)</span>
+                  </button>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3">
-                  <button
-                    onClick={() => setActiveTab('cyber-shield')}
-                    className="flex flex-col items-center justify-center p-3 bg-gradient-to-b from-cyan-950/40 to-indigo-950/40 border-2 border-cyan-500/60 rounded-xl hover:scale-105 transition-all group shadow-sm cursor-pointer relative overflow-hidden"
-                  >
-                    <div className="absolute -top-1 -right-1 bg-cyan-500 text-[8px] font-black text-white px-1.5 py-0.5 rounded-bl-lg shadow-xs uppercase">
-                      BARU
-                    </div>
-                    <Shield className="w-6 h-6 text-cyan-400 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-black text-cyan-300 text-center">Cyber Shield</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('robot-maze')}
-                    className="flex flex-col items-center justify-center p-3 bg-gradient-to-b from-emerald-950/40 to-teal-950/40 border-2 border-emerald-500/60 rounded-xl hover:scale-105 transition-all group shadow-sm cursor-pointer relative overflow-hidden"
-                  >
-                    <div className="absolute -top-1 -right-1 bg-emerald-500 text-[8px] font-black text-white px-1.5 py-0.5 rounded-bl-lg shadow-xs uppercase">
-                      BARU
-                    </div>
-                    <Bot className="w-6 h-6 text-emerald-400 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-black text-emerald-300 text-center">Maze Robot</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('lan-crimping')}
-                    className="flex flex-col items-center justify-center p-3 bg-gradient-to-b from-amber-950/40 to-orange-950/40 border-2 border-amber-500/60 rounded-xl hover:scale-105 transition-all group shadow-sm cursor-pointer relative overflow-hidden"
-                  >
-                    <div className="absolute -top-1 -right-1 bg-amber-500 text-[8px] font-black text-white px-1.5 py-0.5 rounded-bl-lg shadow-xs uppercase">
-                      BARU
-                    </div>
-                    <Network className="w-6 h-6 text-amber-400 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-black text-amber-300 text-center">Krimping LAN</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('rhythm-typing')}
-                    className="flex flex-col items-center justify-center p-3 bg-gradient-to-b from-pink-950/40 to-purple-950/40 border-2 border-pink-500/60 rounded-xl hover:scale-105 transition-all group shadow-sm cursor-pointer relative overflow-hidden"
-                  >
-                    <div className="absolute -top-1 -right-1 bg-pink-500 text-[8px] font-black text-white px-1.5 py-0.5 rounded-bl-lg shadow-xs uppercase">
-                      BARU
-                    </div>
-                    <Music className="w-6 h-6 text-pink-400 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-black text-pink-300 text-center">Rhythm Beats</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('storage-master')}
-                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-sky-400 transition-all group shadow-xs cursor-pointer"
-                  >
-                    <HardDrive className="w-6 h-6 text-sky-500 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Kapasitas Byte</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('mini-poster')}
-                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-400 transition-all group shadow-xs cursor-pointer"
-                  >
-                    <Palette className="w-6 h-6 text-purple-500 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Desain Poster</span>
-                  </button>
-                  <button
-                    onClick={() => setShowActivityCalendar(true)}
-                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-indigo-400 transition-all group shadow-xs cursor-pointer"
-                  >
-                    <Calendar className="w-6 h-6 text-indigo-500 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Agenda Ekskul</span>
-                  </button>
-                  <button
-                    onClick={() => setShowShareModal(true)}
-                    className="flex flex-col items-center justify-center p-3 bg-gradient-to-b from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/30 border-2 border-indigo-300 dark:border-indigo-800 rounded-xl hover:scale-105 transition-all group shadow-xs cursor-pointer"
-                  >
-                    <QrCode className="w-6 h-6 text-indigo-600 dark:text-indigo-400 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-black text-indigo-900 dark:text-indigo-200 text-center">Hubungkan HP</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('typing-league')}
-                    className="flex flex-col items-center justify-center p-3 bg-gradient-to-b from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/30 border-2 border-amber-400 dark:border-amber-500/60 rounded-xl hover:scale-105 transition-all group shadow-sm cursor-pointer relative overflow-hidden"
-                  >
-                    <div className="absolute -top-1 -right-1 bg-amber-500 text-[8px] font-black text-white px-1.5 py-0.5 rounded-bl-lg shadow-xs uppercase">
-                      LIGA
-                    </div>
-                    <Trophy className="w-6 h-6 text-amber-500 mb-2 group-hover:scale-110 transition-transform animate-bounce" />
-                    <span className="text-[10px] font-black text-amber-900 dark:text-amber-200 text-center">Liga Mengetik</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('pc-doctor')}
-                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-rose-400 transition-all group shadow-xs cursor-pointer"
-                  >
-                    <Stethoscope className="w-6 h-6 text-rose-500 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Dokter PC</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('pixel-art')}
-                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-indigo-400 transition-all group shadow-xs cursor-pointer"
-                  >
-                    <Paintbrush className="w-6 h-6 text-indigo-500 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Pixel Art</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('spreadsheet')}
-                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-emerald-400 transition-all group shadow-xs cursor-pointer"
-                  >
-                    <FileSpreadsheet className="w-6 h-6 text-emerald-500 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Excel Cilik</span>
-                  </button>
-                  <button
+
+                {/* Filter Kategori Game */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none text-xs">
+                  {[
+                    { id: 'all', label: '🌟 Semua Game (20)' },
+                    { id: 'coding', label: '🧩 Koding & Algoritma (5)' },
+                    { id: 'hardware', label: '🖥️ Hardware & Lab PC (6)' },
+                    { id: 'security', label: '🛡️ Keamanan Siber (4)' },
+                    { id: 'creative', label: '🎨 Kreatif & Simulasi (5)' },
+                  ].map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setOverviewGameCategory(cat.id as any)}
+                      className={`px-3.5 py-2 rounded-xl font-black whitespace-nowrap transition-all cursor-pointer ${
+                        overviewGameCategory === cat.id
+                          ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
+                          : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'
+                      }`}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Grid 20 Game Kartu Interaktif */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
+                  {[
+                    // Koding & Algoritma
+                    { id: 'coding-lab', name: 'Lab Koding Blockly', icon: '🧩', badge: '15 LEVEL', category: 'coding', desc: 'Susun balok logika algoritma untuk memandu karakter ke target.' },
+                    { id: 'robot-maze', name: 'Robot Maze Runner', icon: '🤖', badge: '14 LEVEL', category: 'coding', desc: 'Koding arah belok dan perulangan robot menembus labirin rintangan.' },
+                    { id: 'grid-robot', name: 'Grid Robot Rover', icon: '🌐', badge: '16 LEVEL', category: 'coding', desc: 'Pemrograman rover koordinat X/Y mengumpulkan baterai energi.' },
+                    { id: 'code-a-pet', name: 'Code-A-Pet Robot', icon: '🐾', badge: '8 EVOLUSI', category: 'coding', desc: 'Rawat dan kembangkan robot peliharaan dengan perintah koding.' },
+                    { id: 'binary-code', name: 'Detektif Kode Biner', icon: '0️⃣1️⃣', badge: '8 LEVEL', category: 'coding', desc: 'Pecahkan misteri teks rahasia dari susunan angka 0 dan 1 biner.' },
+
+                    // Hardware & Lab PC
+                    { id: 'pc-builder', name: 'Rakit PC Simulator', icon: '🖥️', badge: 'FAVORIT', category: 'hardware', desc: 'Pasang CPU, RAM, GPU, motherboard & power supply ke casing PC.' },
+                    { id: 'pc-doctor', name: 'Dokter PC Troubleshooting', icon: '🩺', badge: 'KLINIK', category: 'hardware', desc: 'Diagnosa bluescreen, kabel lepas, dan obati kerusakan hardware PC.' },
+                    { id: 'port-master', name: 'Master Colokan & Port', icon: '🔌', badge: 'SOKET', category: 'hardware', desc: 'Kenali USB-C, HDMI, DisplayPort, VGA & audio jack secara tepat.' },
+                    { id: 'lan-crimping', name: 'Crimping Kabel LAN RJ45', icon: '🌐', badge: 'T568B', category: 'hardware', desc: 'Urutkan 8 warna kabel UTP sesuai standar resmi T568B lalu crimp.' },
+                    { id: 'network-builder', name: 'Rakit Jaringan Network', icon: '📡', badge: 'WIFI LAB', category: 'hardware', desc: 'Hubungkan router, switch, access point, dan PC dalam satu subnet.' },
+                    { id: 'storage-master', name: 'Master Storage Data', icon: '💾', badge: 'GB / TB', category: 'hardware', desc: 'Pelajari hierarki ukuran Byte, KB, MB, GB, hingga Terabyte.' },
+
+                    // Keamanan Siber
+                    { id: 'cyber-shield', name: 'Cyber Shield Firewall', icon: '🛡️', badge: 'AKSI', category: 'security', desc: 'Tembak dan blokir virus malware sebelum merusak sistem keamanan.' },
+                    { id: 'detective-hoax', name: 'Detektif Hoax & Fakta', icon: '🕵️‍♂️', badge: 'BERITA', category: 'security', desc: 'Analisis berita viral untuk membedakan fakta akurat vs hoax palsu.' },
+                    { id: 'anti-phishing', name: 'Detektif Anti-Phishing', icon: '🚨', badge: 'WASPADA', category: 'security', desc: 'Kenali ciri-ciri email penipuan dan tautan web jebakan palsu.' },
+                    { id: 'cyber-safety', name: 'Edukasi Etika Siber', icon: '🔒', badge: 'AMAN', category: 'security', desc: 'Panduan menjaga privasi password dan berkomentar santun di internet.' },
+
+                    // Kreatif & Simulasi
+                    { id: 'pizza-tycoon', name: 'Excel Pizza Tycoon', icon: '🍕', badge: 'SERU', category: 'creative', desc: 'Kelola kasir kedai pizza lezat menggunakan rumus perhitungan Excel.' },
+                    { id: 'spreadsheet', name: 'Petualangan Excel Cilik', icon: '📊', badge: 'TABEL', category: 'creative', desc: 'Eksplorasi rumus SUM, AVERAGE, dan formatting tabel data.' },
+                    { id: 'mini-poster', name: 'Mini Poster Designer', icon: '🖼️', badge: 'DESAIN', category: 'creative', desc: 'Rancang poster digital bertema edukasi komputer dengan stiker keren.' },
+                    { id: 'file-explorer', name: 'Misi File Explorer', icon: '📁', badge: 'FOLDER', category: 'creative', desc: 'Atur folder, pindahkan berkas dokumen, dan jaga kerapian disk.' },
+                    { id: 'games', name: 'Kata Jatuh (Falling Words)', icon: '🔤', badge: 'ARKADE', category: 'creative', desc: 'Ketik kata-kata yang berjatuhan secepat mungkin sebelum menyentuh tanah.' },
+                  ]
+                    .filter((g) => overviewGameCategory === 'all' || g.category === overviewGameCategory)
+                    .map((game) => (
+                      <div
+                        key={game.id}
+                        onClick={() => setActiveTab(game.id as any)}
+                        className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 hover:shadow-lg transition-all duration-200 cursor-pointer flex flex-col justify-between group relative overflow-hidden"
+                      >
+                        <div className="space-y-2.5">
+                          <div className="flex items-start justify-between">
+                            <span className="text-3xl filter drop-shadow-sm group-hover:scale-110 transition-transform">
+                              {game.icon}
+                            </span>
+                            <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 group-hover:bg-indigo-100 group-hover:text-indigo-700 dark:group-hover:bg-indigo-950 dark:group-hover:text-indigo-300 transition-colors">
+                              {game.badge}
+                            </span>
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-black text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                              {game.name}
+                            </h4>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                              {game.desc}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] font-bold text-indigo-600 dark:text-indigo-400 group-hover:translate-x-0.5 transition-transform">
+                          <span>Mainkan Sekarang</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              {/* Leaderboard & Komunitas Siswa */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
+                {/* Mini Leaderboard (2 Cols) */}
+                <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+                  <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30">
+                    <h3 className="text-xs font-black text-slate-800 dark:text-white flex items-center gap-2 uppercase tracking-widest">
+                      <Trophy className="w-4 h-4 text-amber-500" />
+                      <span>Top 5 Siswa Terhebat</span>
+                    </h3>
+                    <button 
+                      type="button"
+                      onClick={() => setActiveTab('leaderboard')} 
+                      className="text-xs font-bold text-indigo-600 hover:underline cursor-pointer"
+                    >
+                      Lihat Semua Peringkat →
+                    </button>
+                  </div>
+                  <div className="p-3">
+                    <LeaderboardWidget limit={5} />
+                  </div>
+                </div>
+
+                {/* Akses Cepat Hadiah & Forum */}
+                <div className="space-y-3">
+                  <div 
                     onClick={() => setActiveTab('reward-shop')}
-                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-amber-400 transition-all group shadow-xs cursor-pointer"
+                    className="p-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-2xl shadow-sm cursor-pointer hover:scale-[1.01] transition-transform flex items-center justify-between"
                   >
-                    <Gift className="w-6 h-6 text-amber-500 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Toko Hadiah</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('port-master')}
-                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-blue-400 transition-all group shadow-xs cursor-pointer"
-                  >
-                    <Cable className="w-6 h-6 text-blue-500 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Master Colokan</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('binary-code')}
-                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-emerald-400 transition-all group shadow-xs cursor-pointer"
-                  >
-                    <Binary className="w-6 h-6 text-emerald-500 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Kode Biner</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('anti-phishing')}
-                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-rose-400 transition-all group shadow-xs cursor-pointer"
-                  >
-                    <ShieldAlert className="w-6 h-6 text-rose-500 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Anti-Phishing</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('grid-robot')}
-                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-cyan-400 transition-all group shadow-xs cursor-pointer"
-                  >
-                    <Bot className="w-6 h-6 text-cyan-500 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Grid Robot</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('tech-glossary')}
-                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-sky-400 transition-all group shadow-xs cursor-pointer"
-                  >
-                    <BookA className="w-6 h-6 text-sky-500 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Kamus A-Z</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('pc-builder')}
-                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-cyan-400 transition-all group shadow-xs cursor-pointer"
-                  >
-                    <Cpu className="w-6 h-6 text-cyan-500 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Rakit PC</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('pc-doctor')}
-                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-rose-400 transition-all group shadow-xs cursor-pointer"
-                  >
-                    <Stethoscope className="w-6 h-6 text-rose-500 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Dokter PC</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('pizza-tycoon')}
-                    className="flex flex-col items-center justify-center p-3 bg-gradient-to-b from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/20 border-2 border-amber-300 dark:border-amber-700 rounded-xl hover:border-amber-500 transition-all group shadow-xs cursor-pointer relative"
-                  >
-                    <div className="absolute -top-2 bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-tighter">
-                      Baru!
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                        <Gift className="w-5 h-5 text-emerald-100" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black">Toko Hadiah Sekolah</h4>
+                        <p className="text-[10px] text-emerald-100 mt-0.5">Tukar bintang dengan hadiah fisik!</p>
+                      </div>
                     </div>
-                    <span className="text-2xl mb-1 group-hover:scale-125 transition-transform">🍕</span>
-                    <span className="text-[10px] font-black text-amber-900 dark:text-amber-200 text-center">Pizza Tycoon</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('code-a-pet')}
-                    className="flex flex-col items-center justify-center p-3 bg-gradient-to-b from-pink-50 to-purple-50 dark:from-pink-950/40 dark:to-purple-950/20 border-2 border-pink-300 dark:border-pink-700 rounded-xl hover:border-pink-500 transition-all group shadow-xs cursor-pointer relative"
-                  >
-                    <div className="absolute -top-2 bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-tighter">
-                      Baru!
-                    </div>
-                    <span className="text-2xl mb-1 group-hover:scale-125 transition-transform">🐾</span>
-                    <span className="text-[10px] font-black text-pink-900 dark:text-pink-200 text-center">Code-A-Pet</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('detective-hoax')}
-                    className="flex flex-col items-center justify-center p-3 bg-gradient-to-b from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/20 border-2 border-blue-300 dark:border-blue-700 rounded-xl hover:border-blue-500 transition-all group shadow-xs cursor-pointer relative"
-                  >
-                    <div className="absolute -top-2 bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-tighter">
-                      Baru!
-                    </div>
-                    <span className="text-2xl mb-1 group-hover:scale-125 transition-transform">🕵️‍♂️</span>
-                    <span className="text-[10px] font-black text-blue-900 dark:text-blue-200 text-center">Detektif Hoax</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('typing-hero')}
-                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-amber-400 transition-all group shadow-xs cursor-pointer"
-                  >
-                    <Sword className="w-6 h-6 text-amber-500 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Typing RPG</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('spreadsheet')}
-                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-emerald-400 transition-all group shadow-xs cursor-pointer"
-                  >
-                    <FileSpreadsheet className="w-6 h-6 text-emerald-500 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Excel Cilik</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('coding-lab')}
-                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-indigo-400 transition-all group shadow-xs cursor-pointer"
-                  >
-                    <Code2 className="w-6 h-6 text-indigo-500 mb-2 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 text-center">Lab Koding</span>
-                  </button>
-                </div>
-              </div>
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
 
-              {/* Leaderboard Small View */}
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
-                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30">
-                  <h3 className="text-xs font-black text-slate-800 dark:text-white flex items-center gap-2 uppercase tracking-widest">
-                    <Trophy className="w-4 h-4 text-amber-500" />
-                    Peringkat Siswa Bintang
-                  </h3>
-                  <button onClick={() => setActiveTab('leaderboard')} className="text-[10px] font-bold text-indigo-600 hover:underline uppercase tracking-widest cursor-pointer">Lihat Semua →</button>
-                </div>
-                <div className="p-2">
-                  <LeaderboardWidget limit={5} />
+                  <div 
+                    onClick={() => setActiveTab('star-shop')}
+                    className="p-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl shadow-sm cursor-pointer hover:scale-[1.01] transition-transform flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                        <Sparkles className="w-5 h-5 text-purple-200" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black">Toko Avatar & Kostum</h4>
+                        <p className="text-[10px] text-purple-100 mt-0.5">Beli bingkai bercahaya & gelar profil!</p>
+                      </div>
+                    </div>
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
+
+                  <div 
+                    onClick={() => setActiveTab('forum')}
+                    className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs cursor-pointer hover:border-indigo-400 transition-colors flex items-center justify-between group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 flex items-center justify-center">
+                        <MessageSquare className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black text-slate-800 dark:text-white group-hover:text-indigo-600 transition-colors">Forum Diskusi Siswa</h4>
+                        <p className="text-[10px] text-slate-400 mt-0.5">Tanya jawab koding & tips belajar</p>
+                      </div>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-600" />
+                  </div>
                 </div>
               </div>
         </div>

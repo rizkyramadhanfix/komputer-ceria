@@ -95,8 +95,157 @@ const LEVELS: LevelConfig[] = [
       { r: 5, c: 3 }, { r: 3, c: 3 }, { r: 1, c: 3 },
       { r: 5, c: 5 }, { r: 3, c: 5 }, { r: 1, c: 5 }
     ],
-    instructions: 'Level paling sulit! Kombinasikan "Maju", "Belok", dan "Ulangi 3x" untuk melewati labirin zig-zag ini.',
+    instructions: 'Kombinasikan "Maju", "Belok", dan "Ulangi 3x" untuk melewati labirin zig-zag ini.',
     maxBlocks: 15,
+  },
+  {
+    id: 6,
+    title: 'Level 6: Pola Tangga Berulang (Staircase Loop)',
+    gridSize: { rows: 6, cols: 6 },
+    start: { r: 5, c: 0, dir: 'UP' },
+    goal: { r: 1, c: 5 },
+    stars: [{ r: 4, c: 0 }, { r: 3, c: 2 }, { r: 2, c: 4 }],
+    walls: [{ r: 4, c: 1 }, { r: 5, c: 2 }, { r: 2, c: 3 }, { r: 3, c: 4 }],
+    instructions: 'Navigasikan robot melewati rute tangga zig-zag. Rencanakan belokan dan langkah dengan efisien!',
+    maxBlocks: 14,
+  },
+  {
+    id: 7,
+    title: 'Level 7: Pulau Kristal & Koridor Ganda',
+    gridSize: { rows: 7, cols: 7 },
+    start: { r: 6, c: 1, dir: 'UP' },
+    goal: { r: 0, c: 5 },
+    stars: [{ r: 5, c: 1 }, { r: 3, c: 1 }, { r: 3, c: 5 }, { r: 1, c: 5 }],
+    walls: [
+      { r: 4, c: 2 }, { r: 4, c: 3 }, { r: 4, c: 4 },
+      { r: 2, c: 2 }, { r: 2, c: 3 }, { r: 2, c: 4 },
+      { r: 3, c: 0 }, { r: 3, c: 6 }
+    ],
+    instructions: 'Gunakan blok perulangan dan belokan untuk melewati jembatan tengah dan mengumpulkan kristal energi!',
+    maxBlocks: 16,
+  },
+  {
+    id: 8,
+    title: 'Level 8: Putaran Balik Labirin (U-Turn Maneuver)',
+    gridSize: { rows: 7, cols: 7 },
+    start: { r: 6, c: 0, dir: 'UP' },
+    goal: { r: 6, c: 6 },
+    stars: [{ r: 1, c: 0 }, { r: 0, c: 3 }, { r: 1, c: 6 }],
+    walls: [
+      { r: 5, c: 2 }, { r: 4, c: 2 }, { r: 3, c: 2 }, { r: 2, c: 2 },
+      { r: 5, c: 4 }, { r: 4, c: 4 }, { r: 3, c: 4 }, { r: 2, c: 4 },
+      { r: 6, c: 3 }
+    ],
+    instructions: 'Robot harus memutar balik di ujung atas labirin berbentuk huruf U untuk mencapai portal di seberang.',
+    maxBlocks: 18,
+  },
+  {
+    id: 9,
+    title: 'Level 9: Benteng Gerbang Ganda Cyber',
+    gridSize: { rows: 7, cols: 7 },
+    start: { r: 6, c: 3, dir: 'UP' },
+    goal: { r: 0, c: 3 },
+    stars: [{ r: 4, c: 1 }, { r: 2, c: 1 }, { r: 2, c: 5 }, { r: 4, c: 5 }],
+    walls: [
+      { r: 5, c: 3 }, { r: 3, c: 3 }, { r: 1, c: 3 },
+      { r: 3, c: 2 }, { r: 3, c: 4 }
+    ],
+    instructions: 'Jalan lurus terhalang benteng! Buat algoritma memutar ke koridor sayap kiri atau kanan untuk meraih bintang.',
+    maxBlocks: 18,
+  },
+  {
+    id: 10,
+    title: 'Level 10: Tantangan Grandmaster Labirin Koding',
+    gridSize: { rows: 8, cols: 8 },
+    start: { r: 7, c: 0, dir: 'UP' },
+    goal: { r: 0, c: 7 },
+    stars: [{ r: 5, c: 0 }, { r: 5, c: 3 }, { r: 2, c: 3 }, { r: 2, c: 7 }, { r: 0, c: 4 }],
+    walls: [
+      { r: 6, c: 1 }, { r: 4, c: 1 }, { r: 3, c: 1 },
+      { r: 6, c: 5 }, { r: 4, c: 5 }, { r: 3, c: 5 },
+      { r: 1, c: 2 }, { r: 1, c: 4 }, { r: 1, c: 6 },
+      { r: 7, c: 3 }, { r: 4, c: 3 }
+    ],
+    instructions: 'Tantangan puncak! Rancang algoritma master dengan kombinasi loop dan belokan akurat untuk menuntaskan seluruh labirin!',
+    maxBlocks: 20,
+  },
+  {
+    id: 11,
+    title: 'Level 11: Gerbang Berantai & Koridor Labirin',
+    gridSize: { rows: 8, cols: 8 },
+    start: { r: 7, c: 1, dir: 'UP' },
+    goal: { r: 0, c: 6 },
+    stars: [{ r: 5, c: 1 }, { r: 5, c: 4 }, { r: 3, c: 4 }, { r: 3, c: 6 }, { r: 1, c: 6 }],
+    walls: [
+      { r: 6, c: 2 }, { r: 5, c: 2 }, { r: 4, c: 2 },
+      { r: 4, c: 5 }, { r: 3, c: 5 }, { r: 2, c: 5 },
+      { r: 2, c: 3 }, { r: 1, c: 3 }, { r: 0, c: 3 }
+    ],
+    instructions: 'Navigasikan robot melewati gerbang berantai dengan mengombinasikan blok loop dan belokan presisi!',
+    maxBlocks: 22,
+  },
+  {
+    id: 12,
+    title: 'Level 12: Manuver Segitiga & Kepulauan Berlian',
+    gridSize: { rows: 8, cols: 8 },
+    start: { r: 7, c: 7, dir: 'LEFT' },
+    goal: { r: 0, c: 0 },
+    stars: [{ r: 7, c: 4 }, { r: 4, c: 4 }, { r: 4, c: 1 }, { r: 1, c: 1 }],
+    walls: [
+      { r: 6, c: 6 }, { r: 6, c: 5 }, { r: 5, c: 3 }, { r: 5, c: 2 },
+      { r: 3, c: 5 }, { r: 3, c: 4 }, { r: 2, c: 2 }, { r: 2, c: 1 },
+      { r: 7, c: 1 }, { r: 0, c: 6 }
+    ],
+    instructions: 'Hindari rintangan berliku berbentuk kepulauan berlian! Gunakan algoritma efisien menuju portal pojok atas.',
+    maxBlocks: 22,
+  },
+  {
+    id: 13,
+    title: 'Level 13: Labirin Spiral Ganda (Double Helix)',
+    gridSize: { rows: 8, cols: 8 },
+    start: { r: 7, c: 0, dir: 'UP' },
+    goal: { r: 4, c: 3 },
+    stars: [{ r: 1, c: 0 }, { r: 0, c: 6 }, { r: 6, c: 7 }, { r: 2, c: 2 }],
+    walls: [
+      { r: 6, c: 1 }, { r: 5, c: 1 }, { r: 4, c: 1 }, { r: 3, c: 1 }, { r: 2, c: 1 },
+      { r: 1, c: 2 }, { r: 1, c: 3 }, { r: 1, c: 4 }, { r: 1, c: 5 },
+      { r: 5, c: 6 }, { r: 4, c: 6 }, { r: 3, c: 6 }, { r: 2, c: 6 },
+      { r: 5, c: 2 }, { r: 5, c: 3 }, { r: 5, c: 4 }, { r: 5, c: 5 },
+      { r: 3, c: 3 }
+    ],
+    instructions: 'Lintasi spiral konsentris menuju pusat inti CPU! Jangan sampai salah sudut belokan di koridor sempit.',
+    maxBlocks: 24,
+  },
+  {
+    id: 14,
+    title: 'Level 14: Lintasan Matriks Super Quantum',
+    gridSize: { rows: 8, cols: 8 },
+    start: { r: 7, c: 3, dir: 'UP' },
+    goal: { r: 0, c: 4 },
+    stars: [{ r: 6, c: 1 }, { r: 4, c: 1 }, { r: 4, c: 6 }, { r: 2, c: 6 }, { r: 1, c: 2 }],
+    walls: [
+      { r: 6, c: 2 }, { r: 6, c: 4 }, { r: 5, c: 3 },
+      { r: 3, c: 2 }, { r: 3, c: 3 }, { r: 3, c: 4 }, { r: 3, c: 5 },
+      { r: 1, c: 1 }, { r: 1, c: 3 }, { r: 1, c: 5 }, { r: 0, c: 2 }
+    ],
+    instructions: 'Rancang algoritma bercabang melintasi gerbang logika quantum dan raih semua bintang energi!',
+    maxBlocks: 24,
+  },
+  {
+    id: 15,
+    title: 'Level 15: Puncak Algoritma Infinity Cyber',
+    gridSize: { rows: 8, cols: 8 },
+    start: { r: 7, c: 0, dir: 'UP' },
+    goal: { r: 0, c: 7 },
+    stars: [{ r: 4, c: 0 }, { r: 4, c: 3 }, { r: 7, c: 5 }, { r: 2, c: 5 }, { r: 0, c: 2 }, { r: 0, c: 5 }],
+    walls: [
+      { r: 6, c: 1 }, { r: 5, c: 1 }, { r: 3, c: 1 }, { r: 2, c: 1 },
+      { r: 5, c: 4 }, { r: 4, c: 4 }, { r: 3, c: 4 },
+      { r: 6, c: 6 }, { r: 5, c: 6 }, { r: 3, c: 6 }, { r: 1, c: 6 },
+      { r: 1, c: 3 }, { r: 0, c: 3 }
+    ],
+    instructions: 'Tantangan Mahkota Algoritma! Susun blok kode terbaik untuk menyelesaikan labirin terumit dengan bintang maksimal!',
+    maxBlocks: 26,
   },
 ];
 
@@ -341,10 +490,14 @@ export const BlocklyMazePlayground: React.FC = () => {
                 const starIdx = currentLevel.stars.findIndex((s) => s.r === r && s.c === c);
                 const hasStar = starIdx !== -1 && !collectedStars.includes(starIdx);
 
+                const cellSizeClass = currentLevel.gridSize.cols >= 7
+                  ? 'w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 text-xs'
+                  : 'w-11 h-11 sm:w-14 sm:h-14 text-sm';
+
                 return (
                   <div
                     key={`${r}-${c}`}
-                    className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center relative transition-all border ${
+                    className={`${cellSizeClass} rounded-xl flex items-center justify-center relative transition-all border ${
                       isWall
                         ? 'bg-slate-800 border-slate-700 text-slate-500 shadow-inner'
                         : isGoal
@@ -355,8 +508,8 @@ export const BlocklyMazePlayground: React.FC = () => {
                     {/* Goal Portal Flag */}
                     {isGoal && !isRobot && (
                       <div className="text-center animate-bounce">
-                        <Flag className="w-6 h-6 text-emerald-400 mx-auto fill-emerald-400" />
-                        <span className="text-[8px] font-mono text-emerald-300 font-bold block">
+                        <Flag className="w-4 h-4 sm:w-6 sm:h-6 text-emerald-400 mx-auto fill-emerald-400" />
+                        <span className="text-[7px] sm:text-[8px] font-mono text-emerald-300 font-bold block">
                           GOAL
                         </span>
                       </div>
@@ -364,7 +517,7 @@ export const BlocklyMazePlayground: React.FC = () => {
 
                     {/* Star Pickup */}
                     {hasStar && !isRobot && (
-                      <Star className="w-5 h-5 text-amber-400 fill-amber-400 animate-pulse" />
+                      <Star className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 fill-amber-400 animate-pulse" />
                     )}
 
                     {/* Wall Barrier */}
@@ -375,7 +528,7 @@ export const BlocklyMazePlayground: React.FC = () => {
                     {/* Robot Avatar */}
                     {isRobot && (
                       <div
-                        className={`w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/40 z-10 transition-transform duration-300 ${
+                        className={`w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/40 z-10 transition-transform duration-300 ${
                           robotPos.dir === 'UP'
                             ? 'rotate-0'
                             : robotPos.dir === 'RIGHT'
@@ -385,7 +538,7 @@ export const BlocklyMazePlayground: React.FC = () => {
                             : '-rotate-90'
                         }`}
                       >
-                        <Bot className="w-6 h-6" />
+                        <Bot className="w-4 h-4 sm:w-6 sm:h-6" />
                       </div>
                     )}
                   </div>
@@ -628,7 +781,7 @@ export const BlocklyMazePlayground: React.FC = () => {
                 🏆 Master Koding Labirin Tamat!
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
-                Selamat! Kamu telah menuntaskan seluruh 5 level tantangan algoritma, perulangan (loop), dan logika robot sekuensial!
+                Selamat! Kamu telah menuntaskan seluruh {LEVELS.length} level tantangan algoritma, perulangan (loop), dan logika robot sekuensial!
               </p>
             </div>
 

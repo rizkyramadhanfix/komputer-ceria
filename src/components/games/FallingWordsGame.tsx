@@ -163,6 +163,12 @@ export const FallingWordsGame: React.FC = () => {
 
   // Handle typing input
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Prevent pasting multi-character string
+    if (e.target.value.length - inputValue.length > 1) {
+      if (inputRef.current) inputRef.current.value = inputValue;
+      return;
+    }
+
     const val = e.target.value.toLowerCase().trim();
     setInputValue(e.target.value);
 
@@ -346,6 +352,14 @@ export const FallingWordsGame: React.FC = () => {
             disabled={gameState !== 'playing'}
             value={inputValue}
             onChange={handleInputChange}
+            onPaste={(e) => e.preventDefault()}
+            onDrop={(e) => e.preventDefault()}
+            onContextMenu={(e) => e.preventDefault()}
+            onKeyDown={(e) => {
+              if ((e.ctrlKey || e.metaKey) && ['v', 'V'].includes(e.key)) {
+                e.preventDefault();
+              }
+            }}
             placeholder={
               gameState === 'playing'
                 ? 'Ketik kata yang jatuh di sini lalu tekan Spasi/cocokkan...'

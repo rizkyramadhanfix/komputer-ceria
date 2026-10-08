@@ -18,6 +18,9 @@ import {
   Flame,
   ArrowLeft,
   Share2,
+  ShieldAlert,
+  ShieldCheck,
+  Lock,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -37,7 +40,7 @@ interface TypingLeagueGameProps {
 
 export const TypingLeagueGame: React.FC<TypingLeagueGameProps> = ({ onBackToMenu }) => {
   const { currentUser, refreshUser } = useAuth();
-  const { showSuccess, showInfo, showStarReward } = useToast();
+  const { showSuccess, showInfo, showWarning, showStarReward } = useToast();
 
   // Navigation views: 'select-text' | 'racing' | 'game-over' | 'leaderboard'
   const [view, setView] = useState<'select-text' | 'racing' | 'game-over' | 'leaderboard'>('select-text');
@@ -59,6 +62,25 @@ export const TypingLeagueGame: React.FC<TypingLeagueGameProps> = ({ onBackToMenu
   const [maxCombo, setMaxCombo] = useState(0);
   const [errorsCount, setErrorsCount] = useState(0);
   const [showKeyboardGuide, setShowKeyboardGuide] = useState(true);
+
+  // Anti-Cheat / Anti Copy-Paste State
+  const [cheatWarning, setCheatWarning] = useState<string | null>(null);
+  const [isInputShaking, setIsInputShaking] = useState(false);
+  const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const triggerAntiCheatWarning = (msg: string) => {
+    setCheatWarning(msg);
+    setIsInputShaking(true);
+    showWarning(msg, 'Anti Copy-Paste Liga');
+
+    if (warningTimeoutRef.current) {
+      clearTimeout(warningTimeoutRef.current);
+    }
+    warningTimeoutRef.current = setTimeout(() => {
+      setCheatWarning(null);
+      setIsInputShaking(false);
+    }, 3500);
+  };
 
   // Result State
   const [finalScore, setFinalScore] = useState<TypingLeagueScore | null>(null);
@@ -138,7 +160,6 @@ export const TypingLeagueGame: React.FC<TypingLeagueGameProps> = ({ onBackToMenu
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          finishGame();
           return 0;
         }
         return prev - 1;
@@ -146,6 +167,12 @@ export const TypingLeagueGame: React.FC<TypingLeagueGameProps> = ({ onBackToMenu
     }, 1000);
 
     return () => clearInterval(timer);
+  }, [isStarted, timeLeft]);
+
+  useEffect(() => {
+    if (isStarted && timeLeft === 0) {
+      finishGame();
+    }
   }, [isStarted, timeLeft]);
 
   // Calculate live stats
@@ -182,12 +209,24 @@ export const TypingLeagueGame: React.FC<TypingLeagueGameProps> = ({ onBackToMenu
     if (!isStarted || !selectedText) return;
     const val = e.target.value;
     const targetContent = selectedText.content;
+    const prevLen = typedInput.length;
+    const addedChars = val.length - prevLen;
+
+    // ANTI-CHEAT: Reject any multi-character paste or automated batch insertion
+    if (addedChars > 1) {
+      triggerAntiCheatWarning(
+        'Terdeteksi penempelan (paste) teks! Di Liga Mengetik, Anda harus mengetik manual satu per satu huruf dengan keyboard ⌨️'
+      );
+      if (inputRef.current) {
+        inputRef.current.value = typedInput;
+      }
+      return;
+    }
 
     // Do not allow typing beyond target length
     if (val.length > targetContent.length) return;
 
     // Check last typed character for streak/combo
-    const prevLen = typedInput.length;
     if (val.length > prevLen) {
       const lastChar = val[val.length - 1];
       const expectedChar = targetContent[val.length - 1];
@@ -292,6 +331,21 @@ export const TypingLeagueGame: React.FC<TypingLeagueGameProps> = ({ onBackToMenu
     return (
       <div
         ref={textContainerRef}
+        onCopy={(e) => {
+          e.preventDefault();
+          triggerAntiCheatWarning('Teks naskah Liga Mengetik dilindungi dan tidak dapat disalin (Copy)!');
+        }}
+        onCut={(e) => {
+          e.preventDefault();
+        }}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          triggerAntiCheatWarning('Klik kanan pada teks naskah dinonaktifkan.');
+        }}
+        onDragStart={(e) => {
+          e.preventDefault();
+        }}
+        style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
         className="text-base sm:text-xl font-mono leading-relaxed p-6 bg-slate-900 text-slate-400 rounded-2xl border-2 border-slate-800 shadow-inner select-none max-h-64 overflow-y-auto custom-scrollbar"
       >
         {targetContent.split('').map((char, idx) => {
@@ -442,7 +496,15 @@ export const TypingLeagueGame: React.FC<TypingLeagueGameProps> = ({ onBackToMenu
                       <h3 className="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                         {textItem.title}
                       </h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-1 italic">
+                      <p
+                        onCopy={(e) => {
+                          e.preventDefault();
+                          triggerAntiCheatWarning('Naskah Liga Mengetik dilindungi dan tidak dapat disalin (Copy)!');
+                        }}
+                        onContextMenu={(e) => e.preventDefault()}
+                        style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+                        className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-1 italic select-none"
+                      >
                         "{textItem.content}"
                       </p>
                     </div>
@@ -533,7 +595,16 @@ export const TypingLeagueGame: React.FC<TypingLeagueGameProps> = ({ onBackToMenu
             </div>
 
             {/* Live Metrics */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 flex-wrap justify-end">
+              {/* Anti Copy-Paste Indicator */}
+              <div
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 text-emerald-700 dark:text-emerald-300 rounded-xl font-mono text-xs font-bold shadow-2xs"
+                title="Sistem Proteksi: Fitur Anti Copy-Paste Aktif untuk menjaga kejujuran dan sportivitas perlombaan."
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Anti-Paste Aktif</span>
+              </div>
+
               {/* Timer */}
               <div className="flex items-center gap-2 px-3.5 py-1.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 rounded-xl font-mono text-xs font-bold">
                 <Clock className="w-4 h-4 text-rose-500 animate-pulse" />
@@ -588,20 +659,91 @@ export const TypingLeagueGame: React.FC<TypingLeagueGameProps> = ({ onBackToMenu
               {/* Text Area */}
               {renderTextDisplay()}
 
-              {/* Invisible Typing Input Focus */}
+              {/* Anti-Cheat Alert Banner */}
+              {cheatWarning && (
+                <div className="p-3 bg-rose-50 dark:bg-rose-950/80 border-2 border-rose-400 dark:border-rose-700 text-rose-800 dark:text-rose-200 rounded-2xl text-xs font-bold flex items-center gap-2.5 shadow-md animate-in slide-in-from-top-2">
+                  <ShieldAlert className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 animate-bounce" />
+                  <span className="flex-1">{cheatWarning}</span>
+                  <button
+                    type="button"
+                    onClick={() => setCheatWarning(null)}
+                    className="text-rose-500 hover:text-rose-700 text-xs font-extrabold px-1 cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
+              {/* Protected Typing Input Focus */}
               <div className="relative">
                 <input
                   ref={inputRef}
                   type="text"
                   value={typedInput}
                   onChange={handleInputChange}
+                  onPaste={(e) => {
+                    e.preventDefault();
+                    triggerAntiCheatWarning('Fitur Paste dinonaktifkan! Ketik manual tombol per tombol dengan jemari Anda ⌨️');
+                  }}
+                  onCopy={(e) => {
+                    e.preventDefault();
+                    triggerAntiCheatWarning('Teks di kolom ketik tidak dapat disalin (Copy).');
+                  }}
+                  onCut={(e) => {
+                    e.preventDefault();
+                    triggerAntiCheatWarning('Teks di kolom ketik tidak dapat dipotong (Cut).');
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    triggerAntiCheatWarning('Dilarang menarik/menjatuhkan teks ke dalam kotak ketik!');
+                  }}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    triggerAntiCheatWarning('Menu klik kanan dinonaktifkan untuk mencegah penempelan (paste) teks.');
+                  }}
+                  onKeyDown={(e) => {
+                    const isCtrlOrMeta = e.ctrlKey || e.metaKey;
+                    if (isCtrlOrMeta && (e.key === 'v' || e.key === 'V')) {
+                      e.preventDefault();
+                      triggerAntiCheatWarning('Kombinasi tombol Paste (Ctrl+V / Cmd+V) dinonaktifkan di Liga Mengetik!');
+                      return;
+                    }
+                    if (isCtrlOrMeta && (e.key === 'c' || e.key === 'C')) {
+                      e.preventDefault();
+                      triggerAntiCheatWarning('Kombinasi tombol Copy dinonaktifkan di Liga Mengetik!');
+                      return;
+                    }
+                    if (isCtrlOrMeta && (e.key === 'x' || e.key === 'X')) {
+                      e.preventDefault();
+                      triggerAntiCheatWarning('Kombinasi tombol Cut dinonaktifkan di Liga Mengetik!');
+                      return;
+                    }
+                    if (e.shiftKey && e.key === 'Insert') {
+                      e.preventDefault();
+                      triggerAntiCheatWarning('Shortcut Paste (Shift+Insert) dinonaktifkan!');
+                      return;
+                    }
+                    if (isCtrlOrMeta && e.key === 'Insert') {
+                      e.preventDefault();
+                      triggerAntiCheatWarning('Shortcut Copy dinonaktifkan!');
+                      return;
+                    }
+                  }}
                   autoFocus
                   spellCheck={false}
                   autoComplete="off"
                   autoCapitalize="off"
-                  placeholder="Ketik kalimat di atas di sini secepat dan seakurat mungkin..."
-                  className="w-full p-4 text-sm sm:text-base font-mono bg-white dark:bg-slate-900 border-2 border-indigo-500/70 focus:border-indigo-600 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 shadow-lg outline-none ring-4 ring-indigo-500/10"
+                  placeholder="Ketik kalimat di atas di sini secepat dan seakurat mungkin (Paste dinonaktifkan)..."
+                  className={`w-full p-4 pr-28 text-sm sm:text-base font-mono bg-white dark:bg-slate-900 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 shadow-lg outline-none transition-all ${
+                    isInputShaking
+                      ? 'border-2 border-rose-500 ring-4 ring-rose-500/30'
+                      : 'border-2 border-indigo-500/70 focus:border-indigo-600 ring-4 ring-indigo-500/10'
+                  }`}
                 />
+                <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none flex items-center gap-1 text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
+                  <Lock className="w-3 h-3 text-emerald-500" />
+                  <span>No Paste</span>
+                </div>
               </div>
 
               {/* 10-Finger Hand Placement Tips Guide */}

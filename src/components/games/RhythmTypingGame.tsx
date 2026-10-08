@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Music,
   Play,
@@ -61,6 +61,8 @@ export const RhythmTypingGame: React.FC = () => {
   const nextNoteId = useRef(1);
   const animFrameRef = useRef<number | null>(null);
   const spawnTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const scoreRef = useRef(0);
+  scoreRef.current = score;
 
   const playTone = (freq: number) => {
     if (!soundEnabled || typeof window === 'undefined' || !window.AudioContext) return;
@@ -84,6 +86,7 @@ export const RhythmTypingGame: React.FC = () => {
   const startGame = () => {
     setGameState('playing');
     setScore(0);
+    scoreRef.current = 0;
     setCombo(0);
     setMaxCombo(0);
     setPerfectCount(0);
@@ -183,7 +186,7 @@ export const RhythmTypingGame: React.FC = () => {
     const countdownTimer = setInterval(() => {
       setTimeLeft((t) => {
         if (t <= 1) {
-          endGame();
+          clearInterval(countdownTimer);
           return 0;
         }
         return t - 1;
@@ -237,10 +240,11 @@ export const RhythmTypingGame: React.FC = () => {
     };
   }, [gameState]);
 
-  const endGame = () => {
+  const endGame = useCallback(() => {
     setGameState('ended');
     if (currentUser) {
-      const earned = Math.min(60, Math.floor(score / 50) + 20);
+      const currentFinalScore = scoreRef.current;
+      const earned = Math.min(60, Math.floor(currentFinalScore / 50) + 20);
       const ratio = getGamificationConfig().pointsToStarRatio || 10;
       const updatedTotal = (currentUser.totalPoints || 0) + earned;
       updateUser(currentUser.id, {
@@ -250,7 +254,14 @@ export const RhythmTypingGame: React.FC = () => {
       refreshUser();
       showSuccess(`Permainan Selesai! Anda mendapatkan +${earned} Poin prestasi!`);
     }
-  };
+  }, [currentUser, refreshUser, showSuccess]);
+
+  // Trigger endGame safely outside render when timeLeft reaches 0
+  useEffect(() => {
+    if (gameState === 'playing' && timeLeft === 0) {
+      endGame();
+    }
+  }, [gameState, timeLeft, endGame]);
 
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-6 text-white max-w-3xl mx-auto">

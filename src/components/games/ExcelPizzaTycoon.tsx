@@ -442,14 +442,25 @@ export const ExcelPizzaTycoon: React.FC = () => {
                   type="text"
                   value={userFormula}
                   onChange={(e) => {
+                    // Prevent multi-character paste insertion
+                    if (e.target.value.length - userFormula.length > 2) {
+                      return;
+                    }
                     setUserFormula(e.target.value);
                   }}
+                  onPaste={(e) => e.preventDefault()}
+                  onDrop={(e) => e.preventDefault()}
+                  onContextMenu={(e) => e.preventDefault()}
                   onKeyDown={(e) => {
+                    if ((e.ctrlKey || e.metaKey) && ['v', 'V'].includes(e.key)) {
+                      e.preventDefault();
+                      return;
+                    }
                     if (e.key === 'Enter') {
                       handleEvaluate();
                     }
                   }}
-                  placeholder="Ketik rumus misal: =B2*C2"
+                  placeholder="Ketik rumus manual, misal: =B2*C2 (No Paste)"
                   className="flex-1 font-mono text-sm px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-slate-900 dark:text-white"
                 />
                 <button

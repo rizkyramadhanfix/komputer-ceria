@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Bell, 
   LogOut, 
@@ -47,6 +47,11 @@ import {
   Rocket,
   Share2,
   QrCode,
+  Search,
+  Sparkles,
+  Flame,
+  HardDrive,
+  ArrowRight,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -55,6 +60,8 @@ import { getDashboardConfig } from '../../services/storageService';
 import { Avatar } from './Avatar';
 import { CloudSyncStatusButton } from './CloudSyncStatusButton';
 import { ShareAppModal } from './ShareAppModal';
+import { StudentNavigatorModal } from './StudentNavigatorModal';
+import { StudentMobileBottomNav } from './StudentMobileBottomNav';
 
 interface HeaderProps {
   currentView: string;
@@ -75,10 +82,36 @@ export const Header: React.FC<HeaderProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isNavigatorOpen, setIsNavigatorOpen] = useState(false);
   const dashboardConfig = getDashboardConfig();
+
+  // Keyboard shortcut Ctrl+K / Cmd+K to launch quick navigator
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsNavigatorOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.nav-dropdown-item')) {
+        setActiveDropdown(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleNavClick = (view: string) => {
     onNavigate(view);
+    setActiveDropdown(null);
     setMobileMenuOpen(false);
   };
 
@@ -129,11 +162,11 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={() => handleNavClick('gallery')}
                 className={`transition-all hover:text-indigo-600 dark:hover:text-indigo-400 py-1 flex items-center gap-1 cursor-pointer ${
-                  currentView === 'gallery' || currentView === 'student-gallery' ? 'text-indigo-600 dark:text-indigo-400' : ''
+                  currentView === 'gallery' || currentView === 'student-gallery' ? 'text-indigo-600 dark:text-indigo-400 font-bold' : ''
                 }`}
               >
-                <Image className="w-3.5 h-3.5" />
-                <span>Karya Siswa</span>
+                <Palette className="w-3.5 h-3.5 text-pink-500" />
+                <span>Galeri Karya</span>
               </button>
               <button
                 onClick={() => handleNavClick('leaderboard')}
@@ -167,219 +200,395 @@ export const Header: React.FC<HeaderProps> = ({
 
           {isStudent && (
             <>
-              {/* Menu Dashboard Utama */}
+              {/* 1. Dashboard Utama */}
               <button
                 onClick={() => handleNavClick('student-dashboard')}
-                className={`transition-all hover:text-indigo-600 dark:hover:text-indigo-400 py-1 flex items-center gap-1 ${
-                  currentView === 'student-dashboard' ? 'text-indigo-600 dark:text-indigo-400' : ''
+                className={`transition-all px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1.5 font-bold cursor-pointer ${
+                  currentView === 'student-dashboard'
+                    ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400'
+                    : 'text-slate-700 dark:text-slate-200'
                 }`}
               >
-                <LayoutDashboard className="w-3.5 h-3.5" />
+                <LayoutDashboard className="w-4 h-4 text-indigo-500" />
                 <span>Dashboard</span>
               </button>
 
-              {/* Menu Leaderboard */}
+              {/* 2. Galeri Karya Siswa (Mandiri & Terpisah) */}
               <button
-                onClick={() => handleNavClick('student-leaderboard')}
-                className={`transition-all hover:text-indigo-600 dark:hover:text-indigo-400 py-1 flex items-center gap-1 ${
-                  currentView === 'student-leaderboard' ? 'text-indigo-600 dark:text-indigo-400' : ''
+                onClick={() => handleNavClick('student-gallery')}
+                className={`transition-all px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1.5 font-bold cursor-pointer ${
+                  currentView === 'student-gallery' || currentView === 'gallery'
+                    ? 'bg-pink-50 dark:bg-pink-950/60 text-pink-600 dark:text-pink-400'
+                    : 'text-slate-700 dark:text-slate-200'
                 }`}
               >
-                <Trophy className="w-3.5 h-3.5 text-amber-500" />
-                <span>Leaderboard</span>
+                <Palette className="w-4 h-4 text-pink-500" />
+                <span>Galeri Karya</span>
               </button>
 
-              {/* Dropdown: Belajar & Kuis */}
-              <div className="relative group">
+              {/* 3. Belajar & Kuis (Dropdown) */}
+              <div className="relative nav-dropdown-item group">
                 <button
-                  onMouseEnter={() => setActiveDropdown('belajar')}
-                  className={`transition-all hover:text-indigo-600 dark:hover:text-indigo-400 py-1 flex items-center gap-1 cursor-pointer ${
-                    ['student-lessons', 'student-quizzes'].includes(currentView) ? 'text-indigo-600 dark:text-indigo-400' : ''
+                  type="button"
+                  onClick={() => setActiveDropdown(activeDropdown === 'belajar' ? null : 'belajar')}
+                  className={`transition-all px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1.5 font-bold cursor-pointer ${
+                    ['student-lessons', 'student-quizzes', 'student-glossary', 'student-shortcuts'].includes(currentView)
+                      ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'
+                      : 'text-slate-700 dark:text-slate-200'
                   }`}
                 >
+                  <BookOpen className="w-4 h-4 text-blue-500" />
                   <span>Materi & Kuis</span>
                   <ChevronDown className={`w-3 h-3 transition-transform ${activeDropdown === 'belajar' ? 'rotate-180' : ''}`} />
                 </button>
                 <div 
-                  onMouseLeave={() => setActiveDropdown(null)}
-                  className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all z-50"
+                  className={`absolute top-full left-0 mt-1 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-2 transition-all duration-150 z-50 space-y-1 ${
+                    activeDropdown === 'belajar'
+                      ? 'opacity-100 visible translate-y-0 pointer-events-auto'
+                      : 'opacity-0 invisible -translate-y-1 pointer-events-none'
+                  } group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto group-hover:translate-y-0`}
                 >
-                  <button onClick={() => handleNavClick('student-lessons')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
-                    <BookOpen className="w-3.5 h-3.5 text-blue-500" />
-                    <span>Daftar Materi</span>
+                  <button onClick={() => handleNavClick('student-lessons')} className="w-full text-left p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition-colors">
+                    <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950/80 text-blue-600 flex items-center justify-center shrink-0">
+                      <BookOpen className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs text-slate-800 dark:text-white">Daftar Materi Modul</div>
+                      <div className="text-[10px] text-slate-400">Teori komputer dasar & klaim poin</div>
+                    </div>
                   </button>
-                  <button onClick={() => handleNavClick('student-quizzes')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
-                    <HelpCircle className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Kuis Mandiri</span>
+                  <button onClick={() => handleNavClick('student-quizzes')} className="w-full text-left p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition-colors">
+                    <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-950/80 text-amber-600 flex items-center justify-center shrink-0">
+                      <HelpCircle className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs text-slate-800 dark:text-white">Kuis Mandiri Interaktif</div>
+                      <div className="text-[10px] text-slate-400">Raih skor & bintang pemahaman</div>
+                    </div>
+                  </button>
+                  <button onClick={() => handleNavClick('student-glossary')} className="w-full text-left p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition-colors">
+                    <div className="w-8 h-8 rounded-lg bg-sky-100 dark:bg-sky-950/80 text-sky-600 flex items-center justify-center shrink-0">
+                      <BookA className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs text-slate-800 dark:text-white">Kamus A-Z Teknologi</div>
+                      <div className="text-[10px] text-slate-400">Ensiklopedia istilah IT lengkap</div>
+                    </div>
+                  </button>
+                  <button onClick={() => handleNavClick('student-shortcuts')} className="w-full text-left p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition-colors">
+                    <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0">
+                      <Keyboard className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs text-slate-800 dark:text-white">Koleksi Shortcut Cepat</div>
+                      <div className="text-[10px] text-slate-400">Trik tombol pintas keyboard</div>
+                    </div>
                   </button>
                 </div>
               </div>
 
-              {/* Dropdown: Latihan Mengetik */}
-              <div className="relative group">
+              {/* 4. Ketik 10 Jari (Dropdown) */}
+              <div className="relative nav-dropdown-item group">
                 <button
-                  onMouseEnter={() => setActiveDropdown('mengetik')}
-                  className={`transition-all hover:text-indigo-600 dark:hover:text-indigo-400 py-1 flex items-center gap-1 cursor-pointer ${
-                    ['student-typing', 'student-typing-league', 'student-typing-hero'].includes(currentView) ? 'text-indigo-600 dark:text-indigo-400' : ''
+                  type="button"
+                  onClick={() => setActiveDropdown(activeDropdown === 'mengetik' ? null : 'mengetik')}
+                  className={`transition-all px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1.5 font-bold cursor-pointer ${
+                    ['student-typing', 'student-typing-league', 'student-typing-hero', 'student-rhythm-typing'].includes(currentView)
+                      ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400'
+                      : 'text-slate-700 dark:text-slate-200'
                   }`}
                 >
-                  <span>Latihan Mengetik</span>
+                  <Keyboard className="w-4 h-4 text-amber-500" />
+                  <span>Ketik 10 Jari</span>
+                  <span className="text-[9px] bg-amber-500 text-white px-1.5 py-0.2 rounded-full font-black">LIGA</span>
                   <ChevronDown className={`w-3 h-3 transition-transform ${activeDropdown === 'mengetik' ? 'rotate-180' : ''}`} />
                 </button>
                 <div 
-                  onMouseLeave={() => setActiveDropdown(null)}
-                  className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all z-50"
+                  className={`absolute top-full left-0 mt-1 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-2 transition-all duration-150 z-50 space-y-1 ${
+                    activeDropdown === 'mengetik'
+                      ? 'opacity-100 visible translate-y-0 pointer-events-auto'
+                      : 'opacity-0 invisible -translate-y-1 pointer-events-none'
+                  } group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto group-hover:translate-y-0`}
                 >
-                  <button onClick={() => handleNavClick('student-typing-league')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between group/item">
-                    <div className="flex items-center gap-2">
-                      <Trophy className="w-3.5 h-3.5 text-amber-500" />
-                      <span className="font-bold text-amber-600 dark:text-amber-400">Liga Mengetik 10 Jari</span>
+                  <button onClick={() => handleNavClick('student-typing-league')} className="w-full text-left p-2.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-800/40 hover:bg-amber-100/70 dark:hover:bg-amber-900/40 flex items-center justify-between transition-colors">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold shrink-0">
+                        🏆
+                      </div>
+                      <div>
+                        <div className="font-black text-xs text-amber-900 dark:text-amber-200">Liga Mengetik Cepat</div>
+                        <div className="text-[10px] text-amber-700 dark:text-amber-400">Kompetisi naskah & WPM live</div>
+                      </div>
                     </div>
-                    <span className="text-[9px] bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded font-black">BARU</span>
+                    <span className="text-[9px] bg-amber-500 text-white px-1.5 py-0.5 rounded font-black">BARU</span>
                   </button>
-                  <button onClick={() => handleNavClick('student-typing')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
-                    <Keyboard className="w-3.5 h-3.5 text-indigo-500" />
-                    <span>Mengetik MS Word</span>
+                  <button onClick={() => handleNavClick('student-typing')} className="w-full text-left p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition-colors">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 flex items-center justify-center shrink-0">
+                      <Keyboard className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs text-slate-800 dark:text-white">Mengetik Naskah Word</div>
+                      <div className="text-[10px] text-slate-400">Latihan telunjuk - kelingking</div>
+                    </div>
                   </button>
-                  <button onClick={() => handleNavClick('student-typing-hero')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
-                    <Zap className="w-3.5 h-3.5 text-orange-500" />
-                    <span>Typing Hero RPG</span>
+                  <button onClick={() => handleNavClick('student-typing-hero')} className="w-full text-left p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition-colors">
+                    <div className="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-950/80 text-orange-600 flex items-center justify-center shrink-0">
+                      <Zap className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs text-slate-800 dark:text-white">Typing Hero RPG</div>
+                      <div className="text-[10px] text-slate-400">Pertempuran ketik lawan bug</div>
+                    </div>
+                  </button>
+                  <button onClick={() => handleNavClick('student-rhythm-typing')} className="w-full text-left p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition-colors">
+                    <div className="w-8 h-8 rounded-lg bg-pink-100 dark:bg-pink-950/80 text-pink-600 flex items-center justify-center shrink-0">
+                      🎵
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs text-slate-800 dark:text-white">Rhythm Typing Beats</div>
+                      <div className="text-[10px] text-slate-400">Refleks tuts musik D, F, J, K</div>
+                    </div>
                   </button>
                 </div>
               </div>
 
-              {/* Dropdown: Arena Game */}
-              <div className="relative group">
+              {/* 5. Arena Game & Koding (Mega Menu Hub) */}
+              <div className="relative nav-dropdown-item group">
                 <button
-                  onMouseEnter={() => setActiveDropdown('game')}
-                  className={`transition-all hover:text-indigo-600 dark:hover:text-indigo-400 py-1 flex items-center gap-1 cursor-pointer ${
-                    ['student-games', 'student-pc-doctor', 'student-pixel-art', 'student-spreadsheet', 'student-pc-builder', 'student-coding-lab', 'student-file-explorer', 'student-network-builder', 'student-cyber-safety', 'student-pizza-tycoon', 'student-code-a-pet', 'student-detective-hoax'].includes(currentView) ? 'text-indigo-600 dark:text-indigo-400' : ''
+                  type="button"
+                  onClick={() => setActiveDropdown(activeDropdown === 'game' ? null : 'game')}
+                  className={`transition-all px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1.5 font-bold cursor-pointer ${
+                    ['student-coding-lab', 'student-robot-maze', 'student-grid-robot', 'student-code-a-pet', 'student-binary-code', 'student-pc-builder', 'student-pc-doctor', 'student-port-master', 'student-lan-crimping', 'student-network-builder', 'student-storage-master', 'student-cyber-shield', 'student-detective-hoax', 'student-anti-phishing', 'student-cyber-safety', 'student-pizza-tycoon', 'student-spreadsheet', 'student-mini-poster', 'student-file-explorer', 'student-games'].includes(currentView)
+                      ? 'bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400'
+                      : 'text-slate-700 dark:text-slate-200'
                   }`}
                 >
+                  <Gamepad2 className="w-4 h-4 text-purple-500" />
                   <span>Arena Game</span>
                   <ChevronDown className={`w-3 h-3 transition-transform ${activeDropdown === 'game' ? 'rotate-180' : ''}`} />
                 </button>
+
+                {/* Organized Mega Dropdown (4 Kategori) */}
                 <div 
-                  onMouseLeave={() => setActiveDropdown(null)}
-                  className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all z-50 max-h-96 overflow-y-auto"
+                  className={`absolute top-full -left-28 mt-1 w-[680px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl p-5 transition-all duration-150 z-50 space-y-4 ${
+                    activeDropdown === 'game'
+                      ? 'opacity-100 visible translate-y-0 pointer-events-auto'
+                      : 'opacity-0 invisible -translate-y-1 pointer-events-none'
+                  } group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto group-hover:translate-y-0`}
                 >
-                  <button onClick={() => handleNavClick('student-pizza-tycoon')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-amber-600 dark:text-amber-400 font-bold bg-amber-50/50 dark:bg-amber-950/30">
-                    <div className="flex items-center gap-2">
-                      <span className="text-base">🍕</span>
-                      <span>Excel Pizza Tycoon</span>
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Kategori 1: Koding & Algoritma */}
+                    <div className="space-y-1.5 bg-slate-50/70 dark:bg-slate-950/50 p-3 rounded-2xl border border-slate-100 dark:border-slate-800/80">
+                      <div className="flex items-center gap-2 pb-1.5 border-b border-slate-200/60 dark:border-slate-800 text-[11px] font-black uppercase text-emerald-600 dark:text-emerald-400">
+                        <Code2 className="w-3.5 h-3.5" />
+                        <span>Koding & Algoritma</span>
+                      </div>
+                      <div className="space-y-1">
+                        <button onClick={() => handleNavClick('student-coding-lab')} className="w-full text-left p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
+                          <span>🧩 Lab Koding Blockly</span>
+                          <span className="text-[9px] bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 px-1.5 rounded font-black">15 LVL</span>
+                        </button>
+                        <button onClick={() => handleNavClick('student-robot-maze')} className="w-full text-left p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
+                          <span>🤖 Robot Maze Runner</span>
+                          <span className="text-[9px] bg-cyan-100 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-300 px-1.5 rounded font-black">14 LVL</span>
+                        </button>
+                        <button onClick={() => handleNavClick('student-grid-robot')} className="w-full text-left p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
+                          <span>🌐 Grid Robot Rover</span>
+                          <span className="text-[9px] bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300 px-1.5 rounded font-black">16 LVL</span>
+                        </button>
+                        <button onClick={() => handleNavClick('student-code-a-pet')} className="w-full text-left p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
+                          <span>🐾 Code-A-Pet Robot</span>
+                          <span className="text-[9px] bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 px-1.5 rounded font-black">8 EVO</span>
+                        </button>
+                        <button onClick={() => handleNavClick('student-binary-code')} className="w-full text-left p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
+                          <span>0️⃣1️⃣ Detektif Kode Biner</span>
+                          <span className="text-[9px] bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 px-1.5 rounded font-black">8 LVL</span>
+                        </button>
+                      </div>
                     </div>
-                    <span className="text-[9px] bg-rose-500 text-white px-1.5 py-0.2 rounded font-black">BARU</span>
-                  </button>
-                  <button onClick={() => handleNavClick('student-code-a-pet')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-pink-600 dark:text-pink-400 font-bold bg-pink-50/50 dark:bg-pink-950/30">
-                    <div className="flex items-center gap-2">
-                      <span className="text-base">🐾</span>
-                      <span>Code-A-Pet Robot</span>
+
+                    {/* Kategori 2: Hardware & Lab PC */}
+                    <div className="space-y-1.5 bg-slate-50/70 dark:bg-slate-950/50 p-3 rounded-2xl border border-slate-100 dark:border-slate-800/80">
+                      <div className="flex items-center gap-2 pb-1.5 border-b border-slate-200/60 dark:border-slate-800 text-[11px] font-black uppercase text-amber-600 dark:text-amber-400">
+                        <Cpu className="w-3.5 h-3.5" />
+                        <span>Hardware & Lab PC</span>
+                      </div>
+                      <div className="space-y-1">
+                        <button onClick={() => handleNavClick('student-pc-builder')} className="w-full text-left p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
+                          <span>🖥️ Rakit PC Simulator</span>
+                          <span className="text-[9px] bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 px-1.5 rounded font-black">FAVORIT</span>
+                        </button>
+                        <button onClick={() => handleNavClick('student-pc-doctor')} className="w-full text-left p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
+                          <span>🩺 Dokter PC Troubleshooting</span>
+                          <span className="text-[9px] bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 px-1.5 rounded font-black">KLINIK</span>
+                        </button>
+                        <button onClick={() => handleNavClick('student-port-master')} className="w-full text-left p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
+                          <span>🔌 Master Colokan & Port</span>
+                          <span className="text-[9px] bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 px-1.5 rounded font-black">SOKET</span>
+                        </button>
+                        <button onClick={() => handleNavClick('student-lan-crimping')} className="w-full text-left p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
+                          <span>🌐 Crimping Kabel LAN RJ45</span>
+                          <span className="text-[9px] bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 px-1.5 rounded font-black">T568B</span>
+                        </button>
+                        <button onClick={() => handleNavClick('student-network-builder')} className="w-full text-left p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
+                          <span>📡 Rakit Jaringan Lab</span>
+                          <span className="text-[9px] bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 px-1.5 rounded font-black">WIFI</span>
+                        </button>
+                        <button onClick={() => handleNavClick('student-storage-master')} className="w-full text-left p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
+                          <span>💾 Master Storage Data</span>
+                          <span className="text-[9px] bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 px-1.5 rounded font-black">GB/TB</span>
+                        </button>
+                      </div>
                     </div>
-                    <span className="text-[9px] bg-rose-500 text-white px-1.5 py-0.2 rounded font-black">BARU</span>
-                  </button>
-                  <button onClick={() => handleNavClick('student-detective-hoax')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-blue-600 dark:text-blue-400 font-bold bg-blue-50/50 dark:bg-blue-950/30">
-                    <div className="flex items-center gap-2">
-                      <span className="text-base">🕵️‍♂️</span>
-                      <span>Detektif Hoax & Fakta</span>
+
+                    {/* Kategori 3: Keamanan Siber & Detektif */}
+                    <div className="space-y-1.5 bg-slate-50/70 dark:bg-slate-950/50 p-3 rounded-2xl border border-slate-100 dark:border-slate-800/80">
+                      <div className="flex items-center gap-2 pb-1.5 border-b border-slate-200/60 dark:border-slate-800 text-[11px] font-black uppercase text-rose-600 dark:text-rose-400">
+                        <Shield className="w-3.5 h-3.5" />
+                        <span>Keamanan Siber & Detektif</span>
+                      </div>
+                      <div className="space-y-1">
+                        <button onClick={() => handleNavClick('student-cyber-shield')} className="w-full text-left p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
+                          <span>🛡️ Cyber Shield Firewall</span>
+                          <span className="text-[9px] bg-cyan-100 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-300 px-1.5 rounded font-black">AKSI</span>
+                        </button>
+                        <button onClick={() => handleNavClick('student-detective-hoax')} className="w-full text-left p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
+                          <span>🕵️‍♂️ Detektif Hoax & Fakta</span>
+                          <span className="text-[9px] bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 px-1.5 rounded font-black">BERITA</span>
+                        </button>
+                        <button onClick={() => handleNavClick('student-anti-phishing')} className="w-full text-left p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
+                          <span>🚨 Detektif Anti-Phishing</span>
+                          <span className="text-[9px] bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 px-1.5 rounded font-black">WASPADA</span>
+                        </button>
+                        <button onClick={() => handleNavClick('student-cyber-safety')} className="w-full text-left p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
+                          <span>🔒 Edukasi Etika Siber</span>
+                          <span className="text-[9px] bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 px-1.5 rounded font-black">AMAN</span>
+                        </button>
+                      </div>
                     </div>
-                    <span className="text-[9px] bg-rose-500 text-white px-1.5 py-0.2 rounded font-black">BARU</span>
+
+                    {/* Kategori 4: Kreatif & Simulasi */}
+                    <div className="space-y-1.5 bg-slate-50/70 dark:bg-slate-950/50 p-3 rounded-2xl border border-slate-100 dark:border-slate-800/80">
+                      <div className="flex items-center gap-2 pb-1.5 border-b border-slate-200/60 dark:border-slate-800 text-[11px] font-black uppercase text-indigo-600 dark:text-indigo-400">
+                        <Palette className="w-3.5 h-3.5" />
+                        <span>Kreatif & Simulasi</span>
+                      </div>
+                      <div className="space-y-1">
+                        <button onClick={() => handleNavClick('student-pizza-tycoon')} className="w-full text-left p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
+                          <span>🍕 Excel Pizza Tycoon</span>
+                          <span className="text-[9px] bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 px-1.5 rounded font-black">SERU</span>
+                        </button>
+                        <button onClick={() => handleNavClick('student-spreadsheet')} className="w-full text-left p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
+                          <span>📊 Petualangan Excel Cilik</span>
+                          <span className="text-[9px] bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 px-1.5 rounded font-black">TABEL</span>
+                        </button>
+                        <button onClick={() => handleNavClick('student-mini-poster')} className="w-full text-left p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
+                          <span>🖼️ Mini Poster Designer</span>
+                          <span className="text-[9px] bg-pink-100 dark:bg-pink-950 text-pink-700 dark:text-pink-300 px-1.5 rounded font-black">DESAIN</span>
+                        </button>
+                        <button onClick={() => handleNavClick('student-file-explorer')} className="w-full text-left p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
+                          <span>📁 Misi File Explorer</span>
+                          <span className="text-[9px] bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 px-1.5 rounded font-black">FOLDER</span>
+                        </button>
+                        <button onClick={() => handleNavClick('student-games')} className="w-full text-left p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
+                          <span>🔤 Kata Jatuh (Falling Words)</span>
+                          <span className="text-[9px] bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 px-1.5 rounded font-black">ARKADE</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mega Menu Footer with Quick Search CTA */}
+                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <span className="text-[11px] text-slate-400 font-semibold">
+                      🎮 20 Game Edukasi Interaktif Komputer & Koding
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveDropdown(null);
+                        setIsNavigatorOpen(true);
+                      }}
+                      className="inline-flex items-center gap-1.5 text-xs font-extrabold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+                    >
+                      <Search className="w-3.5 h-3.5" />
+                      <span>Buka Pencarian Cepat Semua Game (Ctrl+K)</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* 6. Prestasi & Toko (Dropdown) */}
+              <div className="relative nav-dropdown-item group">
+                <button
+                  type="button"
+                  onClick={() => setActiveDropdown(activeDropdown === 'prestasi' ? null : 'prestasi')}
+                  className={`transition-all px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1.5 font-bold cursor-pointer ${
+                    ['student-leaderboard', 'student-reward-shop', 'student-star-shop', 'student-forum'].includes(currentView)
+                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400'
+                      : 'text-slate-700 dark:text-slate-200'
+                  }`}
+                >
+                  <Trophy className="w-4 h-4 text-emerald-500" />
+                  <span>Prestasi & Hadiah</span>
+                  <ChevronDown className={`w-3 h-3 transition-transform ${activeDropdown === 'prestasi' ? 'rotate-180' : ''}`} />
+                </button>
+                <div 
+                  className={`absolute top-full right-0 mt-1 w-60 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-2 transition-all duration-150 z-50 space-y-1 ${
+                    activeDropdown === 'prestasi'
+                      ? 'opacity-100 visible translate-y-0 pointer-events-auto'
+                      : 'opacity-0 invisible -translate-y-1 pointer-events-none'
+                  } group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto group-hover:translate-y-0`}
+                >
+                  <button onClick={() => handleNavClick('student-leaderboard')} className="w-full text-left p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition-colors">
+                    <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-950/80 text-amber-600 flex items-center justify-center shrink-0">
+                      <Trophy className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs text-slate-800 dark:text-white">Papan Peringkat</div>
+                      <div className="text-[10px] text-slate-400">Klasemen poin & bintang kelas</div>
+                    </div>
                   </button>
-                  <button onClick={() => handleNavClick('student-pc-doctor')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 border-t border-slate-100 dark:border-slate-800">
-                    <Stethoscope className="w-3.5 h-3.5 text-rose-500" />
-                    <span>Dokter PC (Troubleshooting)</span>
+                  <button onClick={() => handleNavClick('student-reward-shop')} className="w-full text-left p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition-colors">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 flex items-center justify-center shrink-0">
+                      <Gift className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs text-slate-800 dark:text-white">Toko Hadiah Sekolah</div>
+                      <div className="text-[10px] text-slate-400">Tukar bintang dengan hadiah fisik</div>
+                    </div>
                   </button>
-                  <button onClick={() => handleNavClick('student-pixel-art')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
-                    <Paintbrush className="w-3.5 h-3.5 text-indigo-500" />
-                    <span>Studio Pixel Art 8-Bit</span>
+                  <button onClick={() => handleNavClick('student-star-shop')} className="w-full text-left p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition-colors">
+                    <div className="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-950/80 text-purple-600 flex items-center justify-center shrink-0">
+                      <Sparkles className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs text-slate-800 dark:text-white">Toko Avatar & Bingkai</div>
+                      <div className="text-[10px] text-slate-400">Kostum profil eksklusif siswa</div>
+                    </div>
                   </button>
-                  <button onClick={() => handleNavClick('student-spreadsheet')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
-                    <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" />
-                    <span>Petualangan Excel Cilik</span>
-                  </button>
-                  <button onClick={() => handleNavClick('student-pc-builder')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 border-t border-slate-100 dark:border-slate-800">
-                    <Cpu className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Rakit PC Simulator</span>
-                  </button>
-                  <button onClick={() => handleNavClick('student-coding-lab')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
-                    <Code2 className="w-3.5 h-3.5 text-emerald-500" />
-                    <span>Lab Koding Blockly</span>
-                  </button>
-                  <button onClick={() => handleNavClick('student-file-explorer')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
-                    <Folder className="w-3.5 h-3.5 text-blue-400" />
-                    <span>Misi File Explorer</span>
-                  </button>
-                  <button onClick={() => handleNavClick('student-network-builder')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
-                    <Network className="w-3.5 h-3.5 text-indigo-400" />
-                    <span>Rakit Jaringan Network</span>
-                  </button>
-                  <button onClick={() => handleNavClick('student-cyber-safety')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
-                    <Shield className="w-3.5 h-3.5 text-rose-500" />
-                    <span>Edukasi Keamanan Siber</span>
-                  </button>
-                  <button onClick={() => handleNavClick('student-port-master')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold border-t border-slate-100 dark:border-slate-800">
-                    <Cable className="w-3.5 h-3.5 text-blue-500" />
-                    <span>Master Colokan & Port</span>
-                  </button>
-                  <button onClick={() => handleNavClick('student-binary-code')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold">
-                    <Binary className="w-3.5 h-3.5 text-emerald-500" />
-                    <span>Detektif Kode Biner</span>
-                  </button>
-                  <button onClick={() => handleNavClick('student-anti-phishing')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 text-rose-600 dark:text-rose-400 font-bold">
-                    <ShieldAlert className="w-3.5 h-3.5 text-rose-500" />
-                    <span>Detektif Anti-Phishing</span>
-                  </button>
-                  <button onClick={() => handleNavClick('student-grid-robot')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 text-cyan-600 dark:text-cyan-400 font-bold">
-                    <Bot className="w-3.5 h-3.5 text-cyan-500" />
-                    <span>Grid Robot Navigator</span>
-                  </button>
-                  <button onClick={() => handleNavClick('student-games')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
-                    <Gamepad2 className="w-3.5 h-3.5 text-indigo-500" />
-                    <span>Kata Jatuh (Falling Words)</span>
+                  <button onClick={() => handleNavClick('student-forum')} className="w-full text-left p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition-colors border-t border-slate-100 dark:border-slate-800/80">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 flex items-center justify-center shrink-0">
+                      <MessageSquare className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs text-slate-800 dark:text-white">Forum Diskusi Siswa</div>
+                      <div className="text-[10px] text-slate-400">Tanya jawab & tips belajar</div>
+                    </div>
                   </button>
                 </div>
               </div>
 
-              {/* Lainnya */}
-              <div className="relative group">
-                <button
-                  onMouseEnter={() => setActiveDropdown('lainnya')}
-                  className={`transition-all hover:text-indigo-600 dark:hover:text-indigo-400 py-1 flex items-center gap-1 cursor-pointer ${
-                    ['student-gallery', 'student-reward-shop', 'student-glossary', 'student-shortcuts', 'student-forum', 'student-star-shop'].includes(currentView) ? 'text-indigo-600 dark:text-indigo-400' : ''
-                  }`}
-                >
-                  <span>Lainnya</span>
-                  <ChevronDown className={`w-3 h-3 transition-transform ${activeDropdown === 'lainnya' ? 'rotate-180' : ''}`} />
-                </button>
-                <div 
-                  onMouseLeave={() => setActiveDropdown(null)}
-                  className="absolute top-full right-0 mt-1 w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all z-50"
-                >
-                  <button onClick={() => handleNavClick('student-gallery')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold">
-                    <Image className="w-3.5 h-3.5 text-indigo-500" />
-                    <span>Galeri Karya Siswa</span>
-                  </button>
-                  <button onClick={() => handleNavClick('student-reward-shop')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold">
-                    <Gift className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Toko Hadiah Sekolah</span>
-                  </button>
-                  <button onClick={() => handleNavClick('student-glossary')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
-                    <BookA className="w-3.5 h-3.5 text-sky-500" />
-                    <span>Kamus A-Z Teknologi</span>
-                  </button>
-                  <button onClick={() => handleNavClick('student-shortcuts')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 border-t border-slate-100 dark:border-slate-800">
-                    <Keyboard className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Koleksi Shortcut</span>
-                  </button>
-                  <button onClick={() => handleNavClick('student-forum')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
-                    <MessageSquare className="w-3.5 h-3.5 text-indigo-500" />
-                    <span>Forum Diskusi</span>
-                  </button>
-                  <button onClick={() => handleNavClick('student-star-shop')} className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
-                    <ShoppingBag className="w-3.5 h-3.5 text-pink-500" />
-                    <span>Toko Hadiah Avatar</span>
-                  </button>
-                </div>
-              </div>
+              {/* 7. Tombol Jelajah Menu & Pencarian Cepat (Ctrl+K) */}
+              <button
+                onClick={() => setIsNavigatorOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-extrabold text-xs shadow-md shadow-indigo-500/20 cursor-pointer active:scale-95 transition-all"
+                title="Buka Pusat Jelajah Menu & Pencarian (Ctrl+K)"
+              >
+                <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+                <span>Jelajah Menu 🚀</span>
+              </button>
             </>
           )}
 
@@ -630,23 +839,48 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
                 <button
                   onClick={() => handleNavClick('gallery')}
-                  className="w-full text-left py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-indigo-600 flex items-center gap-2"
+                  className="w-full text-left py-2 text-sm font-bold text-pink-600 dark:text-pink-400 hover:text-pink-700 flex items-center gap-2"
                 >
-                  <Image className="w-4 h-4" />
-                  <span>Karya Siswa</span>
+                  <Palette className="w-4 h-4 text-pink-500" />
+                  <span>Galeri Karya</span>
                 </button>
               </>
             )}
 
             {isStudent && (
               <>
+                {/* Quick Search CTA in Mobile Menu */}
                 <button
-                  onClick={() => handleNavClick('student-dashboard')}
-                  className="w-full text-left py-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-2"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setIsNavigatorOpen(true);
+                  }}
+                  className="w-full p-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white font-black text-xs shadow-md shadow-indigo-500/20 flex items-center justify-between cursor-pointer active:scale-98 transition-all"
                 >
-                  <LayoutDashboard className="w-4 h-4" />
-                  <span>Dashboard</span>
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
+                    <span>Pusat Jelajah Fitur & Game 🚀</span>
+                  </div>
+                  <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-bold">Cari →</span>
                 </button>
+
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <button
+                    onClick={() => handleNavClick('student-dashboard')}
+                    className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-left text-xs font-bold text-slate-800 dark:text-white flex items-center gap-2"
+                  >
+                    <LayoutDashboard className="w-4 h-4 text-indigo-500" />
+                    <span>Dashboard</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleNavClick('student-gallery')}
+                    className="p-2.5 rounded-xl bg-pink-50 dark:bg-pink-950/40 border border-pink-200 dark:border-pink-900/40 text-left text-xs font-black text-pink-600 dark:text-pink-400 flex items-center gap-2"
+                  >
+                    <Palette className="w-4 h-4 text-pink-500" />
+                    <span>Galeri Karya</span>
+                  </button>
+                </div>
 
                 {onOpenProfileModal && (
                   <button
@@ -654,61 +888,133 @@ export const Header: React.FC<HeaderProps> = ({
                       setMobileMenuOpen(false);
                       onOpenProfileModal();
                     }}
-                    className="w-full text-left py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:text-indigo-600 flex items-center gap-2"
+                    className="w-full text-left py-2 px-1 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-indigo-600 flex items-center gap-2"
                   >
                     <UserCheck className="w-4 h-4 text-emerald-500" />
-                    <span>Edit Profil & Foto</span>
+                    <span>Edit Profil & Foto Siswa</span>
                   </button>
                 )}
 
-                <div className="pt-2 pb-1">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-1">Materi & Kuis</p>
-                  <button onClick={() => handleNavClick('student-lessons')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Daftar Materi</button>
-                  <button onClick={() => handleNavClick('student-quizzes')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Kuis Mandiri</button>
+                {/* Section: Belajar & Kuis */}
+                <div className="pt-2 pb-1 border-t border-slate-100 dark:border-slate-800/80">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1 mb-1.5 flex items-center gap-1.5">
+                    <BookOpen className="w-3 h-3 text-blue-500" />
+                    <span>Materi & Belajar Mandiri</span>
+                  </p>
+                  <div className="grid grid-cols-2 gap-1.5 text-xs">
+                    <button onClick={() => handleNavClick('student-lessons')} className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 font-semibold text-slate-700 dark:text-slate-200">
+                      📖 Daftar Materi
+                    </button>
+                    <button onClick={() => handleNavClick('student-quizzes')} className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 font-semibold text-slate-700 dark:text-slate-200">
+                      ❓ Kuis Mandiri
+                    </button>
+                    <button onClick={() => handleNavClick('student-glossary')} className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 font-semibold text-slate-700 dark:text-slate-200">
+                      📚 Kamus A-Z IT
+                    </button>
+                    <button onClick={() => handleNavClick('student-shortcuts')} className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 font-semibold text-slate-700 dark:text-slate-200">
+                      ⌨️ Koleksi Shortcut
+                    </button>
+                  </div>
                 </div>
 
-                <div className="pt-2 pb-1">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-1">Latihan Mengetik</p>
-                  <button onClick={() => handleNavClick('student-typing-league')} className="w-full text-left py-2 px-2 text-sm font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 flex items-center justify-between">
-                    <span>Liga Mengetik 10 Jari</span>
-                    <span className="text-[9px] bg-amber-100 text-amber-800 px-1 rounded font-black">BARU</span>
+                {/* Section: Mengetik 10 Jari */}
+                <div className="pt-2 pb-1 border-t border-slate-100 dark:border-slate-800/80">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1 mb-1.5 flex items-center gap-1.5">
+                    <Keyboard className="w-3 h-3 text-amber-500" />
+                    <span>Arena Mengetik 10 Jari</span>
+                  </p>
+                  <button onClick={() => handleNavClick('student-typing-league')} className="w-full text-left p-2.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-800/40 text-xs font-black text-amber-800 dark:text-amber-300 flex items-center justify-between mb-1.5">
+                    <span className="flex items-center gap-2">
+                      <span>🏆</span>
+                      <span>Liga Mengetik Cepat 10 Jari</span>
+                    </span>
+                    <span className="text-[9px] bg-amber-500 text-white px-1.5 py-0.5 rounded font-black">BARU</span>
                   </button>
-                  <button onClick={() => handleNavClick('student-typing')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Mengetik MS Word</button>
-                  <button onClick={() => handleNavClick('student-typing-hero')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Typing Hero RPG</button>
+                  <div className="grid grid-cols-3 gap-1.5 text-xs">
+                    <button onClick={() => handleNavClick('student-typing')} className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 font-semibold text-slate-700 dark:text-slate-200">
+                      📄 Naskah Word
+                    </button>
+                    <button onClick={() => handleNavClick('student-typing-hero')} className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 font-semibold text-slate-700 dark:text-slate-200">
+                      ⚡ Hero RPG
+                    </button>
+                    <button onClick={() => handleNavClick('student-rhythm-typing')} className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 font-semibold text-slate-700 dark:text-slate-200">
+                      🎵 Rhythm Beats
+                    </button>
+                  </div>
                 </div>
 
-                <div className="pt-2 pb-1">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-1">Arena Game & Simulasi</p>
-                  <button onClick={() => handleNavClick('student-pizza-tycoon')} className="w-full text-left py-2 px-2 text-sm font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 flex items-center justify-between">
-                    <span>🍕 Excel Pizza Tycoon</span>
-                    <span className="text-[9px] bg-rose-500 text-white px-1.5 py-0.2 rounded font-black">BARU</span>
-                  </button>
-                  <button onClick={() => handleNavClick('student-code-a-pet')} className="w-full text-left py-2 px-2 text-sm font-bold text-pink-600 dark:text-pink-400 hover:text-pink-700 flex items-center justify-between">
-                    <span>🐾 Code-A-Pet Robot</span>
-                    <span className="text-[9px] bg-rose-500 text-white px-1.5 py-0.2 rounded font-black">BARU</span>
-                  </button>
-                  <button onClick={() => handleNavClick('student-detective-hoax')} className="w-full text-left py-2 px-2 text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 flex items-center justify-between">
-                    <span>🕵️‍♂️ Detektif Hoax & Fakta</span>
-                    <span className="text-[9px] bg-rose-500 text-white px-1.5 py-0.2 rounded font-black">BARU</span>
-                  </button>
-                  <button onClick={() => handleNavClick('student-pc-doctor')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Dokter PC (Troubleshooting)</button>
-                  <button onClick={() => handleNavClick('student-pixel-art')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Studio Pixel Art 8-Bit</button>
-                  <button onClick={() => handleNavClick('student-spreadsheet')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Petualangan Excel Cilik</button>
-                  <button onClick={() => handleNavClick('student-games')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Kata Jatuh</button>
-                  <button onClick={() => handleNavClick('student-pc-builder')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Rakit PC Simulator</button>
-                  <button onClick={() => handleNavClick('student-coding-lab')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Lab Koding Blockly</button>
-                  <button onClick={() => handleNavClick('student-file-explorer')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Misi File Explorer</button>
-                  <button onClick={() => handleNavClick('student-network-builder')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Rakit Jaringan</button>
-                  <button onClick={() => handleNavClick('student-cyber-safety')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Keamanan Siber</button>
+                {/* Section: Arena Game Terpopuler */}
+                <div className="pt-2 pb-1 border-t border-slate-100 dark:border-slate-800/80">
+                  <div className="flex items-center justify-between px-1 mb-1.5">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                      <Gamepad2 className="w-3 h-3 text-purple-500" />
+                      <span>Arena Game & Simulasi (20 Game)</span>
+                    </p>
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setIsNavigatorOpen(true);
+                      }}
+                      className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400"
+                    >
+                      Lihat Semua →
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-1.5 text-xs font-bold">
+                    <button onClick={() => handleNavClick('student-coding-lab')} className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-200 truncate">
+                      🧩 Blockly Lab (15 Lvl)
+                    </button>
+                    <button onClick={() => handleNavClick('student-robot-maze')} className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-200 truncate">
+                      🤖 Robot Maze (14 Lvl)
+                    </button>
+                    <button onClick={() => handleNavClick('student-pc-builder')} className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-200 truncate">
+                      🖥️ Rakit PC Simulator
+                    </button>
+                    <button onClick={() => handleNavClick('student-pc-doctor')} className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-200 truncate">
+                      🩺 Dokter PC Klinik
+                    </button>
+                    <button onClick={() => handleNavClick('student-port-master')} className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-200 truncate">
+                      🔌 Master Colokan/Port
+                    </button>
+                    <button onClick={() => handleNavClick('student-pizza-tycoon')} className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-200 truncate">
+                      🍕 Excel Pizza Tycoon
+                    </button>
+                    <button onClick={() => handleNavClick('student-code-a-pet')} className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-200 truncate">
+                      🐾 Code-A-Pet Robot
+                    </button>
+                    <button onClick={() => handleNavClick('student-detective-hoax')} className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-200 truncate">
+                      🕵️‍♂️ Detektif Hoax & Fakta
+                    </button>
+                    <button onClick={() => handleNavClick('student-cyber-shield')} className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-200 truncate">
+                      🛡️ Cyber Shield
+                    </button>
+                    <button onClick={() => handleNavClick('student-binary-code')} className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-200 truncate">
+                      0️⃣1️⃣ Detektif Kode Biner
+                    </button>
+                  </div>
                 </div>
 
-                <div className="pt-2 pb-1">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-1">Fitur Lainnya</p>
-                  <button onClick={() => handleNavClick('student-gallery')} className="w-full text-left py-2 px-2 text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700">Galeri Karya Siswa</button>
-                  <button onClick={() => handleNavClick('student-reward-shop')} className="w-full text-left py-2 px-2 text-sm font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700">Toko Hadiah Sekolah</button>
-                  <button onClick={() => handleNavClick('student-glossary')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Kamus A-Z Teknologi</button>
-                  <button onClick={() => handleNavClick('student-shortcuts')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Koleksi Shortcut</button>
-                  <button onClick={() => handleNavClick('student-forum')} className="w-full text-left py-2 px-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">Forum Diskusi</button>
+                {/* Section: Prestasi & Hadiah */}
+                <div className="pt-2 pb-1 border-t border-slate-100 dark:border-slate-800/80">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1 mb-1.5 flex items-center gap-1.5">
+                    <Trophy className="w-3 h-3 text-amber-500" />
+                    <span>Prestasi, Hadiah & Forum</span>
+                  </p>
+                  <div className="grid grid-cols-2 gap-1.5 text-xs">
+                    <button onClick={() => handleNavClick('student-leaderboard')} className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 font-bold text-amber-600 dark:text-amber-400">
+                      🏆 Papan Peringkat
+                    </button>
+                    <button onClick={() => handleNavClick('student-reward-shop')} className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 font-bold text-emerald-600 dark:text-emerald-400">
+                      🎁 Toko Hadiah Fisik
+                    </button>
+                    <button onClick={() => handleNavClick('student-star-shop')} className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 font-bold text-purple-600 dark:text-purple-400">
+                      ✨ Toko Bingkai Avatar
+                    </button>
+                    <button onClick={() => handleNavClick('student-forum')} className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 font-bold text-indigo-600 dark:text-indigo-400">
+                      💬 Forum Diskusi
+                    </button>
+                  </div>
                 </div>
               </>
             )}
@@ -840,6 +1146,22 @@ export const Header: React.FC<HeaderProps> = ({
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
       />
+
+      {/* Quick Student Feature Navigator Search Modal */}
+      <StudentNavigatorModal
+        isOpen={isNavigatorOpen}
+        onClose={() => setIsNavigatorOpen(false)}
+        onNavigate={handleNavClick}
+      />
+
+      {/* Modern Student Bottom Navigation Bar for Mobile */}
+      {isStudent && (
+        <StudentMobileBottomNav
+          currentView={currentView}
+          onNavigate={handleNavClick}
+          onOpenNavigator={() => setIsNavigatorOpen(true)}
+        />
+      )}
     </header>
   );
 };

@@ -15,30 +15,74 @@ import {
   School,
   FileText,
   TrendingUp,
+  ShieldAlert,
+  ShieldCheck,
+  CheckCircle2,
+  AlertTriangle,
+  Info,
 } from 'lucide-react';
 import {
   getTypingLeagueScores,
   getTypingLeagueTexts,
   getUsers,
-  getBadgeForPoints,
+  deleteTypingLeagueScore,
+  deleteTypingLeagueScoresBatch,
 } from '../../services/storageService';
 import { TypingLeagueScore, TypingLeagueText } from '../../types';
 import { Avatar } from '../common/Avatar';
-import { BadgePill } from '../common/BadgePill';
 import { useToast } from '../../context/ToastContext';
+import { ConfirmModal } from '../common/ConfirmModal';
 
 interface AdminTypingLeagueLeaderboardProps {
   onRefresh?: () => void;
   onRequestConfirm?: (title: string, message: string, onConfirm: () => void) => void;
 }
 
+// Helper: Anti-Cheat & Suspicious Score Detection Logic
+export function checkSuspiciousScore(item: TypingLeagueScore): {
+  isSuspicious: boolean;
+  tag: string;
+  reason: string;
+} {
+  if (item.wpm >= 140) {
+    return {
+      isSuspicious: true,
+      tag: 'Bot / Macro Ekstrem',
+      reason: `WPM ekstrem (${item.wpm} WPM) di luar batas kecepatan fisik manusia/siswa.`,
+    };
+  }
+  if (item.wpm >= 115) {
+    return {
+      isSuspicious: true,
+      tag: 'WPM Tidak Wajar',
+      reason: `Kecepatan ${item.wpm} WPM sangat tinggi dan tidak wajar untuk tingkat sekolah.`,
+    };
+  }
+  if (item.wpm >= 90 && item.accuracy === 100 && (item.timeSpentSeconds || 60) < 15) {
+    return {
+      isSuspicious: true,
+      tag: 'Waktu Kilat Abnormal',
+      reason: 'Akurasi 100% dengan WPM tinggi diselesaikan dalam waktu kilat (<15 detik).',
+    };
+  }
+  if (item.rawKpm && item.rawKpm > 720) {
+    return {
+      isSuspicious: true,
+      tag: 'Ketukan Tuts Abnormal',
+      reason: `Frekuensi ketukan tuts mencapai ${item.rawKpm} KPM (terindikasi script).`,
+    };
+  }
+  return { isSuspicious: false, tag: '', reason: '' };
+}
+
 export const AdminTypingLeagueLeaderboard: React.FC<AdminTypingLeagueLeaderboardProps> = ({
   onRefresh,
-  onRequestConfirm,
 }) => {
-  const { showSuccess } = useToast();
+  const { showSuccess, showWarning } = useToast();
+
   const [selectedTextFilter, setSelectedTextFilter] = useState<string>('ALL');
   const [selectedSchoolFilter, setSelectedSchoolFilter] = useState<string>('ALL');
+  const [cheatFilter, setCheatFilter] = useState<'all' | 'suspicious' | 'legit'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [viewMode, setViewMode] = useState<'best' | 'all'>('best');
   const [sortBy, setSortBy] = useState<'score' | 'wpm' | 'accuracy' | 'date'>('score');
@@ -47,12 +91,21 @@ export const AdminTypingLeagueLeaderboard: React.FC<AdminTypingLeagueLeaderboard
   const texts = useMemo(() => getTypingLeagueTexts(), []);
   const allUsers = useMemo(() => getUsers(), []);
 
+  // Modals
+  const [deleteTarget, setDeleteTarget] = useState<TypingLeagueScore | null>(null);
+  const [showBatchDeleteModal, setShowBatchDeleteModal] = useState<boolean>(false);
+
   const handleReload = () => {
     const updated = getTypingLeagueScores();
     setScores(updated);
     if (onRefresh) onRefresh();
     showSuccess('Data leaderboard liga mengetik diperbarui!');
   };
+
+  // List of suspicious scores
+  const suspiciousScores = useMemo(() => {
+    return scores.filter((s) => checkSuspiciousScore(s).isSuspicious);
+  }, [scores]);
 
   // Available unique schools from scores and users
   const availableSchools = useMemo(() => {
@@ -69,6 +122,13 @@ export const AdminTypingLeagueLeaderboard: React.FC<AdminTypingLeagueLeaderboard
   // Filter and process leaderboard data
   const processedData = useMemo(() => {
     let list = scores;
+
+    // Filter Cheat / Suspicious Status
+    if (cheatFilter === 'suspicious') {
+      list = list.filter((s) => checkSuspiciousScore(s).isSuspicious);
+    } else if (cheatFilter === 'legit') {
+      list = list.filter((s) => !checkSuspiciousScore(s).isSuspicious);
+    }
 
     // Filter by text
     if (selectedTextFilter !== 'ALL') {
@@ -97,13 +157,14 @@ export const AdminTypingLeagueLeaderboard: React.FC<AdminTypingLeagueLeaderboard
     if (viewMode === 'best') {
       const bestMap = new Map<string, TypingLeagueScore>();
       for (const s of list) {
-        const existing = bestMap.get(s.studentId);
+        const studentKey = (s.studentName || '').toLowerCase().replace(/[^a-z0-9]/g, '').trim() || s.studentId;
+        const existing = bestMap.get(studentKey);
         if (
           !existing ||
           s.score > existing.score ||
           (s.score === existing.score && s.wpm > existing.wpm)
         ) {
-          bestMap.set(s.studentId, s);
+          bestMap.set(studentKey, s);
         }
       }
       list = Array.from(bestMap.values());
@@ -118,31 +179,66 @@ export const AdminTypingLeagueLeaderboard: React.FC<AdminTypingLeagueLeaderboard
         return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
       return 0;
     });
-  }, [scores, selectedTextFilter, selectedSchoolFilter, searchQuery, viewMode, sortBy]);
+  }, [scores, cheatFilter, selectedTextFilter, selectedSchoolFilter, searchQuery, viewMode, sortBy]);
+
+  // Execute deletion of single score
+  const handleExecuteDeleteSingle = () => {
+    if (!deleteTarget) return;
+    deleteTypingLeagueScore(deleteTarget.id);
+    showSuccess(`Skor milik "${deleteTarget.studentName}" (${deleteTarget.wpm} WPM) berhasil dihapus.`);
+    setDeleteTarget(null);
+    handleReload();
+  };
+
+  // Execute batch deletion of all suspicious scores
+  const handleExecuteBatchDeleteCheats = () => {
+    if (suspiciousScores.length === 0) return;
+    const ids = suspiciousScores.map((s) => s.id);
+    deleteTypingLeagueScoresBatch(ids);
+    showSuccess(`Berhasil membersihkan ${ids.length} skor yang terindikasi curang dari leaderboard!`);
+    setShowBatchDeleteModal(false);
+    handleReload();
+  };
 
   // Overall KPIs
   const stats = useMemo(() => {
     if (scores.length === 0) {
       return { topWpm: 0, topStudent: '-', avgWpm: 0, avgAcc: 0, totalSubmissions: 0 };
     }
-    const maxScoreItem = [...scores].sort((a, b) => b.wpm - a.wpm)[0];
-    const totalWpm = scores.reduce((acc, s) => acc + s.wpm, 0);
-    const totalAcc = scores.reduce((acc, s) => acc + s.accuracy, 0);
+    const legitOnly = scores.filter((s) => !checkSuspiciousScore(s).isSuspicious);
+    const targetSet = legitOnly.length > 0 ? legitOnly : scores;
+
+    const maxScoreItem = [...targetSet].sort((a, b) => b.wpm - a.wpm)[0];
+    const totalWpm = targetSet.reduce((acc, s) => acc + s.wpm, 0);
+    const totalAcc = targetSet.reduce((acc, s) => acc + s.accuracy, 0);
 
     return {
       topWpm: maxScoreItem?.wpm || 0,
       topStudent: maxScoreItem?.studentName || '-',
       topSchool: maxScoreItem?.studentSchool || '',
-      avgWpm: Math.round(totalWpm / scores.length),
-      avgAcc: Math.round(totalAcc / scores.length),
+      avgWpm: Math.round(totalWpm / targetSet.length),
+      avgAcc: Math.round(totalAcc / targetSet.length),
       totalSubmissions: scores.length,
     };
   }, [scores]);
 
-  // Top 3 Podium
-  const top1 = processedData[0];
-  const top2 = processedData[1];
-  const top3 = processedData[2];
+  // Top 3 Podium (from legitimate scores)
+  const legitLeaderboard = useMemo(() => {
+    const bestMap = new Map<string, TypingLeagueScore>();
+    for (const s of scores) {
+      if (checkSuspiciousScore(s).isSuspicious) continue;
+      const key = (s.studentName || '').toLowerCase().replace(/[^a-z0-9]/g, '').trim() || s.studentId;
+      const existing = bestMap.get(key);
+      if (!existing || s.score > existing.score) {
+        bestMap.set(key, s);
+      }
+    }
+    return Array.from(bestMap.values()).sort((a, b) => b.score - a.score || b.wpm - a.wpm);
+  }, [scores]);
+
+  const top1 = legitLeaderboard[0];
+  const top2 = legitLeaderboard[1];
+  const top3 = legitLeaderboard[2];
 
   const getWpmColor = (wpm: number) => {
     if (wpm >= 50) return 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 border-purple-200 dark:border-purple-800';
@@ -160,14 +256,14 @@ export const AdminTypingLeagueLeaderboard: React.FC<AdminTypingLeagueLeaderboard
             <span className="text-[10px] font-black uppercase tracking-widest bg-black/25 backdrop-blur-xs px-2.5 py-0.5 rounded-full">
               Pusat Monitoring Kompetisi
             </span>
-            <span className="text-xs text-amber-100">· Real-Time Arena</span>
+            <span className="text-xs text-amber-100">· Real-Time Arena & Anti-Cheat System</span>
           </div>
           <h2 className="text-2xl font-black flex items-center gap-2.5">
             <Trophy className="w-7 h-7 text-amber-200 animate-bounce" />
-            <span>Leaderboard & Rekap Liga Mengetik 10 Jari</span>
+            <span>Leaderboard & Pengawasan Liga Mengetik 10 Jari</span>
           </h2>
           <p className="text-xs text-amber-100 mt-1 max-w-2xl leading-relaxed">
-            Pantau statistik kecepatan mengetik (WPM), akurasi siswa, dan peringkat tertinggi antar kelas dan sekolah secara langsung.
+            Pantau statistik kecepatan mengetik (WPM), tingkat akurasi siswa, serta lakukan moderasi/penghapusan pada skor yang terindikasi kecurangan atau bot.
           </p>
         </div>
 
@@ -180,12 +276,48 @@ export const AdminTypingLeagueLeaderboard: React.FC<AdminTypingLeagueLeaderboard
         </button>
       </div>
 
+      {/* Anti-Cheat Alert Banner (if suspicious scores detected) */}
+      {suspiciousScores.length > 0 && (
+        <div className="bg-gradient-to-r from-rose-500/10 via-amber-500/10 to-rose-500/10 border-2 border-rose-400 dark:border-rose-800 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-300 flex items-center justify-center shrink-0">
+              <ShieldAlert className="w-5 h-5 text-rose-600 animate-bounce" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-rose-900 dark:text-rose-200">
+                Deteksi Anti-Cheat: Ditemukan {suspiciousScores.length} skor dengan indikasi tidak wajar / manipulasi!
+              </p>
+              <p className="text-[11px] text-rose-700 dark:text-rose-400">
+                Skor WPM ekstrem atau waktu instan merusak keadilan kompetisi. Admin dapat menginspeksi dan menghapus skor curang.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setCheatFilter('suspicious')}
+              className="px-3 py-1.5 rounded-xl bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200 font-bold text-xs border border-rose-300 hover:bg-rose-200 transition-all cursor-pointer"
+            >
+              Filter {suspiciousScores.length} Skor Curang
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowBatchDeleteModal(true)}
+              className="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Bersihkan Semua ({suspiciousScores.length})</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-900/60 p-4 rounded-2xl shadow-xs space-y-1">
           <div className="flex items-center justify-between text-amber-500">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Rekor WPM Tertinggi
+              Rekor WPM Wajar
             </span>
             <Crown className="w-4 h-4 text-amber-500" />
           </div>
@@ -207,7 +339,7 @@ export const AdminTypingLeagueLeaderboard: React.FC<AdminTypingLeagueLeaderboard
           <p className="text-2xl font-black font-mono text-indigo-600 dark:text-indigo-400">
             {stats.avgWpm} <span className="text-xs font-normal text-slate-500">WPM</span>
           </p>
-          <p className="text-[11px] text-slate-400">Seluruh Peserta</p>
+          <p className="text-[11px] text-slate-400">Peserta Wajar</p>
         </div>
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-xs space-y-1">
@@ -233,12 +365,18 @@ export const AdminTypingLeagueLeaderboard: React.FC<AdminTypingLeagueLeaderboard
           <p className="text-2xl font-black font-mono text-slate-900 dark:text-white">
             {stats.totalSubmissions}
           </p>
-          <p className="text-[11px] text-slate-400">Kali Dikerjakan Siswa</p>
+          <p className="text-[11px] text-slate-400">
+            {suspiciousScores.length > 0 ? (
+              <span className="text-rose-500 font-bold">({suspiciousScores.length} Terindikasi Curang)</span>
+            ) : (
+              'Seluruh Submisi Bersih'
+            )}
+          </p>
         </div>
       </div>
 
-      {/* Podium Cards for Top 3 (if exists) */}
-      {processedData.length > 0 && (
+      {/* Podium Cards for Top 3 Legitimate Champions */}
+      {legitLeaderboard.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
           {/* #2 Silver */}
           {top2 ? (
@@ -321,6 +459,49 @@ export const AdminTypingLeagueLeaderboard: React.FC<AdminTypingLeagueLeaderboard
 
       {/* Interactive Controls & Filters */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4">
+        {/* Anti-Cheat & Moderation Filter Pills */}
+        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+          <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mr-1">
+            <ShieldCheck className="w-4 h-4 text-emerald-500" />
+            <span>Filter Anti-Cheat:</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => setCheatFilter('all')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              cheatFilter === 'all'
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+            }`}
+          >
+            Semua Submisi ({scores.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setCheatFilter('suspicious')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              cheatFilter === 'suspicious'
+                ? 'bg-rose-600 text-white shadow-xs'
+                : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900 hover:bg-rose-100'
+            }`}
+          >
+            <ShieldAlert className="w-3.5 h-3.5" />
+            <span>⚠️ Terindikasi Curang ({suspiciousScores.length})</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setCheatFilter('legit')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              cheatFilter === 'legit'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900 hover:bg-emerald-100'
+            }`}
+          >
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>✅ Skor Wajar ({scores.length - suspiciousScores.length})</span>
+          </button>
+        </div>
+
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           {/* Search */}
           <div className="relative flex-1 max-w-md">
@@ -423,18 +604,23 @@ export const AdminTypingLeagueLeaderboard: React.FC<AdminTypingLeagueLeaderboard
                 <th className="p-3">Naskah Tantangan</th>
                 <th className="p-3 text-center">Kecepatan</th>
                 <th className="p-3 text-center">Akurasi</th>
-                <th className="p-3 text-center">Waktu Tempuh</th>
+                <th className="p-3 text-center">Status Moderasi</th>
                 <th className="p-3 text-right">Skor Poin</th>
+                <th className="p-3 text-center w-16">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
               {processedData.map((item, idx) => {
                 const rank = idx + 1;
+                const suspicion = checkSuspiciousScore(item);
+
                 return (
                   <tr
                     key={item.id || idx}
                     className={`hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors ${
-                      rank === 1
+                      suspicion.isSuspicious
+                        ? 'bg-rose-50/60 dark:bg-rose-950/40 border-l-4 border-l-rose-500'
+                        : rank === 1
                         ? 'bg-amber-50/40 dark:bg-amber-950/20'
                         : rank === 2
                         ? 'bg-slate-50/40 dark:bg-slate-800/20'
@@ -445,7 +631,11 @@ export const AdminTypingLeagueLeaderboard: React.FC<AdminTypingLeagueLeaderboard
                   >
                     {/* Rank Badge */}
                     <td className="p-3 text-center align-middle">
-                      {rank === 1 ? (
+                      {suspicion.isSuspicious ? (
+                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-rose-200 text-rose-900 font-black text-xs">
+                          ⚠️
+                        </span>
+                      ) : rank === 1 ? (
                         <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-black text-xs shadow-xs">
                           1
                         </span>
@@ -525,9 +715,22 @@ export const AdminTypingLeagueLeaderboard: React.FC<AdminTypingLeagueLeaderboard
                       </span>
                     </td>
 
-                    {/* Time Elapsed */}
-                    <td className="p-3 text-center align-middle font-mono text-[11px] text-slate-500">
-                      {item.timeSpentSeconds || 60}s
+                    {/* Moderation / Anti-Cheat Status */}
+                    <td className="p-3 text-center align-middle">
+                      {suspicion.isSuspicious ? (
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border border-rose-300 dark:border-rose-800"
+                          title={suspicion.reason}
+                        >
+                          <ShieldAlert className="w-3 h-3 text-rose-600 animate-pulse" />
+                          <span>⚠️ {suspicion.tag}</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                          <span>Normal</span>
+                        </span>
+                      )}
                     </td>
 
                     {/* Score */}
@@ -536,17 +739,29 @@ export const AdminTypingLeagueLeaderboard: React.FC<AdminTypingLeagueLeaderboard
                         +{item.score} pt
                       </span>
                     </td>
+
+                    {/* Delete Action Button */}
+                    <td className="p-3 text-center align-middle">
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTarget(item)}
+                        className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-100 dark:hover:bg-rose-950/80 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-rose-200 dark:hover:border-rose-900"
+                        title="Hapus skor ini (misal: terindikasi curang)"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
 
               {processedData.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-400 text-xs">
+                  <td colSpan={9} className="py-12 text-center text-slate-400 text-xs">
                     <Trophy className="w-8 h-8 text-slate-300 dark:text-slate-700 mx-auto mb-2" />
-                    <p className="font-bold">Belum ada skor balap liga mengetik yang tercatat.</p>
+                    <p className="font-bold">Tidak ada skor liga mengetik pada kategori filter ini.</p>
                     <p className="text-[11px] text-slate-400 mt-0.5">
-                      Siswa dapat memainkan Liga Mengetik dari menu siswa untuk mulai mencetak rekor!
+                      Coba ganti filter naskah, sekolah, atau status anti-cheat untuk melihat data lainnya.
                     </p>
                   </td>
                 </tr>
@@ -555,6 +770,30 @@ export const AdminTypingLeagueLeaderboard: React.FC<AdminTypingLeagueLeaderboard
           </table>
         </div>
       </div>
+
+      {/* Confirmation Modal for Single Score Deletion */}
+      <ConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        title="Hapus Skor Liga Mengetik"
+        message={`Apakah Anda yakin ingin menghapus skor milik "${deleteTarget?.studentName}" dengan kecepatan ${deleteTarget?.wpm} WPM dan akurasi ${deleteTarget?.accuracy}% dari leaderboard? Skor akan dihapus dari sistem secara permanen.`}
+        confirmText="Ya, Hapus Skor Ini"
+        cancelText="Batal"
+        isDanger={true}
+        onConfirm={handleExecuteDeleteSingle}
+        onClose={() => setDeleteTarget(null)}
+      />
+
+      {/* Confirmation Modal for Batch Deleting All Suspicious Scores */}
+      <ConfirmModal
+        isOpen={showBatchDeleteModal}
+        title="Bersihkan Semua Skor Curang"
+        message={`Apakah Anda yakin ingin menghapus sekaligus ${suspiciousScores.length} skor yang terindikasi curang / tidak wajar dari leaderboard liga mengetik? Tindakan ini akan mengembalikan keadilan peringkat kompetisi bagi siswa lainnya.`}
+        confirmText={`Hapus Semua (${suspiciousScores.length} Skor)`}
+        cancelText="Batal"
+        isDanger={true}
+        onConfirm={handleExecuteBatchDeleteCheats}
+        onClose={() => setShowBatchDeleteModal(false)}
+      />
     </div>
   );
 };

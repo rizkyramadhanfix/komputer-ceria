@@ -24,6 +24,7 @@ import {
   getQuizSubmissions,
   pullFullSyncFromServer,
   getUsers,
+  getDeletedUserIds,
 } from '../../services/storageService';
 import { User } from '../../types';
 import { Avatar } from './Avatar';
@@ -83,42 +84,24 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
     };
   }, [effectiveUsers]);
 
-  // Load sub-metrics for Typing and Quizzes categories
-  const typingBestMap = useMemo(() => {
-    const scores = getTypingLeagueScores();
-    const map = new Map<string, { maxWpm: number; maxScore: number; accuracy: number }>();
-    for (const s of scores) {
-      if (!s.studentId) continue;
-      const existing = map.get(s.studentId);
-      if (!existing || s.wpm > existing.maxWpm || (s.wpm === existing.maxWpm && s.score > existing.maxScore)) {
-        map.set(s.studentId, { maxWpm: s.wpm, maxScore: s.score, accuracy: s.accuracy });
-      }
-    }
-    return map;
-  }, [effectiveUsers]);
-
-  const quizCompletedMap = useMemo(() => {
-    const submissions = getQuizSubmissions();
-    const map = new Map<string, { count: number; perfectCount: number }>();
-    for (const sub of submissions) {
-      if (!sub.studentId) continue;
-      const existing = map.get(sub.studentId) || { count: 0, perfectCount: 0 };
-      map.set(sub.studentId, {
-        count: existing.count + 1,
-        perfectCount: sub.score >= 100 ? existing.perfectCount + 1 : existing.perfectCount,
-      });
-    }
-    return map;
-  }, [effectiveUsers]);
-
-  // Deduplicate and process student list to prevent any overlapping / duplicate rows
-  const processedStudents = useMemo(() => {
+  // Canonical student deduplication and alias resolution
+  const { processedStudents, idToCanonicalIdMap } = useMemo(() => {
     const studentMap = new Map<string, User>();
+    const aliasToKeyMap = new Map<string, string>();
+    const idToCanonicalMap = new Map<string, string>();
+    const deletedIds = getDeletedUserIds();
+
+    const normalizeStr = (str?: string) =>
+      (str || '').toLowerCase().replace(/[^a-z0-9]/g, '').trim();
 
     for (const u of effectiveUsers) {
-      if (u.role !== 'student' || !u.id) continue;
+      if (u.role !== 'student' || !u.id || deletedIds.has(u.id)) continue;
 
-      const normalizedKey = u.username ? u.username.toLowerCase().trim() : u.id;
+      const normUsername = normalizeStr(u.username);
+      const normName = normalizeStr(u.name);
+      const cleanNisn = u.nisn ? u.nisn.trim() : '';
+      const cleanSchool = normalizeStr(u.school);
+
       const safePoints = typeof u.totalPoints === 'number' && !isNaN(u.totalPoints) ? Math.max(0, u.totalPoints) : 0;
       const safeStars = typeof u.totalStars === 'number' && !isNaN(u.totalStars) ? Math.max(0, u.totalStars) : Math.floor(safePoints / 10);
 
@@ -129,18 +112,95 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
         totalStars: safeStars,
       };
 
-      if (!studentMap.has(normalizedKey)) {
-        studentMap.set(normalizedKey, cleanObj);
+      // Match canonical key by id, nisn, normalized name + school, or username
+      let canonicalKey: string | undefined = aliasToKeyMap.get(`id_${cleanObj.id}`);
+      if (!canonicalKey && cleanNisn && cleanNisn.length >= 4) {
+        canonicalKey = aliasToKeyMap.get(`nisn_${cleanNisn}`);
+      }
+      if (!canonicalKey && normName && normName.length >= 3) {
+        canonicalKey = aliasToKeyMap.get(`name_${normName}_${cleanSchool}`) || aliasToKeyMap.get(`name_${normName}`);
+      }
+      if (!canonicalKey && normUsername) {
+        canonicalKey = aliasToKeyMap.get(`usr_${normUsername}`);
+      }
+
+      if (canonicalKey && studentMap.has(canonicalKey)) {
+        // Merge with existing record, keeping the highest scores and richest profile
+        const existing = studentMap.get(canonicalKey)!;
+        const higherPoints = Math.max(existing.totalPoints || 0, cleanObj.totalPoints || 0);
+        const higherStars = Math.max(existing.totalStars || 0, cleanObj.totalStars || 0, Math.floor(higherPoints / 10));
+        const mergedLessons = Array.from(new Set([...(existing.completedLessons || []), ...(cleanObj.completedLessons || [])]));
+        
+        const merged: User = {
+          ...existing,
+          ...cleanObj,
+          id: existing.id, // Keep stable primary id
+          name: cleanObj.name.length >= existing.name.length ? cleanObj.name : existing.name,
+          school: cleanObj.school || existing.school,
+          grade: cleanObj.grade || existing.grade,
+          totalPoints: higherPoints,
+          totalStars: higherStars,
+          completedLessons: mergedLessons,
+          avatarUrl: cleanObj.avatarUrl || existing.avatarUrl,
+          equippedBadge: cleanObj.equippedBadge || existing.equippedBadge,
+          equippedFrame: cleanObj.equippedFrame || existing.equippedFrame,
+          equippedTitle: cleanObj.equippedTitle || existing.equippedTitle,
+        };
+        studentMap.set(canonicalKey, merged);
+        idToCanonicalMap.set(cleanObj.id, existing.id);
       } else {
-        // Keep highest score version
-        const existing = studentMap.get(normalizedKey)!;
-        if (cleanObj.totalPoints > existing.totalPoints) {
-          studentMap.set(normalizedKey, cleanObj);
+        const primaryKey = cleanObj.id;
+        studentMap.set(primaryKey, cleanObj);
+        idToCanonicalMap.set(cleanObj.id, primaryKey);
+        aliasToKeyMap.set(`id_${cleanObj.id}`, primaryKey);
+        if (cleanNisn && cleanNisn.length >= 4) aliasToKeyMap.set(`nisn_${cleanNisn}`, primaryKey);
+        if (normName && normName.length >= 3) {
+          aliasToKeyMap.set(`name_${normName}_${cleanSchool}`, primaryKey);
+          aliasToKeyMap.set(`name_${normName}`, primaryKey);
         }
+        if (normUsername) aliasToKeyMap.set(`usr_${normUsername}`, primaryKey);
       }
     }
 
-    let list = Array.from(studentMap.values());
+    return {
+      processedStudents: Array.from(studentMap.values()),
+      idToCanonicalIdMap: idToCanonicalMap,
+    };
+  }, [effectiveUsers]);
+
+  // Load sub-metrics for Typing and Quizzes categories with alias resolution
+  const typingBestMap = useMemo(() => {
+    const scores = getTypingLeagueScores();
+    const map = new Map<string, { maxWpm: number; maxScore: number; accuracy: number }>();
+    for (const s of scores) {
+      if (!s.studentId) continue;
+      const canonicalId = idToCanonicalIdMap.get(s.studentId) || s.studentId;
+      const existing = map.get(canonicalId);
+      if (!existing || s.wpm > existing.maxWpm || (s.wpm === existing.maxWpm && s.score > existing.maxScore)) {
+        map.set(canonicalId, { maxWpm: s.wpm, maxScore: s.score, accuracy: s.accuracy });
+      }
+    }
+    return map;
+  }, [idToCanonicalIdMap]);
+
+  const quizCompletedMap = useMemo(() => {
+    const submissions = getQuizSubmissions();
+    const map = new Map<string, { count: number; perfectCount: number }>();
+    for (const sub of submissions) {
+      if (!sub.studentId) continue;
+      const canonicalId = idToCanonicalIdMap.get(sub.studentId) || sub.studentId;
+      const existing = map.get(canonicalId) || { count: 0, perfectCount: 0 };
+      map.set(canonicalId, {
+        count: existing.count + 1,
+        perfectCount: sub.score >= 100 ? existing.perfectCount + 1 : existing.perfectCount,
+      });
+    }
+    return map;
+  }, [idToCanonicalIdMap]);
+
+  // Filter and sort students list
+  const filteredAndSortedStudents = useMemo(() => {
+    let list = [...processedStudents];
 
     // Apply Search Query
     if (searchQuery.trim()) {
@@ -189,9 +249,9 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
     }
 
     return list;
-  }, [effectiveUsers, searchQuery, selectedSchool, selectedGrade, category, typingBestMap, quizCompletedMap]);
+  }, [processedStudents, searchQuery, selectedSchool, selectedGrade, category, typingBestMap, quizCompletedMap]);
 
-  const displayList = showAll ? processedStudents : processedStudents.slice(0, limit);
+  const displayList = showAll ? filteredAndSortedStudents : filteredAndSortedStudents.slice(0, limit);
   const topThree = displayList.slice(0, 3);
 
   const getRankBadge = (rank: number) => {
@@ -350,7 +410,7 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-mono">
             <span>Ditemukan:</span>
             <span className="font-bold text-slate-900 dark:text-white tabular-nums px-2 py-0.5 bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700">
-              {processedStudents.length} Siswa
+              {filteredAndSortedStudents.length} Siswa
             </span>
           </div>
         </div>

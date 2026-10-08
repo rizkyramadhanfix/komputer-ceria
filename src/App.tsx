@@ -176,6 +176,24 @@ function MainAppContent() {
         {currentView === 'student-detective-hoax' && (
           <StudentDashboard initialTab="detective-hoax" />
         )}
+        {currentView === 'student-robot-maze' && (
+          <StudentDashboard initialTab="robot-maze" />
+        )}
+        {currentView === 'student-lan-crimping' && (
+          <StudentDashboard initialTab="lan-crimping" />
+        )}
+        {currentView === 'student-rhythm-typing' && (
+          <StudentDashboard initialTab="rhythm-typing" />
+        )}
+        {currentView === 'student-storage-master' && (
+          <StudentDashboard initialTab="storage-master" />
+        )}
+        {currentView === 'student-mini-poster' && (
+          <StudentDashboard initialTab="mini-poster" />
+        )}
+        {currentView === 'student-cyber-shield' && (
+          <StudentDashboard initialTab="cyber-shield" />
+        )}
 
         {/* ADMIN VIEWS */}
         {currentView === 'admin-dashboard' && (

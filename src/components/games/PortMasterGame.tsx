@@ -519,12 +519,22 @@ export const PortMasterGame: React.FC = () => {
               }
 
               return (
-                <button
+                <div
                   key={port.id}
-                  type="button"
-                  disabled={selectedPortId !== null}
-                  onClick={() => handleSelectPort(port.id)}
-                  className={`p-3.5 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between group relative cursor-pointer disabled:cursor-default ${cardStyle}`}
+                  role="button"
+                  tabIndex={selectedPortId !== null ? -1 : 0}
+                  onClick={() => {
+                    if (selectedPortId === null) {
+                      handleSelectPort(port.id);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if ((e.key === 'Enter' || e.key === ' ') && selectedPortId === null) {
+                      e.preventDefault();
+                      handleSelectPort(port.id);
+                    }
+                  }}
+                  className={`p-3.5 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between group relative cursor-pointer select-none ${selectedPortId !== null ? 'cursor-default' : ''} ${cardStyle}`}
                 >
                   <div className="flex items-start justify-between">
                     <span className="text-2xl filter drop-shadow-sm">{port.icon}</span>
@@ -557,7 +567,7 @@ export const PortMasterGame: React.FC = () => {
                     <span>Soket: {port.shortLabel}</span>
                     <span className="w-2 h-2 rounded-full bg-slate-600 group-hover:bg-amber-400" />
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>

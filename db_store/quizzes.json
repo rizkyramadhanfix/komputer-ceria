@@ -1,285 +1,1140 @@
 [
   {
     "id": "quiz-1",
-    "title": "Jago Shortcut Microsoft Word",
-    "category": "Aplikasi Kantor",
-    "description": "Uji kecepatan jarimu menghafal tombol shortcut ajaib di Microsoft Word agar tugas selesai secepat kilat!",
+    "title": "Kuis Pemahaman Surat Resmi Undangan Rapat",
+    "category": "Format Word",
+    "description": "Uji pemahamanmu dari naskah Surat Resmi Undangan: pengirim, waktu, tempat rapat, dan agenda.",
     "allocatedPoints": 100,
     "timeLimitMinutes": 10,
-    "createdAt": "2026-10-01T00:00:00.000Z",
+    "createdAt": "2026-10-08T08:00:22.934Z",
     "questions": [
       {
         "id": "q1-1",
-        "questionText": "Kombinasi tombol keyboard yang digunakan untuk membuat tulisan menjadi tebal (Bold) adalah...",
-        "options": ["Ctrl + B", "Ctrl + D", "Ctrl + T", "Ctrl + I"],
+        "questionText": "Berdasarkan surat resmi tersebut, siapa nama sekolah pengirim surat undangan?",
+        "options": [
+          "SDN Sukadamai 2 Bogor",
+          "SD Ceria Nusantara",
+          "SD Harapan Bangsa",
+          "SD Prestasi Emas"
+        ],
         "correctAnswerIndex": 0,
-        "explanation": "Hebat! Ctrl + B (Bold) digunakan untuk menebalkan teks yang dipilih.",
+        "explanation": "Tepat! Kop surat menunjukkan SEKOLAH DASAR NEGERI SUKADAMAI 2 BOGOR.",
         "weight": 20
       },
       {
         "id": "q1-2",
-        "questionText": "Shortcut apakah yang digunakan untuk menyimpan dokumen (Save) yang sedang kamu ketik?",
-        "options": ["Ctrl + O", "Ctrl + S", "Ctrl + P", "Ctrl + A"],
-        "correctAnswerIndex": 1,
-        "explanation": "Tepat sekali! Ctrl + S (Save) digunakan untuk menyimpan perubahan dokumen.",
+        "questionText": "Kepada siapa surat undangan resmi tersebut ditujukan?",
+        "options": [
+          "Bapak/Ibu Orang Tua Siswa Kelas 5 dan 6",
+          "Kepala Dinas Pendidikan Kota",
+          "Pengurus RT dan RW setempat",
+          "Seluruh Siswa Kelas 1 dan 2"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Benar! Surat ditujukan kepada Bapak/Ibu Orang Tua Siswa Kelas 5 dan 6.",
         "weight": 20
       },
       {
         "id": "q1-3",
-        "questionText": "Apa fungsi dari shortcut Ctrl + Z pada komputer?",
-        "options": ["Membatalkan perintah terakhir (Undo)", "Menutup aplikasi", "Memotong teks", "Menyimpan dokumen"],
+        "questionText": "Kapan hari dan tanggal rapat koordinasi sosialisasi akan diselenggarakan?",
+        "options": [
+          "Sabtu, 24 Oktober 2026",
+          "Minggu, 10 November 2026",
+          "Senin, 1 Desember 2026",
+          "Jumat, 15 September 2026"
+        ],
         "correctAnswerIndex": 0,
-        "explanation": "Pintar! Ctrl + Z adalah fungsi Undo untuk membatalkan kesalahan perintah sebelumnya.",
+        "explanation": "Hebat! Waktu pelaksanaan adalah Sabtu, 24 Oktober 2026.",
         "weight": 20
       },
       {
         "id": "q1-4",
-        "questionText": "Untuk menyalin teks tanpa menghapus aslinya, tombol yang ditekan adalah...",
-        "options": ["Ctrl + X", "Ctrl + V", "Ctrl + C", "Ctrl + K"],
-        "correctAnswerIndex": 2,
-        "explanation": "Keren! Ctrl + C (Copy) berfungsi menyalin teks ke papan klip.",
+        "questionText": "Pukul berapa rentang waktu pelaksanaan rapat koordinasi tersebut?",
+        "options": [
+          "Pukul 09.00 - 11.30 WIB",
+          "Pukul 07.00 - 08.30 WIB",
+          "Pukul 13.00 - 15.00 WIB",
+          "Pukul 16.00 - 18.00 WIB"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Pintar! Rapat dijadwalkan pada Pukul 09.00 - 11.30 WIB.",
         "weight": 20
       },
       {
         "id": "q1-5",
-        "questionText": "Pasangan dari tombol Copy (Ctrl + C) untuk menempelkan hasil salinan adalah...",
-        "options": ["Ctrl + V", "Ctrl + P", "Ctrl + L", "Ctrl + A"],
+        "questionText": "Di ruangan manakah rapat sosialisasi tersebut akan bertempat?",
+        "options": [
+          "Ruang Laboratorium Komputer Ceria Lt. 2",
+          "Aula Serbaguna Lapangan",
+          "Kantin Sekolah Lt. 1",
+          "Ruang Tata Usaha"
+        ],
         "correctAnswerIndex": 0,
-        "explanation": "Mantap! Ctrl + V (Paste) digunakan untuk menempelkan teks atau gambar yang disalin.",
+        "explanation": "Mantap! Rapat bertempat di Ruang Laboratorium Komputer Ceria Lt. 2.",
         "weight": 20
       }
     ]
   },
   {
     "id": "quiz-2",
-    "title": "Detektif Perangkat Keras (Hardware Master)",
-    "category": "Hardware",
-    "description": "Buktikan kemampuanmu mengenali komponen otak komputer, memori, perangkat input, dan perangkat output!",
+    "title": "Kuis Pemahaman Jadwal & Tata Tertib Laboratorium",
+    "category": "Aplikasi Kantor",
+    "description": "Uji pemahamanmu dari naskah Jadwal Praktikum & Tata Tertib Lab Komputer.",
     "allocatedPoints": 100,
     "timeLimitMinutes": 10,
-    "createdAt": "2026-10-01T00:00:00.000Z",
+    "createdAt": "2026-10-08T08:00:22.934Z",
     "questions": [
       {
         "id": "q2-1",
-        "questionText": "Perangkat keras yang berfungsi sebagai otak utama pengolah data pada komputer adalah...",
-        "options": ["CPU (Processor)", "Monitor", "Keyboard", "Speaker"],
+        "questionText": "Berdasarkan jadwal praktikum, materi apakah yang dipelajari pada hari Selasa?",
+        "options": [
+          "Pelatihan Kecepatan dan Ketepatan Mengetik 10 Jari",
+          "Dasar Rumus Lembar Kerja Microsoft Excel",
+          "Pengenalan Perangkat Keras dan Perakitan Komputer",
+          "Menggambar Bebas dengan Paint"
+        ],
         "correctAnswerIndex": 0,
-        "explanation": "Luar biasa! CPU (Central Processing Unit) adalah otak pemroses seluruh data komputer.",
+        "explanation": "Tepat! Jadwal hari Selasa adalah Pelatihan Kecepatan dan Ketepatan Mengetik 10 Jari.",
         "weight": 20
       },
       {
         "id": "q2-2",
-        "questionText": "Berikut ini yang termasuk ke dalam kelompok Perangkat Keluaran (Output Device) adalah...",
-        "options": ["Keyboard dan Mouse", "Monitor dan Printer", "Microphone dan Scanner", "Flashdisk dan RAM"],
-        "correctAnswerIndex": 1,
-        "explanation": "Benar! Monitor dan Printer menampilkan dan mencetak informasi hasil kerja komputer.",
+        "questionText": "Pukul berapa jam sesi pembelajaran praktikum komputer dilaksanakan?",
+        "options": [
+          "Pukul 08.00 - 09.30 WIB",
+          "Pukul 10.00 - 12.00 WIB",
+          "Pukul 13.00 - 14.30 WIB",
+          "Pukul 06.30 - 07.30 WIB"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Benar! Praktikum dijadwalkan Pukul 08.00 - 09.30 WIB.",
         "weight": 20
       },
       {
         "id": "q2-3",
-        "questionText": "Memori komputer yang bersifat sementara dan akan terhapus saat komputer dimatikan adalah...",
-        "options": ["Harddisk", "Flashdisk", "RAM (Random Access Memory)", "CD-ROM"],
-        "correctAnswerIndex": 2,
-        "explanation": "Tepat! RAM adalah memori volatile yang bekerja saat aplikasi sedang aktif dibuka.",
+        "questionText": "Berdasarkan materi hari Rabu, siswa akan belajar tentang apa?",
+        "options": [
+          "Pemformatan Dokumen dan Tabel Microsoft Word",
+          "Bermain Game Online",
+          "Menonton Video Animasi",
+          "Membongkar Layar Monitor"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Pintar! Materi hari Rabu adalah Pemformatan Dokumen dan Tabel Microsoft Word.",
         "weight": 20
       },
       {
         "id": "q2-4",
-        "questionText": "Papan sirkuit elektronik utama tempat semua komponen CPU, RAM, dan kabel terhubung disebut...",
-        "options": ["Motherboard", "Keyboard", "Harddisk", "Monitor"],
+        "questionText": "Apa aturan tata tertib wajib yang harus dipatuhi mengenai alas kaki?",
+        "options": [
+          "Seluruh siswa wajib melepas alas kaki di rak yang telah disediakan",
+          "Siswa wajib mengenakan sepatu roda",
+          "Siswa boleh memakai sandal basah",
+          "Alas kaki diletakkan di atas meja komputer"
+        ],
         "correctAnswerIndex": 0,
-        "explanation": "Pintar! Motherboard adalah papan induk sirkuit utama komputer.",
+        "explanation": "Hebat! Siswa wajib melepas alas kaki di rak yang telah disediakan.",
         "weight": 20
       },
       {
         "id": "q2-5",
-        "questionText": "Perangkat yang digunakan untuk mencetak teks atau gambar dari komputer ke kertas fisik adalah...",
-        "options": ["Scanner", "Printer", "Webcam", "Plotter"],
-        "correctAnswerIndex": 1,
-        "explanation": "Betul! Printer mencetak dokumen digital ke lembaran kertas nyata.",
+        "questionText": "Langkah apa yang wajib dilakukan sebelum siswa meninggalkan ruangan lab?",
+        "options": [
+          "Matikan komputer melalui prosedur Shut down yang benar",
+          "Langsung mencabut colokan kabel listrik",
+          "Membiarkan komputer menyala semalaman",
+          "Mengubah sandi komputer tanpa izin"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Bagus sekali! Wajib mematikan komputer melalui prosedur Shut down yang benar.",
         "weight": 20
       }
     ]
   },
   {
     "id": "quiz-3",
-    "title": "Petualang Windows & Manajemen File Folder",
-    "category": "Dasar Komputer",
-    "description": "Uji keahlianmu mengelola file, folder, Recycle Bin, dan navigasi antarmuka Windows.",
+    "title": "Kuis Pemahaman Cerita Kucing Robot Pixel",
+    "category": "Format Word",
+    "description": "Uji pemahamanmu dari cerita edukatif petualangan kucing robot Pixel di dunia koding.",
     "allocatedPoints": 100,
     "timeLimitMinutes": 10,
-    "createdAt": "2026-10-01T00:00:00.000Z",
+    "createdAt": "2026-10-08T08:00:22.934Z",
     "questions": [
       {
         "id": "q3-1",
-        "questionText": "Kombinasi tombol shortcut keyboard untuk membuka File Explorer di Windows secara cepat adalah...",
-        "options": ["Windows + E", "Windows + D", "Windows + R", "Windows + L"],
+        "questionText": "Siapa nama kucing robot pintar dalam naskah cerita tersebut?",
+        "options": [
+          "Pixel",
+          "Byte",
+          "Neo",
+          "Robo"
+        ],
         "correctAnswerIndex": 0,
-        "explanation": "Hebat! Tombol Windows + E (Explorer) langsung membuka jendela File Explorer.",
+        "explanation": "Tepat! Kucing robot pintar tersebut bernama Pixel.",
         "weight": 20
       },
       {
         "id": "q3-2",
-        "questionText": "Tempat penampungan digital untuk file yang baru saja dihapus sementara di Windows adalah...",
-        "options": ["Recycle Bin", "Control Panel", "Task Manager", "Downloads"],
+        "questionText": "Apa warna bulu bercahaya yang dimiliki oleh Pixel?",
+        "options": [
+          "Biru neon",
+          "Kuning emas",
+          "Merah marun",
+          "Hijau terang"
+        ],
         "correctAnswerIndex": 0,
-        "explanation": "Tepat! Recycle Bin menyimpan file terhapus sehingga masih bisa dipulihkan (Restore).",
+        "explanation": "Benar! Pixel memiliki bulu bercahaya biru neon.",
         "weight": 20
       },
       {
         "id": "q3-3",
-        "questionText": "Ekstensi file (.extension) standar untuk dokumen Microsoft Word modern adalah...",
-        "options": [".docx", ".mp3", ".jpg", ".xlsx"],
+        "questionText": "Di kota digital manakah latar cerita petualangan tersebut berlangsung?",
+        "options": [
+          "Kota Byteville",
+          "Kota Cyberia",
+          "Kota Robotika",
+          "Kota Bit City"
+        ],
         "correctAnswerIndex": 0,
-        "explanation": "Benar! File dokumen Microsoft Word memiliki ekstensi .docx.",
+        "explanation": "Pintar! Kota digital tempat tinggal Pixel bernama Byteville.",
         "weight": 20
       },
       {
         "id": "q3-4",
-        "questionText": "Tombol keyboard pintas yang digunakan untuk mengganti nama (Rename) file yang dipilih adalah...",
-        "options": ["F1", "F2", "F5", "F12"],
-        "correctAnswerIndex": 1,
-        "explanation": "Keren! Menekan tombol fungsi F2 langsung mengaktifkan mode ganti nama file.",
+        "questionText": "Menurut Pixel, belajar logika koding itu menyenangkan dan mirip seperti menyusun apa?",
+        "options": [
+          "Balok lego warna-warni",
+          "Puzzle kayu kuno",
+          "Rumah kartu",
+          "Menara pasir"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Luar biasa! Pixel menyebut koding mirip menyusun balok lego warna-warni.",
         "weight": 20
       },
       {
         "id": "q3-5",
-        "questionText": "Langkah yang benar saat ingin mematikan komputer desktop adalah...",
+        "questionText": "Tanda baca apa yang terhapus sehingga membuat komputer perpustakaan mengalami gangguan?",
         "options": [
-          "Langsung mencabut kabel colokan listrik",
-          "Klik Start -> Power -> Shut down",
-          "Menekan tombol power monitor saja",
-          "Membiarkannya menyala semalaman"
+          "Tanda titik koma (;)",
+          "Tanda seru (!)",
+          "Tanda tanya (?)",
+          "Tanda petik ganda (\")"
         ],
-        "correctAnswerIndex": 1,
-        "explanation": "Bagus sekali! Selalu gunakan menu Start -> Shut down agar sistem dan file tetap aman.",
+        "correctAnswerIndex": 0,
+        "explanation": "Keren! Gangguan terjadi karena sebuah tanda titik koma terhapus dari baris kode.",
         "weight": 20
       }
     ]
   },
   {
     "id": "quiz-4",
-    "title": "Jawara Mengetik 10 Jari & Posisi Keyboard",
-    "category": "Format Word",
-    "description": "Tunjukkan pemahamanmu mengenai posisi jari Home Row, tombol khusus, dan teknik mengetik cepat.",
+    "title": "Kuis Pemahaman Laporan Perangkat Keras Komputer",
+    "category": "Dasar Komputer",
+    "description": "Uji pemahamanmu dari naskah laporan observasi perangkat keras komputer desktop.",
     "allocatedPoints": 100,
     "timeLimitMinutes": 10,
-    "createdAt": "2026-10-01T00:00:00.000Z",
+    "createdAt": "2026-10-08T08:00:22.934Z",
     "questions": [
       {
         "id": "q4-1",
-        "questionText": "Dua tombol pada keyboard yang memiliki tanda tonjolan kecil sebagai jangkar telunjuk adalah...",
-        "options": ["Tombol F dan J", "Tombol A dan L", "Tombol G dan H", "Tombol C dan M"],
+        "questionText": "Komponen apakah yang bertindak sebagai otak utama pengolah perintah komputasi?",
+        "options": [
+          "Central Processing Unit (CPU)",
+          "Monitor IPS",
+          "Mouse Optik",
+          "Keyboard Mekanikal"
+        ],
         "correctAnswerIndex": 0,
-        "explanation": "Pintar! Tombol F (telunjuk kiri) dan J (telunjuk kanan) adalah penanda posisi dasar Home Row.",
+        "explanation": "Tepat! CPU bertindak sebagai otak utama pengolah perintah komputasi.",
         "weight": 20
       },
       {
         "id": "q4-2",
-        "questionText": "Jari apakah yang bertugas menekan tombol Spacebar (Spasi)?",
-        "options": ["Jari Telunjuk", "Jari Kelingking", "Kedua Ibu Jari (Jempol)", "Jari Manis"],
-        "correctAnswerIndex": 2,
-        "explanation": "Tepat! Kedua ibu jari bertugas menekan tombol spasi panjang di bagian bawah.",
+        "questionText": "Apa perbedaan mendasar antara memori RAM dan media penyimpanan SSD NVMe dalam teks?",
+        "options": [
+          "RAM menyimpan data sementara saat program aktif, sedangkan SSD menyimpan berkas permanen",
+          "RAM menyimpan game selamanya, sedangkan SSD hanya menyala saat malam",
+          "RAM adalah kabel listrik, sedangkan SSD adalah tombol keyboard",
+          "Keduanya tidak memiliki fungsi yang berbeda"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Benar! RAM bersifat sementara saat program aktif, SSD menyimpan secara permanen.",
         "weight": 20
       },
       {
         "id": "q4-3",
-        "questionText": "Untuk membuat SATU huruf kapital saat mengetik tanpa menyalakan Caps Lock, kita menahan tombol...",
-        "options": ["Tombol Shift", "Tombol Tab", "Tombol Alt", "Tombol Ctrl"],
+        "questionText": "Perangkat apa yang bertugas memproses tampilan visual dua dimensi dan tiga dimensi?",
+        "options": [
+          "Kartu Grafis (GPU)",
+          "Power Supply",
+          "Kabel LAN",
+          "Kipas Casing"
+        ],
         "correctAnswerIndex": 0,
-        "explanation": "Benar! Menahan tombol Shift bersamaan dengan huruf akan menghasilkan satu huruf kapital.",
+        "explanation": "Pintar! Kartu grafis (GPU) bertugas memproses dan merender tampilan visual.",
         "weight": 20
       },
       {
         "id": "q4-4",
-        "questionText": "Tombol yang berfungsi membuat baris baru ke bawah atau mengeksekusi perintah adalah...",
-        "options": ["Backspace", "Enter", "Spacebar", "Escape"],
-        "correctAnswerIndex": 1,
-        "explanation": "Keren! Tombol Enter memindahkan kursor ke baris baru di bawahnya.",
+        "questionText": "Jenis panel monitor apa yang disebutkan dalam laporan agar mata tetap nyaman?",
+        "options": [
+          "Monitor panel IPS",
+          "Monitor tabung cembung",
+          "Layar kain proyektor",
+          "Layar kaca hitam putih"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Hebat! Teks menyebutkan monitor berpanel IPS dengan refresh rate optimal.",
         "weight": 20
       },
       {
         "id": "q4-5",
-        "questionText": "Perbedaan tombol Backspace dan Delete dalam menghapus teks adalah...",
+        "questionText": "Menurut kesimpulan laporan, apa dua hal yang menghasilkan performa komputer cepat dan stabil?",
         "options": [
-          "Backspace menghapus karakter di sebelah kiri kursor, Delete di sebelah kanan kursor",
-          "Delete menghapus seluruh dokumen sekaligus",
-          "Backspace hanya menghapus angka",
-          "Keduanya tidak memiliki perbedaan"
+          "Perangkat keras terawat baik dan sistem operasi yang bersih",
+          "Komputer dicolokkan ke aki mobil",
+          "Komputer yang penuh debu dan kotoran",
+          "Menghapus semua file sistem komputer"
         ],
         "correctAnswerIndex": 0,
-        "explanation": "Tepat sekali! Backspace menghapus karakter di kiri kursor, sedangkan Delete menghapus di kanan kursor.",
+        "explanation": "Mantap! Kombinasi hardware terawat dan OS bersih menghasilkan performa komputasi optimal.",
         "weight": 20
       }
     ]
   },
   {
     "id": "quiz-5",
-    "title": "Polisi Siber & Internet Sehat Ceria",
-    "category": "Internet & Etika",
-    "description": "Kuis kesadaran keamanan digital: cara melindungi kata sandi, mengenali bahaya phishing, dan netiket online.",
+    "title": "Kuis Pemahaman Proposal Pekan Kreativitas",
+    "category": "Format Word",
+    "description": "Uji pemahamanmu dari naskah proposal Pekan Kreativitas Digital Pelajar.",
     "allocatedPoints": 100,
     "timeLimitMinutes": 10,
-    "createdAt": "2026-10-01T00:00:00.000Z",
+    "createdAt": "2026-10-08T08:00:22.934Z",
     "questions": [
       {
         "id": "q5-1",
-        "questionText": "Sikap yang benar jika menerima pesan WhatsApp dari nomor tak dikenal yang menyatakan kamu menang uang 100 juta adalah...",
+        "questionText": "Apa tema resmi yang diusung dalam proposal Pekan Kreativitas Digital Pelajar?",
         "options": [
-          "Langsung klik link tautan yang diberikan",
-          "Kirimkan foto kartu identitas dan nomor rekening",
-          "Abaikan dan laporkan pesan mencurigakan tersebut ke orang tua/guru",
-          "Bagikan pesan ke seluruh grup teman sekelas"
+          "\"Berkarya Nyata Menuju Generasi Emas Digital\"",
+          "\"Bermain Game Bersama di Laboratorium\"",
+          "\"Mengenang Komputer Masa Kuno\"",
+          "\"Liburan Ceria Bersama Komputer\""
         ],
-        "correctAnswerIndex": 2,
-        "explanation": "Sangat bijak! Itu adalah modus penipuan phishing. Jangan pernah membuka link mencurigakan!",
+        "correctAnswerIndex": 0,
+        "explanation": "Tepat! Tema kegiatan adalah \"Berkarya Nyata Menuju Generasi Emas Digital\".",
         "weight": 20
       },
       {
         "id": "q5-2",
-        "questionText": "Manakah contoh kata sandi (password) yang paling aman dan kuat?",
-        "options": ["12345678", "namasaya", "K0mput3r_C3r1a!#26", "password123"],
-        "correctAnswerIndex": 2,
-        "explanation": "Hebat! Password yang kuat menggabungkan huruf besar, huruf kecil, angka, dan simbol unik.",
+        "questionText": "Kapan jadwal hari dan tanggal pelaksanaan lomba pada proposal tersebut?",
+        "options": [
+          "Senin - Rabu, 16 - 18 November 2026",
+          "Sabtu - Minggu, 1 - 2 Januari 2026",
+          "Kamis, 15 Oktober 2026",
+          "Jumat, 25 Desember 2026"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Benar! Pelaksanaan dijadwalkan Senin - Rabu, 16 - 18 November 2026.",
         "weight": 20
       },
       {
         "id": "q5-3",
-        "questionText": "Etika yang baik saat berkomunikasi dan berteman di ruang digital atau media sosial adalah...",
+        "questionText": "Pukul berapa rentang waktu kegiatan lomba diadakan setiap harinya?",
         "options": [
-          "Menulis komentar kasar dan mengejek teman",
-          "Menggunakan bahasa santun, saling menghargai, dan tidak menyebarkan hoaks",
-          "Membagikan password akun teman ke publik",
-          "Mengambil foto orang lain tanpa izin"
+          "Pukul 13.30 - 15.30 WIB",
+          "Pukul 07.00 - 08.00 WIB",
+          "Pukul 18.00 - 20.00 WIB",
+          "Pukul 10.00 - 11.00 WIB"
         ],
-        "correctAnswerIndex": 1,
-        "explanation": "Pintar! Bersikap santun dan saling menghargai menciptakan lingkungan internet yang positif dan ceria.",
+        "correctAnswerIndex": 0,
+        "explanation": "Pintar! Waktu kegiatan adalah Pukul 13.30 - 15.30 WIB.",
         "weight": 20
       },
       {
         "id": "q5-4",
-        "questionText": "Ikon gembok terkunci pada bilah alamat browser web (HTTPS) menandakan bahwa...",
+        "questionText": "Di manakah tempat diselenggarakannya cabang lomba pekan kreativitas tersebut?",
         "options": [
-          "Website tersebut rusak",
-          "Koneksi komunikasi data terenkripsi dan aman",
-          "Komputer sedang kehabisan baterai",
-          "Website tidak memiliki internet"
+          "Laboratorium Komputer dan Multimedia Sekolah",
+          "Lapangan Upacara Sekolah",
+          "Kantin Utama Sekolah",
+          "Pos Keamanan Gerbang Depan"
         ],
-        "correctAnswerIndex": 1,
-        "explanation": "Tepat! Protokol HTTPS dengan ikon gembok memastikan data terlindungi secara aman.",
+        "correctAnswerIndex": 0,
+        "explanation": "Hebat! Tempat kegiatan adalah Laboratorium Komputer dan Multimedia Sekolah.",
         "weight": 20
       },
       {
         "id": "q5-5",
-        "questionText": "Apa yang wajib dilakukan setelah selesai menggunakan komputer di laboratorium sekolah atau warnet?",
+        "questionText": "Manakah yang merupakan salah satu cabang lomba resmi pada naskah proposal?",
         "options": [
-          "Membiarkan akun email dan media sosial tetap login",
-          "Melakukan Logout (Keluar) dari semua akun pribadi",
-          "Menghapus sistem operasi komputer",
-          "Mengubah wallpaper komputer tanpa izin"
+          "Lomba Kecepatan Mengetik Naskah Word (Liga 10 Jari)",
+          "Lomba Balap Sepeda",
+          "Lomba Tebak Suara Hewan",
+          "Lomba Menyanyi Solo"
         ],
-        "correctAnswerIndex": 1,
-        "explanation": "Bagus! Selalu logout dari akunmu agar tidak disalahgunakan oleh pengguna berikutnya.",
+        "correctAnswerIndex": 0,
+        "explanation": "Mantap! Salah satu cabang lomba adalah Lomba Kecepatan Mengetik Naskah Word (Liga 10 Jari).",
+        "weight": 20
+      }
+    ]
+  },
+  {
+    "id": "quiz-6",
+    "title": "Kuis Pemahaman Artikel Netiket & Jejak Digital",
+    "category": "Internet & Etika",
+    "description": "Uji pemahamanmu dari naskah artikel netiket: rumus T.H.I.N.K, privasi akun, dan etika siber.",
+    "allocatedPoints": 100,
+    "timeLimitMinutes": 10,
+    "createdAt": "2026-10-08T08:00:22.934Z",
+    "questions": [
+      {
+        "id": "q6-1",
+        "questionText": "Mengapa jejak digital di internet perlu kita waspadai dan jaga dengan baik?",
+        "options": [
+          "Karena meninggalkan jejak digital permanen yang sulit dihapus sepenuhnya",
+          "Karena internet akan mati jika banyak mengetik",
+          "Karena kuota internet akan langsung terpotong",
+          "Karena layar monitor akan berubah warna"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Tepat! Aktivitas internet meninggalkan jejak digital permanen yang sulit dihapus.",
+        "weight": 20
+      },
+      {
+        "id": "q6-2",
+        "questionText": "Apa kepanjangan dari prinsip T.H.I.N.K sebelum menulis komentar atau pesan digital?",
+        "options": [
+          "True, Helpful, Inspiring, Necessary, Kind",
+          "Time, Hope, Internet, Network, Knowledge",
+          "Technology, Hard, Information, New, Key",
+          "Think, Help, Idea, Name, Keep"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Luar biasa! T.H.I.N.K mewakili True, Helpful, Inspiring, Necessary, dan Kind.",
+        "weight": 20
+      },
+      {
+        "id": "q6-3",
+        "questionText": "Manakah contoh data rahasia pribadi yang dilarang dibagikan kepada orang asing?",
+        "options": [
+          "Password, NISN, dan alamat rumah",
+          "Judul buku paket sekolah",
+          "Nama ekstrakurikuler komputer",
+          "Warna gedung sekolah"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Benar! Password, NISN, dan alamat rumah merupakan data pribadi rahasia.",
+        "weight": 20
+      },
+      {
+        "id": "q6-4",
+        "questionText": "Apa bentuk menghargai hak cipta saat menggunakan artikel atau gambar untuk tugas sekolah?",
+        "options": [
+          "Selalu mencantumkan sumber referensi pencipta asli",
+          "Mengakuinya sebagai karya buatan sendiri",
+          "Menghapus watermark pencipta",
+          "Menjual ulang gambar tersebut"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Pintar! Menghargai hak cipta dilakukan dengan mencantumkan sumber referensi resmi.",
+        "weight": 20
+      },
+      {
+        "id": "q6-5",
+        "questionText": "Kepada siapa siswa harus melapor jika menemukan modus kejahatan siber atau cyberbullying?",
+        "options": [
+          "Orang tua atau guru pembina",
+          "Orang tak dikenal di game",
+          "Robot spam internet",
+          "Didiamkan saja"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Sangat tepat! Laporkan segera ke orang tua atau guru pembina.",
+        "weight": 20
+      }
+    ]
+  },
+  {
+    "id": "quiz-7",
+    "title": "Kuis Pemahaman SOP Perawatan & Shutdown Komputer",
+    "category": "Aplikasi Kantor",
+    "description": "Uji pemahamanmu dari naskah SOP Laboratorium: persiapan, perawatan, dan prosedur mematikan komputer.",
+    "allocatedPoints": 100,
+    "timeLimitMinutes": 10,
+    "createdAt": "2026-10-08T08:00:22.934Z",
+    "questions": [
+      {
+        "id": "q7-1",
+        "questionText": "Pada Tahap 1, apa yang wajib dipastikan sebelum menyalakan daya listrik komputer?",
+        "options": [
+          "Memastikan meja dan lantai kering dari tumpahan cairan",
+          "Semua pintu ruangan dikunci gembok",
+          "Layar monitor sudah panas",
+          "Membawa minuman manis ke dekat keyboard"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Benar sekali! Meja dan lantai harus kering dari tumpahan cairan demi keamanan listrik.",
+        "weight": 20
+      },
+      {
+        "id": "q7-2",
+        "questionText": "Unit manakah yang ditekan tombol power-nya terlebih dahulu saat menghidupkan komputer?",
+        "options": [
+          "Unit CPU terlebih dahulu, kemudian nyalakan monitor",
+          "Layar monitor terlebih dahulu, lalu cabut kabel",
+          "Tombol spasi keyboard",
+          "Speaker audio"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Tepat! Tekan tombol Power pada unit CPU terlebih dahulu, lalu nyalakan monitor.",
+        "weight": 20
+      },
+      {
+        "id": "q7-3",
+        "questionText": "Fitur Windows apa yang wajib digunakan sebelum mencabut flashdisk dari port USB?",
+        "options": [
+          "Safely Remove Hardware / Eject",
+          "Copy Paste",
+          "Task Manager",
+          "Format Disk"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Pintar! Fitur \"Safely Remove Hardware / Eject\" melindungi data flashdisk dari kerusakan.",
+        "weight": 20
+      },
+      {
+        "id": "q7-4",
+        "questionText": "Pada Tahap 3, apa yang harus dilakukan terhadap dokumen sebelum menekan tombol Shut down?",
+        "options": [
+          "Simpan seluruh pekerjaan dokumen dan tutup semua jendela aplikasi",
+          "Biarkan dokumen terbuka tanpa disimpan",
+          "Hapus semua berkas dokumen",
+          "Matikan saklar stopkontak langsung"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Hebat! Wajib menyimpan pekerjaan dan menutup seluruh aplikasi sebelum Shutdown.",
+        "weight": 20
+      },
+      {
+        "id": "q7-5",
+        "questionText": "Bagaimana posisi kursi lab yang benar setelah selesai menggunakan komputer?",
+        "options": [
+          "Dimasukkan ke bawah meja dengan rapi",
+          "Dibiarkan melintang di lorong lab",
+          "Dinaikkan ke atas meja",
+          "Dikeluarkan ke teras sekolah"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Bagus! Kursi harus dimasukkan ke bawah meja dengan rapi demi ketertiban lab.",
+        "weight": 20
+      }
+    ]
+  },
+  {
+    "id": "quiz-8",
+    "title": "Kuis Pemahaman Naskah Pidato Pelajar",
+    "category": "Format Word",
+    "description": "Uji pemahamanmu dari naskah pidato perwakilan siswa: tiga kunci sukses menatap masa depan teknologi.",
+    "allocatedPoints": 100,
+    "timeLimitMinutes": 10,
+    "createdAt": "2026-10-08T08:00:22.934Z",
+    "questions": [
+      {
+        "id": "q8-1",
+        "questionText": "Dalam naskah pidato siswa, komputer diibaratkan sebagai apa?",
+        "options": [
+          "Jendela ilmu pengetahuan dunia tanpa batas",
+          "Mesin hitung toko kelontong",
+          "Kamera pengawas ruangan",
+          "Televisi tayangan kartun"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Luar biasa! Komputer diibaratkan sebagai jendela ilmu pengetahuan dunia tanpa batas.",
+        "weight": 20
+      },
+      {
+        "id": "q8-2",
+        "questionText": "Berdasarkan pidato, apa kunci sukses pertama bagi generasi muda digital?",
+        "options": [
+          "Memiliki rasa ingin tahu yang tinggi untuk terus belajar hal baru",
+          "Membeli perangkat komputer paling mahal",
+          "Bermain media sosial sepanjang malam",
+          "Menghindari latihan mengetik"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Tepat! Kunci pertama adalah rasa ingin tahu yang tinggi untuk belajar hal baru.",
+        "weight": 20
+      },
+      {
+        "id": "q8-3",
+        "questionText": "Sikap apa yang harus ditunjukkan menurut pidato ketika program mengalami kendala atau error?",
+        "options": [
+          "Teliti, disiplin, dan pantang menyerah",
+          "Marah dan merusak keyboard",
+          "Langsung berhenti belajar koding",
+          "Menyalahkan teman sekelas"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Benar! Bersikap teliti, disiplin, dan pantang menyerah ketika menghadapi kendala.",
+        "weight": 20
+      },
+      {
+        "id": "q8-4",
+        "questionText": "Apa tujuan menjunjung tinggi etika moral dalam berkarya digital menurut pidato?",
+        "options": [
+          "Agar karya kita membawa manfaat bagi nusa dan bangsa",
+          "Agar menjadi selebriti instan di internet",
+          "Agar mendapatkan uang banyak saja",
+          "Agar tidak perlu mengikuti ujian sekolah"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Pintar! Etika moral membimbing karya kita agar membawa manfaat bagi nusa dan bangsa.",
+        "weight": 20
+      },
+      {
+        "id": "q8-5",
+        "questionText": "Keterampilan mengetik apakah yang disemangati untuk terus dilatih secara giat pada penutup pidato?",
+        "options": [
+          "Mengetik 10 jari di atas papan ketik",
+          "Mengetik dengan satu jari telunjuk",
+          "Mengetik tanpa melihat layar monitor",
+          "Mengetik menggunakan suara saja"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Mantap! Seluruh siswa disemangati untuk giat berlatih mengetik 10 jari.",
+        "weight": 20
+      }
+    ]
+  },
+  {
+    "id": "quiz-9",
+    "title": "Kuis Pemahaman Tabel Nilai Mengetik 10 Jari",
+    "category": "Aplikasi Kantor",
+    "description": "Uji pemahamanmu dari naskah tabel rekapitulasi nilai dan capaian mengetik siswa.",
+    "allocatedPoints": 100,
+    "timeLimitMinutes": 10,
+    "createdAt": "2026-10-08T08:00:22.934Z",
+    "questions": [
+      {
+        "id": "q9-1",
+        "questionText": "Siapa siswa yang memiliki kecepatan mengetik tertinggi (42 WPM) pada tabel rekapitulasi?",
+        "options": [
+          "Budi Santoso (Kelas 6A)",
+          "Ahmad Fauzi (Kelas 5A)",
+          "Siti Rahmawati (Kelas 5B)",
+          "Citra Kirana (Kelas 6B)"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Tepat! Budi Santoso dari Kelas 6A mencatat kecepatan tertinggi 42 WPM.",
+        "weight": 20
+      },
+      {
+        "id": "q9-2",
+        "questionText": "Berapa tingkat akurasi mengetik yang diraih oleh Siti Rahmawati dari Kelas 5B?",
+        "options": [
+          "98%",
+          "95%",
+          "90%",
+          "85%"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Benar! Siti Rahmawati berhasil meraih akurasi 98%.",
+        "weight": 20
+      },
+      {
+        "id": "q9-3",
+        "questionText": "Berapa kriteria batas kecepatan minimal yang ditentukan dalam penilaian naskah?",
+        "options": [
+          "Minimal 30 WPM",
+          "Minimal 15 WPM",
+          "Minimal 50 WPM",
+          "Minimal 60 WPM"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Pintar! Batas kriteria kecepatan minimal adalah 30 WPM.",
+        "weight": 20
+      },
+      {
+        "id": "q9-4",
+        "questionText": "Berapa batas akurasi minimal yang harus dicapai siswa berdasarkan naskah tabel?",
+        "options": [
+          "Akurasi minimal 90%",
+          "Akurasi minimal 70%",
+          "Akurasi minimal 50%",
+          "Akurasi minimal 30%"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Hebat! Kriteria akurasi minimal adalah 90%.",
+        "weight": 20
+      },
+      {
+        "id": "q9-5",
+        "questionText": "Apa nilai huruf yang diperoleh oleh Citra Kirana dari Kelas 6B dengan kecepatan 40 WPM?",
+        "options": [
+          "Nilai A+",
+          "Nilai B",
+          "Nilai C",
+          "Nilai D"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Mantap! Citra Kirana memperoleh nilai A+.",
+        "weight": 20
+      }
+    ]
+  },
+  {
+    "id": "quiz-10",
+    "title": "Kuis Pemahaman Tips Kesehatan Mata & Postur",
+    "category": "Dasar Komputer",
+    "description": "Uji pemahamanmu dari naskah panduan merawat mata dan postur duduk saat mengetik.",
+    "allocatedPoints": 100,
+    "timeLimitMinutes": 10,
+    "createdAt": "2026-10-08T08:00:22.934Z",
+    "questions": [
+      {
+        "id": "q10-1",
+        "questionText": "Berdasarkan teks panduan kesehatan, apa maksud dari Aturan 20-20-20?",
+        "options": [
+          "Tiap 20 menit menatap layar, istirahatkan mata dengan melihat objek sejauh 20 kaki selama 20 detik",
+          "Mengetik selama 20 jam tanpa istirahat",
+          "Membeli 20 kacamata dalam waktu 20 hari",
+          "Menekan tombol keyboard 20 kali dalam 20 detik"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Tepat! Tiap 20 menit menatap layar, lihat objek sejauh 20 kaki (6 meter) selama 20 detik.",
+        "weight": 20
+      },
+      {
+        "id": "q10-2",
+        "questionText": "Berapa jarak aman posisi layar monitor dari mata yang dianjurkan dalam naskah?",
+        "options": [
+          "50 sampai 60 sentimeter",
+          "10 sampai 15 sentimeter",
+          "2 sampai 3 meter",
+          "5 sentimeter saja"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Benar! Layar monitor diposisikan sekitar 50 sampai 60 sentimeter dari mata.",
+        "weight": 20
+      },
+      {
+        "id": "q10-3",
+        "questionText": "Bagaimana posisi kedua telapak kaki yang benar saat duduk mengetik di depan komputer?",
+        "options": [
+          "Menapak rata di lantai",
+          "Menggantung tinggi di udara",
+          "Dilipat ke atas meja komputer",
+          "Disilangkan di atas kursi"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Pintar! Kedua telapak kaki harus menapak rata di lantai.",
+        "weight": 20
+      },
+      {
+        "id": "q10-4",
+        "questionText": "Mengapa kita disarankan untuk sering berkedip saat menatap layar komputer?",
+        "options": [
+          "Menjaga kelembapan kornea mata agar tidak perih atau lelah",
+          "Agar komputer tidak mati mendadak",
+          "Untuk mempercepat koneksi internet",
+          "Supaya tombol keyboard mengetik otomatis"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Hebat! Berkedip teratur menjaga kelembapan kornea mata agar tidak perih.",
+        "weight": 20
+      },
+      {
+        "id": "q10-5",
+        "questionText": "Bagaimana posisi punggung yang dianjurkan saat duduk di depan komputer?",
+        "options": [
+          "Tegak bersandar pada sandaran kursi",
+          "Membungkuk sangat dekat dengan keyboard",
+          "Tiduran terlentang di lantai lab",
+          "Miring ke kiri terus menerus"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Mantap! Duduklah dengan punggung tegak bersandar pada sandaran kursi.",
+        "weight": 20
+      }
+    ]
+  },
+  {
+    "id": "quiz-11",
+    "title": "Kuis Pemahaman Cerita: Misteri Lembah Algoritma",
+    "category": "Format Word",
+    "description": "Uji pemahamanmu dari cerita petualangan Rian, Maya, dan Bimo memecahkan teka-teki logika di Pulau Byte.",
+    "allocatedPoints": 100,
+    "timeLimitMinutes": 10,
+    "createdAt": "2026-10-08T08:00:22.934Z",
+    "questions": [
+      {
+        "id": "q11-1",
+        "questionText": "Siapa saja nama ketiga sahabat yang mengikuti ekspedisi di Pulau Byte?",
+        "options": [
+          "Rian, Maya, dan Bimo",
+          "Ahmad, Siti, dan Budi",
+          "Doni, Eka, dan Fajar",
+          "Gilang, Hana, dan Ian"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Tepat! Tiga sahabat tersebut adalah Rian, Maya, dan Bimo.",
+        "weight": 20
+      },
+      {
+        "id": "q11-2",
+        "questionText": "Teka-teki logika apakah yang tertulis di atas pintu gerbang batu kuno?",
+        "options": [
+          "Urutan langkah algoritma membuat secangkir teh hangat",
+          "Cara merakit komputer desktop dari awal",
+          "Rumus perkalian matematika angka puluhan",
+          "Nama-nama seluruh ibukota negara di dunia"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Benar! Teka-teki gerbang adalah menyusun urutan langkah algoritma membuat secangkir teh hangat.",
+        "weight": 20
+      },
+      {
+        "id": "q11-3",
+        "questionText": "Siapa tokoh yang berpikir runut dan menyusun instruksi logis pembuatan teh?",
+        "options": [
+          "Maya",
+          "Rian",
+          "Bimo",
+          "Pak Guru"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Pintar! Maya yang gemar berpikir runut menyusun urutan langkah logis tersebut.",
+        "weight": 20
+      },
+      {
+        "id": "q11-4",
+        "questionText": "Bagaimana cara Bimo memasukkan instruksi ke papan tombol gerbang digital?",
+        "options": [
+          "Mengetik menggunakan teknik sepuluh jari tanpa kesalahan",
+          "Menempelkan (copy-paste) dari kertas catatan",
+          "Menggunakan perintah suara mikrofon ponsel",
+          "Menekan tombol sembarangan secara acak"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Luar biasa! Bimo mengetikkan setiap baris instruksi dengan teknik 10 jari tanpa salah.",
+        "weight": 20
+      },
+      {
+        "id": "q11-5",
+        "questionText": "Harta karun berharga apakah yang mereka temukan di dalam ruangan gerbang?",
+        "options": [
+          "Ribuan kristal bercahaya pemuat ilmu pengetahuan teknologi dunia",
+          "Peti emas dan perak peninggalan zaman kuno",
+          "Koleksi mainan robot dan mobil balap",
+          "Buku resep masakan tradisional nusantara"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Hebat! Mereka menemukan perpustakaan ribuan kristal pemuat ilmu pengetahuan teknologi.",
+        "weight": 20
+      }
+    ]
+  },
+  {
+    "id": "quiz-12",
+    "title": "Kuis Pemahaman Kisah: Sahabat Pena Digital Nusantara",
+    "category": "Aplikasi Kantor",
+    "description": "Uji pemahamanmu dari kisah persahabatan Gede, Tari, dan Alif bertukar cerita budaya nusantara melalui Microsoft Word.",
+    "allocatedPoints": 100,
+    "timeLimitMinutes": 10,
+    "createdAt": "2026-10-08T08:00:22.934Z",
+    "questions": [
+      {
+        "id": "q12-1",
+        "questionText": "Siapakah ketiga sahabat pena yang mewakili berbagai pelosok nusantara dalam cerita?",
+        "options": [
+          "Gede, Tari, dan Alif",
+          "Rian, Maya, dan Bimo",
+          "Ahmad, Dewi, dan Putu",
+          "Fauzi, Citra, dan Wayan"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Tepat! Tiga sahabat pena tersebut adalah Gede (Bali), Tari (Bukittinggi), dan Alif (Merauke).",
+        "weight": 20
+      },
+      {
+        "id": "q12-2",
+        "questionText": "Dari daerah manakah masing-masing ketiga sahabat tersebut berasal?",
+        "options": [
+          "Bali, Bukittinggi, dan Merauke Papua",
+          "Jakarta, Bandung, dan Surabaya",
+          "Medan, Palembang, dan Lampung",
+          "Semarang, Yogyakarta, dan Solo"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Benar! Gede dari Bali, Tari dari Bukittinggi Sumatra Barat, dan Alif dari Merauke Papua.",
+        "weight": 20
+      },
+      {
+        "id": "q12-3",
+        "questionText": "Aplikasi pengolah kata apakah yang mereka gunakan untuk menyusun dan merapikan cerita budaya?",
+        "options": [
+          "Microsoft Word",
+          "Microsoft Excel",
+          "Adobe Photoshop",
+          "Google Chrome"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Pintar! Mereka saling bertukar dokumen cerita yang diketik rapi dengan Microsoft Word.",
+        "weight": 20
+      },
+      {
+        "id": "q12-4",
+        "questionText": "Cerita menarik apa yang dibagikan oleh Alif dari tanah Merauke Papua?",
+        "options": [
+          "Satwa langka burung cenderawasih dan indahnya matahari terbit di ufuk timur",
+          "Sejarah pembangunan jembatan gantung Merauke",
+          "Resep masakan rendang daging sapi pedas",
+          "Pertandingan sepak bola liga nasional"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Luar biasa! Alif mengetik laporan tentang satwa cenderawasih dan matahari terbit Papua.",
+        "weight": 20
+      },
+      {
+        "id": "q12-5",
+        "questionText": "Pesan moral utama apa yang dapat kita petik dari persahabatan digital mereka?",
+        "options": [
+          "Komputer menjadi jembatan pemersatu kebinekaan dan kebersamaan generasi penerus bangsa",
+          "Mengetik komputer hanya berguna untuk menghabiskan waktu luang",
+          "Jarak antarpulau membuat kita tidak bisa saling berteman",
+          "Hanya anak kota besar yang boleh belajar komputer"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Mantap! Komputer menjadi jembatan pemersatu kebinekaan bagi generasi muda nusantara.",
+        "weight": 20
+      }
+    ]
+  },
+  {
+    "id": "quiz-13",
+    "title": "Kuis Pemahaman Misi: Penyelamatan Satelit Cuaca Cilik",
+    "category": "Dasar Komputer",
+    "description": "Uji pemahamanmu dari ekspedisi sains Naila dan tim menyelamatkan satelit mikro cuaca Garuda-Satu.",
+    "allocatedPoints": 100,
+    "timeLimitMinutes": 10,
+    "createdAt": "2026-10-08T08:00:22.934Z",
+    "questions": [
+      {
+        "id": "q13-1",
+        "questionText": "Apakah nama satelit mikro cuaca yang dipantau oleh Naila dan tim teknisi cilik?",
+        "options": [
+          "Garuda-Satu",
+          "Palapa-A1",
+          "Nusantara-Tiga",
+          "Merah-Putih"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Tepat! Satelit mikro cuaca tersebut bernama Garuda-Satu.",
+        "weight": 20
+      },
+      {
+        "id": "q13-2",
+        "questionText": "Apa manfaat penting satelit cuaca Garuda-Satu bagi masyarakat pesisir pantai?",
+        "options": [
+          "Memotret awan badai dan mengirimkan prakiraan cuaca bagi nelayan tradisional",
+          "Menyiarkan siaran televisi anak-anak 24 jam nonstop",
+          "Menghitung jumlah ikan di dalam lautan samudra",
+          "Menghangatkan suhu air laut saat musim dingin"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Benar! Garuda-Satu memotret awan badai dan memberi prakiraan cuaca bagi nelayan.",
+        "weight": 20
+      },
+      {
+        "id": "q13-3",
+        "questionText": "Penyebab apakah yang membuat antena pemancar satelit mengalami gangguan posisi di antariksa?",
+        "options": [
+          "Hempasan angin matahari berkecepatan tinggi",
+          "Tabrakan dengan burung camar laut",
+          "Kehabisan bahan bakar minyak",
+          "Hujan deras di luar angkasa"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Pintar! Angin matahari berkecepatan tinggi menyebabkan posisi antena satelit bergeser.",
+        "weight": 20
+      },
+      {
+        "id": "q13-4",
+        "questionText": "Apa yang dilakukan Naila dan tim dengan keyboard komputer untuk memulihkan satelit?",
+        "options": [
+          "Mengetikkan baris kode algoritma re-kalibrasi transmisi radio darurat dengan cepat dan tepat",
+          "Mematikan komputer dan menunggu satelit pulih dengan sendirinya",
+          "Memainkan game luar angkasa untuk menghilangkan rasa cemas",
+          "Membongkar keyboard komputer menjadi beberapa bagian"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Luar biasa! Mereka mengetikkan kode algoritma darurat tanpa satu huruf pun keliru.",
+        "weight": 20
+      },
+      {
+        "id": "q13-5",
+        "questionText": "Bagaimana hasil akhir dari misi penyelamatan satelit Garuda-Satu tersebut?",
+        "options": [
+          "Antena kembali ke sudut optimal, sinyal pulih seratus persen, dan data cuaca terselamatkan",
+          "Satelit jatuh ke samudra dan tidak dapat diperbaiki",
+          "Sinyal satelit hilang total selamanya",
+          "Data cuaca terhapus dan misi dibatalkan"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Hebat! Misi sukses besar, sinyal pulih 100%, dan data foto cuaca terselamatkan.",
+        "weight": 20
+      }
+    ]
+  },
+  {
+    "id": "quiz-14",
+    "title": "Kuis Pemahaman Cerita: Kancil & Komputer Pintar Hutan",
+    "category": "Format Word",
+    "description": "Uji pemahamanmu dari naskah cerita fabel Si Kancil dan Komputer Pintar Hutan Belantara.",
+    "allocatedPoints": 120,
+    "timeLimitMinutes": 10,
+    "createdAt": "2026-10-08T08:00:22.934Z",
+    "questions": [
+      {
+        "id": "q14-1",
+        "questionText": "Benda apa yang ditemukan oleh Si Kancil di tepi rimba dekat pohon beringin tua?",
+        "options": [
+          "Kotak logam ajaib berpendar cahaya biru (komputer pintar)",
+          "Sebuah peti emas berisi koin kuno",
+          "Kantong kain berisi buah apel manis",
+          "Sepeda roda tiga yang terbuat dari kayu"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Tepat sekali! Kancil menemukan kotak logam berpendar cahaya biru yang merupakan komputer pintar.",
+        "weight": 20
+      },
+      {
+        "id": "q14-2",
+        "questionText": "Mengapa pada awalnya Kancil gagal membuka lumbung mata air saat mengetik sendiri?",
+        "options": [
+          "Karena Kancil mengetik tergesa-gesa tanpa teliti sehingga banyak huruf salah",
+          "Karena komputer kehabisan daya baterai",
+          "Karena tombol keyboard rusak dan macet",
+          "Karena Kancil tidak bisa membaca pesan di layar"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Benar! Kancil terlalu sombong dan terburu-buru sehingga akurasinya rendah dan banyak huruf tertukar.",
+        "weight": 20
+      },
+      {
+        "id": "q14-3",
+        "questionText": "Siapakah sahabat Kancil yang datang menasihati dan membantunya mengetik dengan tenang?",
+        "options": [
+          "Kura-kura yang sabar dan bijaksana",
+          "Burung Elang yang terbang tinggi",
+          "Gajah perkasa penguasa padang rumput",
+          "Harimau belang yang suka berlari"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Hebat! Kura-kura yang bijaksana datang mengingatkan Kancil tentang pentingnya ketelitian.",
+        "weight": 20
+      },
+      {
+        "id": "q14-4",
+        "questionText": "Bagaimana cara Kancil dan Kura-kura bekerja sama menyelesaikan tantangan tersebut?",
+        "options": [
+          "Kancil membaca naskah kalimat demi kalimat dengan lantang, sementara Kura-kura mengetik cermat dengan ritme stabil",
+          "Kancil tidur siang sementara Kura-kura bekerja sendirian",
+          "Mereka bergantian menekan tombol sembarangan tanpa membaca naskah",
+          "Mereka meminta bantuan hewan lain untuk merusak kotak logam"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Pintar! Kerja sama yang baik: Kancil membacakan dengan lantang, Kura-kura mengetik dengan teliti.",
+        "weight": 20
+      },
+      {
+        "id": "q14-5",
+        "questionText": "Pelajaran berharga apa yang dipetik Kancil dari peristiwa tersebut?",
+        "options": [
+          "Kecerdasan sejati lahir dari perpaduan kecepatan, ketelitian, kesabaran, dan kerendahan hati",
+          "Kecepatan mengetik adalah satu-satunya hal yang penting dalam hidup",
+          "Tidak perlu belajar mengetik karena mesin bisa bekerja sendiri",
+          "Hanya hewan cepat yang berhak menggunakan teknologi komputer"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Luar biasa! Ketelitian, kesabaran, dan kerja sama jauh lebih berharga daripada sekadar terburu-buru.",
+        "weight": 20
+      }
+    ]
+  },
+  {
+    "id": "quiz-15",
+    "title": "Kuis Pemahaman Cerita: Petualangan Arka & Hutan Bambu",
+    "category": "Dasar Komputer",
+    "description": "Uji pemahamanmu dari naskah petualangan Arka, robot Bimo, dan observatorium puncak bukit.",
+    "allocatedPoints": 120,
+    "timeLimitMinutes": 10,
+    "createdAt": "2026-10-08T08:00:22.934Z",
+    "questions": [
+      {
+        "id": "q15-1",
+        "questionText": "Apa tujuan utama perjalanan Arka menuju observatorium di puncak bukit bambu?",
+        "options": [
+          "Memperbaiki sistem pompa air bersih bertenaga surya yang mogok untuk menolong warga desa",
+          "Mencari sinyal internet untuk bermain video game online",
+          "Menonton gerhana matahari bersama teman sekelas",
+          "Menjual suku cadang robot ke pasar terdekat"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Tepat! Arka memiliki tekad mulia menghidupkan kembali pompa air bertenaga surya untuk desa.",
+        "weight": 20
+      },
+      {
+        "id": "q15-2",
+        "questionText": "Siapakah nama robot sensorik kecil berkaki empat ciptaan Arka yang menemaninya?",
+        "options": [
+          "Bimo",
+          "Pixel",
+          "Garuda",
+          "Alpha"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Benar! Robot ciptaan Arka bernama Bimo.",
+        "weight": 20
+      },
+      {
+        "id": "q15-3",
+        "questionText": "Di posisi tombol manakah Arka menempatkan jari-jarinya sebelum mengetik instruksi kalibrasi?",
+        "options": [
+          "Tombol baris tengah (Home Row)",
+          "Hanya tombol angka di bagian atas",
+          "Tombol spasi dan enter saja",
+          "Tombol panah navigasi kanan-kiri"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Hebat! Posisi jari rumah (Home Row) adalah teknik mengetik 10 jari yang benar.",
+        "weight": 20
+      },
+      {
+        "id": "q15-4",
+        "questionText": "Berapa besar tekanan hidrolik yang diketikkan Arka dalam perintah kalibrasi katup pipa?",
+        "options": [
+          "Lima bar (5 bar)",
+          "Seratus bar (100 bar)",
+          "Dua puluh bar (20 bar)",
+          "Nol bar (0 bar)"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Pintar! Sesuai teks cerita, Arka mengatur tekanan hidrolik sebesar lima bar.",
+        "weight": 20
+      },
+      {
+        "id": "q15-5",
+        "questionText": "Apa manfaat yang dirasakan warga desa setelah Arka berhasil mengetikkan instruksi secara tepat?",
+        "options": [
+          "Air pegunungan jernih kembali mengalir deras membasahi ladang sayur desa yang kekeringan",
+          "Listrik di desa padam total",
+          "Warga desa harus membeli air minum dari kota lain",
+          "Ladang sayur terpaksa ditutup sementara"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Luar biasa! Pompa air kembali berputar normal dan mengalirkan air jernih ke ladang para petani.",
         "weight": 20
       }
     ]

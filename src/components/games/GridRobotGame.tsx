@@ -104,6 +104,176 @@ const LEVELS: LevelConfig[] = [
     optimalSteps: 11,
     hint: 'Kombinasikan Maju, Belokan, dan Lompat untuk mengumpulkan seluruh bintang baterai!',
   },
+  {
+    id: 6,
+    title: 'Level 6: Rintangan Genangan Berantai',
+    gridSize: 6,
+    startPos: [5, 1],
+    startDir: 'UP',
+    targetPos: [0, 1],
+    stars: [[4, 1], [2, 1], [0, 3]],
+    walls: [[3, 0], [3, 2]],
+    puddles: [[3, 1]],
+    optimalSteps: 7,
+    hint: 'Lompat melintasi genangan air di baris 3, lalu belok kanan untuk mengambil bintang bonus dan portal!',
+  },
+  {
+    id: 7,
+    title: 'Level 7: Pola Loop Ganda (Algoritma 2X)',
+    gridSize: 6,
+    startPos: [5, 0],
+    startDir: 'RIGHT',
+    targetPos: [1, 5],
+    stars: [[5, 2], [5, 4], [3, 4], [1, 4]],
+    walls: [[4, 1], [4, 3], [2, 3], [2, 5]],
+    puddles: [],
+    optimalSteps: 9,
+    hint: 'Gunakan blok "Ulangi 2x (Loop)" untuk menghemat perintah Maju di jalur lurus panjang!',
+  },
+  {
+    id: 8,
+    title: 'Level 8: Labirin Tembok Benteng Spiral',
+    gridSize: 6,
+    startPos: [5, 5],
+    startDir: 'UP',
+    targetPos: [2, 2],
+    stars: [[3, 5], [1, 5], [1, 1], [3, 1]],
+    walls: [
+      [4, 1], [4, 2], [4, 3], [4, 4],
+      [2, 3], [2, 4], [3, 4]
+    ],
+    puddles: [[1, 3]],
+    optimalSteps: 12,
+    hint: 'Ada jalan pintas genangan air di koridor atas! Gunakan Lompat untuk menghemat langkah menuju pusat benteng.',
+  },
+  {
+    id: 9,
+    title: 'Level 9: Jembatan Rintangan Kombinasi',
+    gridSize: 7,
+    startPos: [6, 0],
+    startDir: 'UP',
+    targetPos: [0, 6],
+    stars: [[4, 0], [4, 3], [2, 3], [2, 6]],
+    walls: [
+      [5, 1], [5, 2], [5, 4], [5, 5],
+      [3, 1], [3, 2], [3, 4], [3, 5],
+      [1, 1], [1, 2], [1, 4], [1, 5]
+    ],
+    puddles: [[4, 2], [2, 4]],
+    optimalSteps: 14,
+    hint: 'Kombinasikan manuver belokan koridor dan lompatan genangan untuk mencapai stasiun pengisian daya satelit.',
+  },
+  {
+    id: 10,
+    title: 'Level 10: Ekspedisi Rover Planet Mars',
+    gridSize: 7,
+    startPos: [6, 3],
+    startDir: 'UP',
+    targetPos: [0, 3],
+    stars: [[5, 1], [3, 1], [1, 1], [1, 5], [3, 5], [5, 5]],
+    walls: [
+      [5, 2], [5, 4], [4, 2], [4, 4],
+      [2, 2], [2, 4], [1, 2], [1, 4],
+      [3, 0], [3, 6]
+    ],
+    puddles: [[4, 3], [2, 3]],
+    optimalSteps: 16,
+    hint: 'Misi pamungkas Rover! Kumpulkan seluruh 6 sampel batuan bintang dan navigasikan robot ke stasiun pendaratan utama!',
+  },
+  {
+    id: 11,
+    title: 'Level 11: Rintangan Genangan Zig-Zag Ganda',
+    gridSize: 7,
+    startPos: [6, 1],
+    startDir: 'UP',
+    targetPos: [0, 5],
+    stars: [[5, 1], [3, 1], [3, 5], [1, 5]],
+    walls: [[4, 2], [4, 3], [4, 4], [2, 2], [2, 3], [2, 4]],
+    puddles: [[5, 3], [1, 3]],
+    optimalSteps: 13,
+    hint: 'Lompati genangan air di lorong tengah untuk meluncur cepat dari sayap kiri ke sayap kanan!',
+  },
+  {
+    id: 12,
+    title: 'Level 12: Manuver Labirin Huruf S',
+    gridSize: 7,
+    startPos: [6, 0],
+    startDir: 'RIGHT',
+    targetPos: [0, 0],
+    stars: [[6, 4], [4, 2], [2, 4], [0, 3]],
+    walls: [[5, 1], [5, 2], [5, 3], [5, 4], [5, 5], [3, 1], [3, 2], [3, 3], [3, 4], [3, 5], [1, 1], [1, 2], [1, 3], [1, 4], [1, 5]],
+    puddles: [[6, 3], [4, 5], [2, 1], [0, 5]],
+    optimalSteps: 15,
+    hint: 'Gunakan kombinasi Loop 2x di jalur lurus dan lompatan di atas genangan untuk rute zigzag mulus!',
+  },
+  {
+    id: 13,
+    title: 'Level 13: Benteng Kolom Kembar Cyber',
+    gridSize: 7,
+    startPos: [6, 3],
+    startDir: 'UP',
+    targetPos: [0, 3],
+    stars: [[5, 0], [3, 0], [3, 6], [5, 6], [1, 3]],
+    walls: [[5, 2], [4, 2], [3, 2], [2, 2], [5, 4], [4, 4], [3, 4], [2, 4]],
+    puddles: [[4, 0], [4, 6], [1, 1], [1, 5]],
+    optimalSteps: 16,
+    hint: 'Dua pilar dinding raksasa menutup jalan tengah! Jelajahi koridor sayap luar, kumpulkan bintang energi, lalu kembali ke portal pusat!',
+  },
+  {
+    id: 14,
+    title: 'Level 14: Labirin Spiral Cincin Saturnus',
+    gridSize: 8,
+    startPos: [7, 0],
+    startDir: 'UP',
+    targetPos: [4, 4],
+    stars: [[1, 0], [0, 6], [6, 7], [3, 3]],
+    walls: [
+      [6, 1], [5, 1], [4, 1], [3, 1], [2, 1],
+      [1, 2], [1, 3], [1, 4], [1, 5], [1, 6],
+      [6, 6], [5, 6], [4, 6], [3, 6], [2, 6],
+      [6, 2], [6, 3], [6, 4], [6, 5],
+      [3, 4]
+    ],
+    puddles: [[4, 2], [3, 5]],
+    optimalSteps: 18,
+    hint: 'Putaran spiral konsentris! Lompati genangan di tikungan dalam untuk memperpendek jarak menuju pusat reaktor.',
+  },
+  {
+    id: 15,
+    title: 'Level 15: Kepulauan Kristal Quantum',
+    gridSize: 8,
+    startPos: [7, 1],
+    startDir: 'UP',
+    targetPos: [0, 6],
+    stars: [[6, 1], [4, 3], [2, 4], [1, 6], [6, 6]],
+    walls: [
+      [5, 2], [5, 3], [5, 4],
+      [3, 1], [3, 2], [3, 5], [3, 6],
+      [2, 2], [2, 3]
+    ],
+    puddles: [[5, 1], [4, 4], [2, 5], [1, 2]],
+    optimalSteps: 18,
+    hint: 'Tantangan kombinasi tingkat tinggi! Gunakan manuver lompat beruntun dan perulangan Loop 2x untuk kecepatan maksimal.',
+  },
+  {
+    id: 16,
+    title: 'Level 16: Tantangan Puncak Grandmaster Grid',
+    gridSize: 8,
+    startPos: [7, 7],
+    startDir: 'LEFT',
+    targetPos: [0, 0],
+    stars: [[7, 2], [5, 5], [4, 2], [2, 5], [1, 1], [0, 4]],
+    walls: [
+      [6, 1], [6, 3], [6, 5],
+      [4, 4], [4, 6],
+      [3, 1], [3, 3],
+      [1, 3], [1, 5], [1, 7],
+      [5, 1]
+    ],
+    puddles: [[7, 4], [5, 3], [3, 6], [2, 2]],
+    optimalSteps: 20,
+    hint: 'Puncak tertinggi navigasi Grid Robot! Kumpulkan seluruh 6 bintang energi, lewati dinding benteng dan genangan air menuju portal kemenangan abadi!',
+  },
 ];
 
 export const GridRobotGame: React.FC = () => {
@@ -398,21 +568,27 @@ export const GridRobotGame: React.FC = () => {
                 if (isPuddle) cellBg = 'bg-sky-950/80 border-sky-800/80';
                 if (isTarget) cellBg = 'bg-indigo-950/80 border-indigo-700';
 
+                const cellSizeClass = currentLevel.gridSize >= 7
+                  ? 'w-9 h-9 sm:w-11 sm:h-11'
+                  : currentLevel.gridSize === 6
+                  ? 'w-10 h-10 sm:w-12 sm:h-12'
+                  : 'w-12 h-12 sm:w-14 sm:h-14';
+
                 return (
                   <div
                     key={`${r}-${c}`}
-                    className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl border flex items-center justify-center relative transition-all duration-300 ${cellBg}`}
+                    className={`${cellSizeClass} rounded-xl border flex items-center justify-center relative transition-all duration-300 ${cellBg}`}
                   >
-                    {isWall && <span className="text-xl select-none">🧱</span>}
-                    {isPuddle && <span className="text-xl select-none">💧</span>}
-                    {hasStar && <span className="text-xl select-none animate-pulse">⭐</span>}
+                    {isWall && <span className="text-base sm:text-xl select-none">🧱</span>}
+                    {isPuddle && <span className="text-base sm:text-xl select-none">💧</span>}
+                    {hasStar && <span className="text-base sm:text-xl select-none animate-pulse">⭐</span>}
                     {isTarget && !isRobot && (
-                      <span className="text-2xl select-none animate-bounce">🌀</span>
+                      <span className="text-lg sm:text-2xl select-none animate-bounce">🌀</span>
                     )}
 
                     {isRobot && (
                       <div
-                        className="w-10 h-10 rounded-xl bg-linear-to-tr from-cyan-500 to-blue-600 text-white flex items-center justify-center shadow-lg shadow-cyan-500/50 transition-transform duration-300"
+                        className="w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-xl bg-linear-to-tr from-cyan-500 to-blue-600 text-white flex items-center justify-center shadow-lg shadow-cyan-500/50 transition-transform duration-300"
                         style={{
                           transform:
                             robotDir === 'UP'
@@ -424,7 +600,7 @@ export const GridRobotGame: React.FC = () => {
                               : 'rotate(270deg)',
                         }}
                       >
-                        <Bot className="w-6 h-6" />
+                        <Bot className="w-4 h-4 sm:w-6 sm:h-6" />
                       </div>
                     )}
                   </div>
@@ -673,7 +849,7 @@ export const GridRobotGame: React.FC = () => {
                 Gelar Master Navigator Robot
               </span>
               <h3 className="text-2xl font-black text-slate-900 dark:text-white pt-1">
-                🏆 Semua 5 Level Selesai!
+                🏆 Semua {LEVELS.length} Level Selesai!
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
                 Luar biasa! Kamu telah menuntaskan seluruh tantangan algoritma, perulangan, dan lompat rintangan Grid Robot!
