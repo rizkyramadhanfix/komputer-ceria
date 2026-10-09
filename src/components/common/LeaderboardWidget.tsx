@@ -43,6 +43,7 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
   showAll = false,
 }) => {
   const { users: contextUsers, currentUser, refreshUser } = useAuth();
+  const [dataVersion, setDataVersion] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState<LeaderboardCategory>('points');
   const [selectedSchool, setSelectedSchool] = useState<string>('ALL');
@@ -50,10 +51,19 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
   const [selectedStudent, setSelectedStudent] = useState<User | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Fallback to direct storage if contextUsers hasn't loaded yet
+  // Live real-time data update listener
+  useEffect(() => {
+    const handleUpdate = () => {
+      setDataVersion((v) => v + 1);
+    };
+    window.addEventListener('ekskul_data_updated', handleUpdate);
+    return () => window.removeEventListener('ekskul_data_updated', handleUpdate);
+  }, []);
+
+  // Fetch latest users state
   const effectiveUsers = useMemo(() => {
-    return contextUsers && contextUsers.length > 0 ? contextUsers : getUsers();
-  }, [contextUsers]);
+    return getUsers();
+  }, [contextUsers, dataVersion]);
 
   // Handle manual live refresh
   const handleSyncRefresh = async () => {
@@ -61,6 +71,7 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
     try {
       await pullFullSyncFromServer();
       refreshUser();
+      setDataVersion((v) => v + 1);
     } catch (err) {
       console.warn('Sync error:', err);
     } finally {
@@ -84,11 +95,13 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
     };
   }, [effectiveUsers]);
 
-  // Canonical student deduplication and alias resolution
+  // Clean student deduplication: strictly by ID, valid NISN, or unique username
+  // NEVER by display name so students with similar names never overlap!
   const { processedStudents, idToCanonicalIdMap } = useMemo(() => {
     const studentMap = new Map<string, User>();
-    const aliasToKeyMap = new Map<string, string>();
-    const idToCanonicalMap = new Map<string, string>();
+    const idToPrimaryMap = new Map<string, string>();
+    const nisnToPrimaryMap = new Map<string, string>();
+    const usernameToPrimaryMap = new Map<string, string>();
     const deletedIds = getDeletedUserIds();
 
     const normalizeStr = (str?: string) =>
@@ -98,9 +111,7 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
       if (u.role !== 'student' || !u.id || deletedIds.has(u.id)) continue;
 
       const normUsername = normalizeStr(u.username);
-      const normName = normalizeStr(u.name);
       const cleanNisn = u.nisn ? u.nisn.trim() : '';
-      const cleanSchool = normalizeStr(u.school);
 
       const safePoints = typeof u.totalPoints === 'number' && !isNaN(u.totalPoints) ? Math.max(0, u.totalPoints) : 0;
       const safeStars = typeof u.totalStars === 'number' && !isNaN(u.totalStars) ? Math.max(0, u.totalStars) : Math.floor(safePoints / 10);
@@ -112,16 +123,13 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
         totalStars: safeStars,
       };
 
-      // Match canonical key by id, nisn, normalized name + school, or username
-      let canonicalKey: string | undefined = aliasToKeyMap.get(`id_${cleanObj.id}`);
+      // Match canonical key strictly by user ID, valid NISN (>=4 chars), or unique username
+      let canonicalKey: string | undefined = idToPrimaryMap.get(cleanObj.id);
       if (!canonicalKey && cleanNisn && cleanNisn.length >= 4) {
-        canonicalKey = aliasToKeyMap.get(`nisn_${cleanNisn}`);
-      }
-      if (!canonicalKey && normName && normName.length >= 3) {
-        canonicalKey = aliasToKeyMap.get(`name_${normName}_${cleanSchool}`) || aliasToKeyMap.get(`name_${normName}`);
+        canonicalKey = nisnToPrimaryMap.get(cleanNisn);
       }
       if (!canonicalKey && normUsername) {
-        canonicalKey = aliasToKeyMap.get(`usr_${normUsername}`);
+        canonicalKey = usernameToPrimaryMap.get(normUsername);
       }
 
       if (canonicalKey && studentMap.has(canonicalKey)) {
@@ -147,26 +155,21 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
           equippedTitle: cleanObj.equippedTitle || existing.equippedTitle,
         };
         studentMap.set(canonicalKey, merged);
-        idToCanonicalMap.set(cleanObj.id, existing.id);
+        idToPrimaryMap.set(cleanObj.id, existing.id);
       } else {
         const primaryKey = cleanObj.id;
         studentMap.set(primaryKey, cleanObj);
-        idToCanonicalMap.set(cleanObj.id, primaryKey);
-        aliasToKeyMap.set(`id_${cleanObj.id}`, primaryKey);
-        if (cleanNisn && cleanNisn.length >= 4) aliasToKeyMap.set(`nisn_${cleanNisn}`, primaryKey);
-        if (normName && normName.length >= 3) {
-          aliasToKeyMap.set(`name_${normName}_${cleanSchool}`, primaryKey);
-          aliasToKeyMap.set(`name_${normName}`, primaryKey);
-        }
-        if (normUsername) aliasToKeyMap.set(`usr_${normUsername}`, primaryKey);
+        idToPrimaryMap.set(cleanObj.id, primaryKey);
+        if (cleanNisn && cleanNisn.length >= 4) nisnToPrimaryMap.set(cleanNisn, primaryKey);
+        if (normUsername) usernameToPrimaryMap.set(normUsername, primaryKey);
       }
     }
 
     return {
       processedStudents: Array.from(studentMap.values()),
-      idToCanonicalIdMap: idToCanonicalMap,
+      idToCanonicalIdMap: idToPrimaryMap,
     };
-  }, [effectiveUsers]);
+  }, [effectiveUsers, dataVersion]);
 
   // Load sub-metrics for Typing and Quizzes categories with alias resolution
   const typingBestMap = useMemo(() => {
@@ -181,7 +184,7 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
       }
     }
     return map;
-  }, [idToCanonicalIdMap]);
+  }, [idToCanonicalIdMap, dataVersion]);
 
   const quizCompletedMap = useMemo(() => {
     const submissions = getQuizSubmissions();
@@ -196,7 +199,7 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
       });
     }
     return map;
-  }, [idToCanonicalIdMap]);
+  }, [idToCanonicalIdMap, dataVersion]);
 
   // Filter and sort students list
   const filteredAndSortedStudents = useMemo(() => {

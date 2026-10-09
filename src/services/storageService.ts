@@ -74,6 +74,10 @@ const STORAGE_KEYS = {
   TYPING_LEAGUE_TEXTS: 'ekskul_typing_league_texts',
   TYPING_LEAGUE_SCORES: 'ekskul_typing_league_scores',
   DELETED_TYPING_LEAGUE_TEXTS: 'ekskul_deleted_typing_league_texts',
+  DELETED_USER_IDS: 'ekskul_deleted_user_ids',
+  DELETED_TYPING_LEAGUE_SCORES: 'ekskul_deleted_typing_league_scores',
+  DELETED_GALLERY_WORKS: 'ekskul_deleted_gallery_works',
+  DELETED_GALLERY_COMMENTS: 'ekskul_deleted_gallery_comments',
   CLEAN_FLAG: 'ekskul_clean_v4',
 };
 
@@ -116,31 +120,73 @@ function setStoredItem<T>(key: string, value: T): void {
   }
 }
 
-// One-time clean reset for all student and pembina accounts & old session logs as requested
-const CLEAN_RESET_KEY = 'ekskul_clean_reset_v9_moderate_typing_text_linked_quizzes';
+// Deleted tracking helpers to permanently prevent deleted items from reappearing
+export function getDeletedUserIds(): Set<string> {
+  const list = getStoredItem<string[]>(STORAGE_KEYS.DELETED_USER_IDS, []);
+  return new Set(Array.isArray(list) ? list : []);
+}
+
+export function recordDeletedUserId(id: string): void {
+  const current = getDeletedUserIds();
+  current.add(id);
+  setStoredItem(STORAGE_KEYS.DELETED_USER_IDS, Array.from(current));
+}
+
+export function getDeletedScoreIds(): Set<string> {
+  const list = getStoredItem<string[]>(STORAGE_KEYS.DELETED_TYPING_LEAGUE_SCORES, []);
+  return new Set(Array.isArray(list) ? list : []);
+}
+
+export function recordDeletedScoreId(id: string): void {
+  const current = getDeletedScoreIds();
+  current.add(id);
+  setStoredItem(STORAGE_KEYS.DELETED_TYPING_LEAGUE_SCORES, Array.from(current));
+}
+
+export function getDeletedGalleryWorkIds(): Set<string> {
+  const list = getStoredItem<string[]>(STORAGE_KEYS.DELETED_GALLERY_WORKS, []);
+  return new Set(Array.isArray(list) ? list : []);
+}
+
+export function recordDeletedGalleryWorkId(id: string): void {
+  const current = getDeletedGalleryWorkIds();
+  current.add(id);
+  setStoredItem(STORAGE_KEYS.DELETED_GALLERY_WORKS, Array.from(current));
+}
+
+export function getDeletedCommentIds(): Set<string> {
+  const list = getStoredItem<string[]>(STORAGE_KEYS.DELETED_GALLERY_COMMENTS, []);
+  return new Set(Array.isArray(list) ? list : []);
+}
+
+export function recordDeletedCommentId(id: string): void {
+  const current = getDeletedCommentIds();
+  current.add(id);
+  setStoredItem(STORAGE_KEYS.DELETED_GALLERY_COMMENTS, Array.from(current));
+}
+
+// One-time clean deduplication migration to fix overlapping data
+const CLEAN_DEDUP_KEY = 'ekskul_clean_dedup_v10_fix_tumpang_tindih';
 if (typeof window !== 'undefined') {
   try {
-    if (localStorage.getItem(CLEAN_RESET_KEY) !== 'true') {
-      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(INITIAL_USERS));
-      localStorage.removeItem(STORAGE_KEYS.LOGIN_LOGS);
-      localStorage.removeItem(STORAGE_KEYS.QUIZ_SUBMISSIONS);
-      localStorage.removeItem(STORAGE_KEYS.TYPING_SUBMISSIONS);
-      localStorage.removeItem(STORAGE_KEYS.GAME_SCORES);
-      localStorage.removeItem('ekskul_game_battles');
-      localStorage.removeItem(STORAGE_KEYS.REWARD_REDEMPTIONS);
-      localStorage.removeItem(STORAGE_KEYS.GALLERY_WORKS);
-      localStorage.removeItem(STORAGE_KEYS.TYPING_DRAFTS);
-      localStorage.removeItem(STORAGE_KEYS.TYPING_LEAGUE_SCORES);
-      localStorage.removeItem('ekskul_active_user');
-      localStorage.setItem(STORAGE_KEYS.CONTACT_INFO, JSON.stringify(DEFAULT_CONTACT_INFO));
-      localStorage.setItem(STORAGE_KEYS.GAMIFICATION_CONFIG, JSON.stringify(DEFAULT_GAMIFICATION_CONFIG));
-      localStorage.setItem(STORAGE_KEYS.LESSONS, JSON.stringify(INITIAL_LESSONS));
-      localStorage.setItem(STORAGE_KEYS.QUIZZES, JSON.stringify(INITIAL_QUIZZES));
-      localStorage.setItem(STORAGE_KEYS.TYPING_PRACTICES, JSON.stringify(INITIAL_TYPING_PRACTICES));
-      localStorage.setItem(CLEAN_RESET_KEY, 'true');
+    if (localStorage.getItem(CLEAN_DEDUP_KEY) !== 'true') {
+      // Purge any stale ghost scores that had duplicate or corrupted references
+      const rawScores = getStoredItem<any[]>(STORAGE_KEYS.TYPING_LEAGUE_SCORES, []);
+      if (Array.isArray(rawScores)) {
+        const seen = new Set<string>();
+        const clean = rawScores.filter((s) => {
+          if (!s || !s.id || s.score <= 0) return false;
+          const k = `${s.studentId || s.studentName}_${s.textId}_${s.score}_${s.wpm}`;
+          if (seen.has(k)) return false;
+          seen.add(k);
+          return true;
+        });
+        setStoredItem(STORAGE_KEYS.TYPING_LEAGUE_SCORES, clean);
+      }
+      localStorage.setItem(CLEAN_DEDUP_KEY, 'true');
     }
   } catch (err) {
-    console.warn('Reset migration notice:', err);
+    console.warn('Dedup migration notice:', err);
   }
 }
 
@@ -207,6 +253,7 @@ export async function pullFullSyncFromServer(): Promise<{ success: boolean; coun
         rewardRedemptions: STORAGE_KEYS.REWARD_REDEMPTIONS,
         announcements: STORAGE_KEYS.ANNOUNCEMENTS,
         galleryWorks: STORAGE_KEYS.GALLERY_WORKS,
+        galleryComments: STORAGE_KEYS.GALLERY_COMMENTS,
         loginLogs: STORAGE_KEYS.LOGIN_LOGS,
         typingTournaments: STORAGE_KEYS.TYPING_TOURNAMENTS,
         forumThreads: 'ekskul_forum_threads',
@@ -230,8 +277,13 @@ export async function pullFullSyncFromServer(): Promise<{ success: boolean; coun
           });
           setStoredItem(STORAGE_KEYS.TYPING_DRAFTS, draftsMap);
           updatedCount += items.length;
-        } else if (keyMap[colName] && Array.isArray(items) && items.length > 0) {
-          setStoredItem(keyMap[colName], items);
+        } else if (keyMap[colName] && Array.isArray(items)) {
+          // If server returns array (even empty after admin purge), reconcile cleanly
+          const currentRaw = localStorage.getItem(keyMap[colName]);
+          const newRaw = JSON.stringify(items);
+          if (currentRaw !== newRaw) {
+            setStoredItem(keyMap[colName], items);
+          }
           updatedCount += items.length;
         }
       }
@@ -362,6 +414,7 @@ function initFirestoreListeners() {
     { name: 'typingSubmissions', key: STORAGE_KEYS.TYPING_SUBMISSIONS },
     { name: 'quizSubmissions', key: STORAGE_KEYS.QUIZ_SUBMISSIONS },
     { name: 'galleryWorks', key: STORAGE_KEYS.GALLERY_WORKS },
+    { name: 'galleryComments', key: STORAGE_KEYS.GALLERY_COMMENTS },
     { name: 'gameScores', key: STORAGE_KEYS.GAME_SCORES },
     { name: 'loginLogs', key: STORAGE_KEYS.LOGIN_LOGS },
     { name: 'typingLeagueTexts', key: STORAGE_KEYS.TYPING_LEAGUE_TEXTS },
@@ -389,7 +442,23 @@ function initFirestoreListeners() {
               setStoredItem(key, draftsMap);
               notifyDataUpdated();
             } else {
-              const items = snapshot.docs.map((d) => d.data());
+              let items = snapshot.docs.map((d) => d.data());
+              // Filter out any documents that were deleted by user/admin
+              if (name === 'users') {
+                const deletedUsers = getDeletedUserIds();
+                items = items.filter((u: any) => u && u.id && !deletedUsers.has(u.id));
+              } else if (name === 'typingLeagueScores') {
+                const deletedScores = getDeletedScoreIds();
+                const deletedUsers = getDeletedUserIds();
+                items = items.filter((s: any) => s && s.id && !deletedScores.has(s.id) && (!s.studentId || !deletedUsers.has(s.studentId)));
+              } else if (name === 'galleryWorks') {
+                const deletedWorks = getDeletedGalleryWorkIds();
+                items = items.filter((w: any) => w && w.id && !deletedWorks.has(w.id));
+              } else if (name === 'galleryComments') {
+                const deletedComments = getDeletedCommentIds();
+                items = items.filter((c: any) => c && c.id && !deletedComments.has(c.id));
+              }
+
               const currentRaw = localStorage.getItem(key);
               const newRaw = JSON.stringify(items);
               if (currentRaw !== newRaw) {
@@ -501,27 +570,18 @@ initFirestoreListeners();
 seedServerDbIfEmpty();
 
 // --- Users Management ---
-const DELETED_USER_IDS_KEY = 'ekskul_deleted_user_ids';
-export function getDeletedUserIds(): Set<string> {
-  const list = getStoredItem<string[]>(DELETED_USER_IDS_KEY, []);
-  return new Set(Array.isArray(list) ? list : []);
-}
-
-export function recordDeletedUserId(id: string): void {
-  const current = getDeletedUserIds();
-  current.add(id);
-  setStoredItem(DELETED_USER_IDS_KEY, Array.from(current));
-}
-
 export function getUsers(): User[] {
   const rawUsers = getStoredItem<User[]>(STORAGE_KEYS.USERS, INITIAL_USERS);
   const deletedIds = getDeletedUserIds();
   let hasModified = false;
   
-  // Robust Deduplication & Merge Map
-  // Keyed by canonical student alias: id, username, nisn, or normalized student name
+  // Clean Deduplication Map
+  // Keyed strictly by unique user ID, valid NISN, or unique username
+  // NEVER by display name so students with similar names never overlap!
   const usersMap = new Map<string, User>();
-  const aliasToKeyMap = new Map<string, string>();
+  const idToPrimaryMap = new Map<string, string>();
+  const nisnToPrimaryMap = new Map<string, string>();
+  const usernameToPrimaryMap = new Map<string, string>();
 
   const normalizeStr = (str?: string) =>
     (str || '').toLowerCase().replace(/[^a-z0-9]/g, '').trim();
@@ -533,7 +593,6 @@ export function getUsers(): User[] {
     }
 
     const normUsername = normalizeStr(raw.username);
-    const normName = normalizeStr(raw.name);
     const cleanNisn = raw.nisn ? raw.nisn.trim() : '';
 
     // Filter out dummy pembina accounts
@@ -565,16 +624,13 @@ export function getUsers(): User[] {
       lastActiveAt: raw.lastActiveAt || raw.createdAt || new Date().toISOString(),
     };
 
-    // Find if user already recognized by id, nisn, username, or normalized name
-    let canonicalKey: string | undefined = aliasToKeyMap.get(`id_${cleanUser.id}`);
+    // Match strictly by exact user ID, valid NISN (>=4 chars), or unique username
+    let canonicalKey: string | undefined = idToPrimaryMap.get(cleanUser.id);
     if (!canonicalKey && cleanNisn && cleanNisn.length >= 4) {
-      canonicalKey = aliasToKeyMap.get(`nisn_${cleanNisn}`);
+      canonicalKey = nisnToPrimaryMap.get(cleanNisn);
     }
     if (!canonicalKey && normUsername) {
-      canonicalKey = aliasToKeyMap.get(`usr_${normUsername}`);
-    }
-    if (!canonicalKey && cleanUser.role === 'student' && normName && normName.length >= 3) {
-      canonicalKey = aliasToKeyMap.get(`name_${normName}`);
+      canonicalKey = usernameToPrimaryMap.get(normUsername);
     }
 
     if (canonicalKey && usersMap.has(canonicalKey)) {
@@ -604,12 +660,9 @@ export function getUsers(): User[] {
     } else {
       const primaryKey = cleanUser.id;
       usersMap.set(primaryKey, cleanUser);
-      aliasToKeyMap.set(`id_${cleanUser.id}`, primaryKey);
-      if (cleanNisn && cleanNisn.length >= 4) aliasToKeyMap.set(`nisn_${cleanNisn}`, primaryKey);
-      if (normUsername) aliasToKeyMap.set(`usr_${normUsername}`, primaryKey);
-      if (cleanUser.role === 'student' && normName && normName.length >= 3) {
-        aliasToKeyMap.set(`name_${normName}`, primaryKey);
-      }
+      idToPrimaryMap.set(cleanUser.id, primaryKey);
+      if (cleanNisn && cleanNisn.length >= 4) nisnToPrimaryMap.set(cleanNisn, primaryKey);
+      if (normUsername) usernameToPrimaryMap.set(normUsername, primaryKey);
     }
   }
 
@@ -864,11 +917,37 @@ export function updateUser(id: string, updates: Partial<User>): User | null {
 }
 
 export function deleteUser(id: string): boolean {
+  recordDeletedUserId(id);
   const users = getUsers();
   const filtered = users.filter((u) => u.id !== id);
   if (filtered.length === users.length) return false;
   setStoredItem(STORAGE_KEYS.USERS, filtered);
   removeDocFromFirestore('users', id);
+
+  // Clean up any typing league scores belonging to this deleted user
+  const scores = getStoredItem<TypingLeagueScore[]>(STORAGE_KEYS.TYPING_LEAGUE_SCORES, []);
+  const remainingScores = scores.filter((s) => s.studentId !== id);
+  const deletedScores = scores.filter((s) => s.studentId === id);
+  if (deletedScores.length > 0) {
+    setStoredItem(STORAGE_KEYS.TYPING_LEAGUE_SCORES, remainingScores);
+    deletedScores.forEach((s) => {
+      recordDeletedScoreId(s.id);
+      removeDocFromFirestore('typingLeagueScores', s.id);
+    });
+  }
+
+  // Clean up any gallery works belonging to this deleted user
+  const works = getStoredItem<StudentGalleryWork[]>(STORAGE_KEYS.GALLERY_WORKS, []);
+  const remainingWorks = works.filter((w) => w.studentId !== id);
+  const deletedWorks = works.filter((w) => w.studentId === id);
+  if (deletedWorks.length > 0) {
+    setStoredItem(STORAGE_KEYS.GALLERY_WORKS, remainingWorks);
+    deletedWorks.forEach((w) => {
+      recordDeletedGalleryWorkId(w.id);
+      removeDocFromFirestore('galleryWorks', w.id);
+    });
+  }
+
   notifyDataUpdated();
   return true;
 }
@@ -883,6 +962,9 @@ export async function purgeNonAdminUsersAndResetDatabase(): Promise<{
     const nonAdminUsers = rawUsers.filter(
       (u) => u.role !== 'superadmin' && u.role !== 'admin'
     );
+
+    // Record deleted IDs so they never resurrect from cloud sync
+    nonAdminUsers.forEach((u) => recordDeletedUserId(u.id));
 
     // Keep only superadmin and admin accounts
     const adminUsers = rawUsers.filter(
@@ -926,33 +1008,47 @@ export async function purgeNonAdminUsersAndResetDatabase(): Promise<{
     setStoredItem(STORAGE_KEYS.TYPING_PRACTICES, INITIAL_TYPING_PRACTICES);
     INITIAL_TYPING_PRACTICES.forEach((tp) => syncDocToFirestore('typingPractices', tp.id, tp));
 
-    // Wipe student activity data, logs, submissions, drafts
-    localStorage.removeItem(STORAGE_KEYS.QUIZ_SUBMISSIONS);
-    localStorage.removeItem(STORAGE_KEYS.TYPING_SUBMISSIONS);
-    localStorage.removeItem(STORAGE_KEYS.GAME_SCORES);
+    // Wipe student activity data, logs, submissions, drafts with explicit empty arrays (prevent null re-seeding)
+    setStoredItem(STORAGE_KEYS.QUIZ_SUBMISSIONS, []);
+    setStoredItem(STORAGE_KEYS.TYPING_SUBMISSIONS, []);
+    setStoredItem(STORAGE_KEYS.GAME_SCORES, []);
+    setStoredItem(STORAGE_KEYS.REWARD_REDEMPTIONS, []);
+    setStoredItem(STORAGE_KEYS.GALLERY_WORKS, []);
+    setStoredItem(STORAGE_KEYS.GALLERY_COMMENTS, []);
+    setStoredItem(STORAGE_KEYS.LOGIN_LOGS, []);
+    setStoredItem(STORAGE_KEYS.TYPING_DRAFTS, {});
+    setStoredItem(STORAGE_KEYS.TYPING_LEAGUE_SCORES, []);
     localStorage.removeItem('ekskul_game_battles');
-    localStorage.removeItem(STORAGE_KEYS.REWARD_REDEMPTIONS);
-    localStorage.removeItem(STORAGE_KEYS.GALLERY_WORKS);
-    localStorage.removeItem(STORAGE_KEYS.LOGIN_LOGS);
-    localStorage.removeItem(STORAGE_KEYS.TYPING_DRAFTS);
-    localStorage.removeItem(STORAGE_KEYS.TYPING_LEAGUE_SCORES);
     localStorage.removeItem('ekskul_forum_threads');
     localStorage.removeItem('ekskul_forum_replies');
 
+    // Sync empty collections to server DB in batch
+    const collectionsToPurge = [
+      'quizSubmissions',
+      'typingSubmissions',
+      'gameScores',
+      'rewardRedemptions',
+      'galleryWorks',
+      'galleryComments',
+      'loginLogs',
+      'typingDrafts',
+      'typingLeagueScores',
+      'forumThreads',
+      'forumReplies',
+    ];
+
+    for (const col of collectionsToPurge) {
+      try {
+        await fetch(`/api/db/${col}/batch`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify([]),
+        });
+      } catch {}
+    }
+
     // Also purge subcollections from Firestore if accessible
     try {
-      const collectionsToPurge = [
-        'quizSubmissions',
-        'typingSubmissions',
-        'gameScores',
-        'rewardRedemptions',
-        'galleryWorks',
-        'loginLogs',
-        'typingDrafts',
-        'typingLeagueScores',
-        'forumThreads',
-        'forumReplies',
-      ];
       for (const colName of collectionsToPurge) {
         const snap = await getDocs(collection(db, colName));
         snap.docs.forEach((d) => {
@@ -2385,10 +2481,13 @@ export function deleteGalleryComment(commentId: string, workId?: string): boolea
 
 export function getGalleryWorks(): StudentGalleryWork[] {
   const raw = localStorage.getItem(STORAGE_KEYS.GALLERY_WORKS);
+  const deletedWorkIds = getDeletedGalleryWorkIds();
+  const deletedUserIds = getDeletedUserIds();
   let works: StudentGalleryWork[] = [];
+
   if (raw === null) {
-    works = INITIAL_GALLERY_WORKS;
-    setStoredItem(STORAGE_KEYS.GALLERY_WORKS, INITIAL_GALLERY_WORKS);
+    works = INITIAL_GALLERY_WORKS.filter((w) => !deletedWorkIds.has(w.id));
+    setStoredItem(STORAGE_KEYS.GALLERY_WORKS, works);
   } else {
     try {
       works = JSON.parse(raw) as StudentGalleryWork[];
@@ -2396,16 +2495,37 @@ export function getGalleryWorks(): StudentGalleryWork[] {
       works = [];
     }
   }
-  // Calculate dynamic commentsCount from stored comments
+
+  // Filter out any deleted works or works belonging to deleted student accounts
+  works = works.filter((w) => {
+    if (!w || !w.id) return false;
+    if (deletedWorkIds.has(w.id)) return false;
+    if (w.studentId && deletedUserIds.has(w.studentId)) return false;
+    return true;
+  });
+
+  // Dynamic user profile resolution and accurate comment counts
+  const allUsers = getUsers();
+  const userMap = new Map<string, User>();
+  allUsers.forEach((u) => userMap.set(u.id, u));
+
   const allComments = getGalleryComments();
   const commentCountMap = new Map<string, number>();
   for (const c of allComments) {
     commentCountMap.set(String(c.workId), (commentCountMap.get(String(c.workId)) || 0) + 1);
   }
-  return works.map((w) => ({
-    ...w,
-    commentsCount: commentCountMap.get(String(w.id)) ?? w.commentsCount ?? 0,
-  }));
+
+  return works.map((w) => {
+    const liveUser = w.studentId ? userMap.get(w.studentId) : undefined;
+    return {
+      ...w,
+      studentName: liveUser?.name || w.studentName,
+      studentGrade: liveUser?.grade || w.studentGrade,
+      studentSchool: liveUser?.school || w.studentSchool,
+      studentAvatar: liveUser?.avatarUrl || w.studentAvatar,
+      commentsCount: commentCountMap.get(String(w.id)) ?? w.commentsCount ?? 0,
+    };
+  });
 }
 
 export function saveGalleryWork(
@@ -2434,7 +2554,8 @@ export function saveGalleryWork(
 export const createGalleryWork = saveGalleryWork;
 
 export function deleteGalleryWork(id: string): boolean {
-  const works = getGalleryWorks();
+  recordDeletedGalleryWorkId(id);
+  const works = getStoredItem<StudentGalleryWork[]>(STORAGE_KEYS.GALLERY_WORKS, []);
   const filtered = works.filter((w) => String(w.id) !== String(id));
   setStoredItem(STORAGE_KEYS.GALLERY_WORKS, filtered);
   removeDocFromFirestore('galleryWorks', id);
@@ -2445,6 +2566,7 @@ export function deleteGalleryWork(id: string): boolean {
   const deletedComments = allComments.filter((c) => String(c.workId) === String(id));
   setStoredItem(STORAGE_KEYS.GALLERY_COMMENTS, remainingComments);
   deletedComments.forEach((c) => {
+    recordDeletedCommentId(c.id);
     removeDocFromFirestore('galleryComments', c.id);
   });
 
@@ -3120,8 +3242,36 @@ export function getTypingLeagueScores(): TypingLeagueScore[] {
   const scores = getStoredItem<TypingLeagueScore[]>(STORAGE_KEYS.TYPING_LEAGUE_SCORES, []);
   const validTexts = getTypingLeagueTexts();
   const validTextIds = new Set(validTexts.map((t) => t.id));
-  const deletedIds = new Set(getDeletedTypingLeagueTextIds());
-  return scores.filter((s) => validTextIds.has(s.textId) && !deletedIds.has(s.textId));
+  const deletedTextIds = new Set(getDeletedTypingLeagueTextIds());
+  const deletedUserIds = getDeletedUserIds();
+  const deletedScoreIds = getDeletedScoreIds();
+
+  const allUsers = getUsers();
+  const userMap = new Map<string, User>();
+  allUsers.forEach((u) => userMap.set(u.id, u));
+
+  return scores
+    .filter((s) => {
+      if (!s || !s.id) return false;
+      if (deletedScoreIds.has(s.id)) return false;
+      if (s.studentId && deletedUserIds.has(s.studentId)) return false;
+      if (s.textId && (!validTextIds.has(s.textId) || deletedTextIds.has(s.textId))) return false;
+      return true;
+    })
+    .map((s) => {
+      // If student is registered, dynamically sync latest student profile
+      if (s.studentId && userMap.has(s.studentId)) {
+        const u = userMap.get(s.studentId)!;
+        return {
+          ...s,
+          studentName: u.name || s.studentName,
+          studentSchool: u.school || s.studentSchool,
+          studentGrade: u.grade || s.studentGrade,
+          studentAvatar: u.avatarUrl || s.studentAvatar,
+        };
+      }
+      return s;
+    });
 }
 
 export function saveTypingLeagueScore(
@@ -3153,6 +3303,7 @@ export function saveTypingLeagueScore(
 }
 
 export function deleteTypingLeagueScore(id: string): boolean {
+  recordDeletedScoreId(id);
   const scores = getStoredItem<TypingLeagueScore[]>(STORAGE_KEYS.TYPING_LEAGUE_SCORES, []);
   const filtered = scores.filter((s) => s.id !== id);
   setStoredItem(STORAGE_KEYS.TYPING_LEAGUE_SCORES, filtered);
@@ -3164,6 +3315,7 @@ export function deleteTypingLeagueScore(id: string): boolean {
 export function deleteTypingLeagueScoresBatch(ids: string[]): boolean {
   if (!ids || ids.length === 0) return false;
   const idSet = new Set(ids);
+  ids.forEach((id) => recordDeletedScoreId(id));
   const scores = getStoredItem<TypingLeagueScore[]>(STORAGE_KEYS.TYPING_LEAGUE_SCORES, []);
   const filtered = scores.filter((s) => !idSet.has(s.id));
   setStoredItem(STORAGE_KEYS.TYPING_LEAGUE_SCORES, filtered);
@@ -3186,13 +3338,17 @@ export function getTypingLeagueLeaderboard(textId?: string, school?: string): Ty
     filtered = filtered.filter((s) => !s.studentSchool || s.studentSchool === school);
   }
 
-  // Group by canonical student to keep only their best score for the given filter
+  // Group by student identity: use s.studentId if registered, or clean studentName + school if guest
+  // This guarantees two students with similar names never overlap or overwrite each other!
   const bestMap = new Map<string, TypingLeagueScore>();
   for (const s of filtered) {
-    const canonicalKey = (s.studentName || '').toLowerCase().replace(/[^a-z0-9]/g, '').trim() || s.studentId;
-    const existing = bestMap.get(canonicalKey);
+    const studentKey = s.studentId
+      ? `id_${s.studentId}`
+      : `guest_${(s.studentName || '').toLowerCase().replace(/[^a-z0-9]/g, '')}_${(s.studentSchool || '').toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+
+    const existing = bestMap.get(studentKey);
     if (!existing || s.score > existing.score || (s.score === existing.score && s.wpm > existing.wpm)) {
-      bestMap.set(canonicalKey, s);
+      bestMap.set(studentKey, s);
     }
   }
 

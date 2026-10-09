@@ -278,6 +278,7 @@ app.get('/api/db/sync/all', (_req, res) => {
     'forumThreads',
     'forumReplies',
     'galleryWorks',
+    'galleryComments',
     'loginLogs',
     'config',
   ];

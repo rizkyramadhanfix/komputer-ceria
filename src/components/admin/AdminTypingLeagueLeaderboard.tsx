@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Trophy,
   Crown,
@@ -35,7 +35,7 @@ import { ConfirmModal } from '../common/ConfirmModal';
 
 interface AdminTypingLeagueLeaderboardProps {
   onRefresh?: () => void;
-  onRequestConfirm?: (title: string, message: string, onConfirm: () => void) => void;
+  onRequestConfirm?: (title: string, message: string, onConfirm: () => void, confirmText?: string) => void;
 }
 
 // Helper: Anti-Cheat & Suspicious Score Detection Logic
@@ -77,6 +77,7 @@ export function checkSuspiciousScore(item: TypingLeagueScore): {
 
 export const AdminTypingLeagueLeaderboard: React.FC<AdminTypingLeagueLeaderboardProps> = ({
   onRefresh,
+  onRequestConfirm,
 }) => {
   const { showSuccess, showWarning } = useToast();
 
@@ -90,6 +91,15 @@ export const AdminTypingLeagueLeaderboard: React.FC<AdminTypingLeagueLeaderboard
   const [scores, setScores] = useState<TypingLeagueScore[]>(() => getTypingLeagueScores());
   const texts = useMemo(() => getTypingLeagueTexts(), []);
   const allUsers = useMemo(() => getUsers(), []);
+
+  // Listen for real-time live data changes
+  useEffect(() => {
+    const handleUpdate = () => {
+      setScores(getTypingLeagueScores());
+    };
+    window.addEventListener('ekskul_data_updated', handleUpdate);
+    return () => window.removeEventListener('ekskul_data_updated', handleUpdate);
+  }, []);
 
   // Modals
   const [deleteTarget, setDeleteTarget] = useState<TypingLeagueScore | null>(null);
@@ -157,7 +167,9 @@ export const AdminTypingLeagueLeaderboard: React.FC<AdminTypingLeagueLeaderboard
     if (viewMode === 'best') {
       const bestMap = new Map<string, TypingLeagueScore>();
       for (const s of list) {
-        const studentKey = (s.studentName || '').toLowerCase().replace(/[^a-z0-9]/g, '').trim() || s.studentId;
+        const studentKey = s.studentId
+          ? `id_${s.studentId}`
+          : `guest_${(s.studentName || '').toLowerCase().replace(/[^a-z0-9]/g, '')}_${(s.studentSchool || '').toLowerCase().replace(/[^a-z0-9]/g, '')}`;
         const existing = bestMap.get(studentKey);
         if (
           !existing ||
@@ -200,6 +212,32 @@ export const AdminTypingLeagueLeaderboard: React.FC<AdminTypingLeagueLeaderboard
     handleReload();
   };
 
+  // Reset entire typing league scores (cleans up all old/stale scores)
+  const handleResetAllScores = () => {
+    if (scores.length === 0) {
+      showSuccess('Leaderboard sudah bersih (tidak ada skor tersimpan).');
+      return;
+    }
+    const doReset = () => {
+      const ids = scores.map((s) => s.id);
+      deleteTypingLeagueScoresBatch(ids);
+      setScores([]);
+      showSuccess('Semua riwayat skor lama berhasil dibersihkan dari leaderboard liga!');
+      handleReload();
+    };
+
+    if (onRequestConfirm) {
+      onRequestConfirm(
+        'Bersihkan Seluruh Skor Leaderboard Liga',
+        `Apakah Anda yakin ingin menghapus ${scores.length} seluruh data skor di Leaderboard Liga Mengetik? Tindakan ini akan mengosongkan papan skor dan menghapus semua data lama yang tumpang tindih.`,
+        doReset,
+        'Hapus Semua Skor'
+      );
+    } else {
+      doReset();
+    }
+  };
+
   // Overall KPIs
   const stats = useMemo(() => {
     if (scores.length === 0) {
@@ -227,7 +265,9 @@ export const AdminTypingLeagueLeaderboard: React.FC<AdminTypingLeagueLeaderboard
     const bestMap = new Map<string, TypingLeagueScore>();
     for (const s of scores) {
       if (checkSuspiciousScore(s).isSuspicious) continue;
-      const key = (s.studentName || '').toLowerCase().replace(/[^a-z0-9]/g, '').trim() || s.studentId;
+      const key = s.studentId
+        ? `id_${s.studentId}`
+        : `guest_${(s.studentName || '').toLowerCase().replace(/[^a-z0-9]/g, '')}_${(s.studentSchool || '').toLowerCase().replace(/[^a-z0-9]/g, '')}`;
       const existing = bestMap.get(key);
       if (!existing || s.score > existing.score) {
         bestMap.set(key, s);
@@ -267,13 +307,25 @@ export const AdminTypingLeagueLeaderboard: React.FC<AdminTypingLeagueLeaderboard
           </p>
         </div>
 
-        <button
-          onClick={handleReload}
-          className="px-4 py-2.5 rounded-2xl bg-white/20 hover:bg-white/30 text-white font-bold text-xs flex items-center justify-center gap-2 backdrop-blur-md transition-all shadow-sm cursor-pointer shrink-0"
-        >
-          <RefreshCw className="w-4 h-4" />
-          <span>Segarkan Data</span>
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={handleReload}
+            className="px-4 py-2.5 rounded-2xl bg-white/20 hover:bg-white/30 text-white font-bold text-xs flex items-center justify-center gap-2 backdrop-blur-md transition-all shadow-sm cursor-pointer"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span>Segarkan Data</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleResetAllScores}
+            className="px-4 py-2.5 rounded-2xl bg-rose-700/80 hover:bg-rose-700 text-white font-bold text-xs flex items-center justify-center gap-2 backdrop-blur-md transition-all shadow-sm cursor-pointer border border-rose-400/40"
+            title="Hapus semua riwayat skor lama dan mulai dari awal yang bersih"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>Bersihkan Semua Skor</span>
+          </button>
+        </div>
       </div>
 
       {/* Anti-Cheat Alert Banner (if suspicious scores detected) */}

@@ -84,6 +84,7 @@ export const TypingLeagueGame: React.FC<TypingLeagueGameProps> = ({ onBackToMenu
 
   // Result State
   const [finalScore, setFinalScore] = useState<TypingLeagueScore | null>(null);
+  const [dataVersion, setDataVersion] = useState(0);
 
   // Leaderboard Filter State
   const [leaderboardTextFilter, setLeaderboardTextFilter] = useState<string>('ALL');
@@ -97,6 +98,7 @@ export const TypingLeagueGame: React.FC<TypingLeagueGameProps> = ({ onBackToMenu
     const handleDataUpdated = () => {
       const updated = getTypingLeagueTexts();
       setTexts(updated);
+      setDataVersion((v) => v + 1);
 
       // Reset filter/selection if deleted
       if (selectedText && !updated.some((t) => t.id === selectedText.id)) {
@@ -320,7 +322,7 @@ export const TypingLeagueGame: React.FC<TypingLeagueGameProps> = ({ onBackToMenu
   // Leaderboard data
   const leaderboardData = useMemo(() => {
     return getTypingLeagueLeaderboard(leaderboardTextFilter, leaderboardSchoolFilter);
-  }, [leaderboardTextFilter, leaderboardSchoolFilter, view]);
+  }, [leaderboardTextFilter, leaderboardSchoolFilter, view, dataVersion]);
 
   // Render Character Highlighting in Text Arena
   const renderTextDisplay = () => {
