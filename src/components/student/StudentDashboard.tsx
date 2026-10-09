@@ -124,7 +124,6 @@ import { StorageMasterGame } from '../games/StorageMasterGame';
 import { MiniPosterStudio } from '../games/MiniPosterStudio';
 import { ActivityCalendarModal } from '../common/ActivityCalendarModal';
 import { ShareAppModal } from '../common/ShareAppModal';
-import { StudentNavigatorModal } from '../common/StudentNavigatorModal';
 import { StudentNavSubBar } from './StudentNavSubBar';
 
 interface StudentDashboardProps {
@@ -215,7 +214,6 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [showActivityCalendar, setShowActivityCalendar] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
-  const [showNavigatorModal, setShowNavigatorModal] = useState(false);
   const [overviewGameCategory, setOverviewGameCategory] = useState<'all' | 'coding' | 'hardware' | 'security' | 'creative'>('all');
 
   const getActivityTitle = (tab: string): string => {
@@ -259,17 +257,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
     }
   };
 
-  const handleNavigateFromNavigator = (view: string) => {
-    const clean = view.replace(/^student-/, '');
-    if (clean === 'dashboard') {
-      setActiveTab('overview');
-    } else if (clean === 'glossary') {
-      setActiveTab('tech-glossary');
-    } else {
-      setActiveTab(clean as any);
-    }
-    setShowNavigatorModal(false);
-  };
+
 
   // Typing Drafts state
   const [studentDrafts, setStudentDrafts] = useState<Record<string, TypingDraft>>(() =>
@@ -280,6 +268,14 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);
+
+  useEffect(() => {
+    const handleResetDashboard = () => {
+      setActiveTab('overview');
+    };
+    window.addEventListener('ekskul_reset_student_dashboard', handleResetDashboard);
+    return () => window.removeEventListener('ekskul_reset_student_dashboard', handleResetDashboard);
+  }, []);
 
   useEffect(() => {
     if (currentUser) {
@@ -838,39 +834,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               {/* Daily Quests and Attendance Streak */}
               {isFeatureEnabled('daily-quests') && <DailyQuestsWidget />}
 
-              {/* Special Banner for Liga Mengetik 10 Jari */}
-              <div 
-                onClick={() => setActiveTab('typing-league')}
-                className="p-5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white rounded-2xl shadow-lg shadow-orange-500/20 flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer hover:scale-[1.01] transition-all relative overflow-hidden group"
-              >
-                <div className="flex items-center gap-4 relative z-10">
-                  <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-white shrink-0 group-hover:rotate-6 transition-transform">
-                    <Trophy className="w-7 h-7 text-amber-200" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black uppercase tracking-wider bg-white text-orange-600 px-2 py-0.5 rounded-full shadow-xs">
-                        FITUR BARU
-                      </span>
-                      <span className="text-xs font-bold text-amber-100">Arena Kompetisi Siswa</span>
-                    </div>
-                    <h3 className="text-base sm:text-lg font-black mt-0.5">Liga Mengetik Cepat 10 Jari 🏆</h3>
-                    <p className="text-xs text-orange-50 line-clamp-1">
-                      Pilih naskah dari Guru Pembina, ketik dengan panduan keyboard 10 jari, dan raih posisi puncak di Leaderboard Liga!
-                    </p>
-                  </div>
-                </div>
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveTab('typing-league');
-                  }}
-                  className="px-5 py-2.5 bg-white text-orange-600 hover:bg-orange-50 rounded-xl font-bold text-xs shadow-md shrink-0 transition-colors cursor-pointer flex items-center gap-1.5"
-                >
-                  <Keyboard className="w-4 h-4" />
-                  <span>Main Sekarang →</span>
-                </button>
-              </div>
+
 
               {/* Special Banners: Liga Mengetik & Galeri Karya */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1052,14 +1016,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     </p>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setShowNavigatorModal(true)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-extrabold text-xs hover:bg-indigo-100 cursor-pointer transition-colors self-start sm:self-auto"
-                  >
-                    <Search className="w-3.5 h-3.5" />
-                    <span>Pencarian Cepat (Ctrl+K)</span>
-                  </button>
+
                 </div>
 
                 {/* Filter Kategori Game */}

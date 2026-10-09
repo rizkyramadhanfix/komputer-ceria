@@ -5,19 +5,16 @@ import {
   Keyboard,
   Gamepad2,
   Palette,
-  Sparkles,
 } from 'lucide-react';
 
 interface StudentMobileBottomNavProps {
   currentView: string;
   onNavigate: (view: string) => void;
-  onOpenNavigator: () => void;
 }
 
 export const StudentMobileBottomNav: React.FC<StudentMobileBottomNavProps> = ({
   currentView,
   onNavigate,
-  onOpenNavigator,
 }) => {
   const isDashboard = currentView === 'student-dashboard';
   const isLessons = ['student-lessons', 'student-quizzes', 'student-glossary', 'student-shortcuts'].includes(currentView);
@@ -113,14 +110,7 @@ export const StudentMobileBottomNav: React.FC<StudentMobileBottomNavProps> = ({
         <span className="text-[10px] leading-tight">Galeri</span>
       </button>
 
-      {/* 6. Jelajah / Cari */}
-      <button
-        onClick={onOpenNavigator}
-        className="flex flex-col items-center justify-center p-1.5 rounded-xl text-rose-500 dark:text-rose-400 font-extrabold transition-all cursor-pointer active:scale-95"
-      >
-        <Sparkles className="w-5 h-5 mb-0.5 animate-pulse" />
-        <span className="text-[10px] leading-tight">Jelajah</span>
-      </button>
+
     </div>
   );
 };

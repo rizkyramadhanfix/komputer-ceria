@@ -60,7 +60,6 @@ import { getDashboardConfig } from '../../services/storageService';
 import { Avatar } from './Avatar';
 import { CloudSyncStatusButton } from './CloudSyncStatusButton';
 import { ShareAppModal } from './ShareAppModal';
-import { StudentNavigatorModal } from './StudentNavigatorModal';
 import { StudentMobileBottomNav } from './StudentMobileBottomNav';
 
 interface HeaderProps {
@@ -82,20 +81,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [isNavigatorOpen, setIsNavigatorOpen] = useState(false);
   const dashboardConfig = getDashboardConfig();
-
-  // Keyboard shortcut Ctrl+K / Cmd+K to launch quick navigator
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        setIsNavigatorOpen((prev) => !prev);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -202,7 +188,10 @@ export const Header: React.FC<HeaderProps> = ({
             <>
               {/* 1. Dashboard Utama */}
               <button
-                onClick={() => handleNavClick('student-dashboard')}
+                onClick={() => {
+                  handleNavClick('student-dashboard');
+                  window.dispatchEvent(new CustomEvent('ekskul_reset_student_dashboard'));
+                }}
                 className={`transition-all px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1.5 font-bold cursor-pointer ${
                   currentView === 'student-dashboard'
                     ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400'
@@ -580,15 +569,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
               </div>
 
-              {/* 7. Tombol Jelajah Menu & Pencarian Cepat (Ctrl+K) */}
-              <button
-                onClick={() => setIsNavigatorOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-extrabold text-xs shadow-md shadow-indigo-500/20 cursor-pointer active:scale-95 transition-all"
-                title="Buka Pusat Jelajah Menu & Pencarian (Ctrl+K)"
-              >
-                <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-                <span>Jelajah Menu 🚀</span>
-              </button>
+
             </>
           )}
 
@@ -735,16 +716,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Modern Real-Time Cloud Sync Button & Indicator */}
           <CloudSyncStatusButton />
 
-          {/* Share & Connect Multi-Device Button */}
-          <button
-            type="button"
-            onClick={() => setIsShareModalOpen(true)}
-            title="Buka di Perangkat Lain (Scan QR Code & Bagikan Tautan Online)"
-            className="px-2.5 py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800/80 bg-indigo-50/80 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold shrink-0 shadow-xs active:scale-95"
-          >
-            <QrCode className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-            <span className="hidden sm:inline">Hubungkan HP</span>
-          </button>
+
 
           {currentUser ? (
             <div className="flex items-center gap-3">
@@ -849,24 +821,14 @@ export const Header: React.FC<HeaderProps> = ({
 
             {isStudent && (
               <>
-                {/* Quick Search CTA in Mobile Menu */}
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    setIsNavigatorOpen(true);
-                  }}
-                  className="w-full p-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white font-black text-xs shadow-md shadow-indigo-500/20 flex items-center justify-between cursor-pointer active:scale-98 transition-all"
-                >
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
-                    <span>Pusat Jelajah Fitur & Game 🚀</span>
-                  </div>
-                  <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-bold">Cari →</span>
-                </button>
+
 
                 <div className="grid grid-cols-2 gap-2 pt-1">
                   <button
-                    onClick={() => handleNavClick('student-dashboard')}
+                    onClick={() => {
+                      handleNavClick('student-dashboard');
+                      window.dispatchEvent(new CustomEvent('ekskul_reset_student_dashboard'));
+                    }}
                     className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-left text-xs font-bold text-slate-800 dark:text-white flex items-center gap-2"
                   >
                     <LayoutDashboard className="w-4 h-4 text-indigo-500" />
@@ -1089,17 +1051,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Real-Time Sync Button in Mobile Drawer */}
           <div className="pt-3 border-t border-slate-200 dark:border-slate-800">
             <CloudSyncStatusButton className="w-full flex justify-center" />
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                setIsShareModalOpen(true);
-              }}
-              className="w-full mt-2 py-2 px-3 text-center text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 rounded-xl flex items-center justify-center gap-2 border border-indigo-200 dark:border-indigo-800"
-            >
-              <Share2 className="w-4 h-4" />
-              <span>Buka di HP / Perangkat Lain (QR Code)</span>
-            </button>
+
           </div>
 
           {currentUser && (
@@ -1147,19 +1099,11 @@ export const Header: React.FC<HeaderProps> = ({
         onClose={() => setIsShareModalOpen(false)}
       />
 
-      {/* Quick Student Feature Navigator Search Modal */}
-      <StudentNavigatorModal
-        isOpen={isNavigatorOpen}
-        onClose={() => setIsNavigatorOpen(false)}
-        onNavigate={handleNavClick}
-      />
-
       {/* Modern Student Bottom Navigation Bar for Mobile */}
       {isStudent && (
         <StudentMobileBottomNav
           currentView={currentView}
           onNavigate={handleNavClick}
-          onOpenNavigator={() => setIsNavigatorOpen(true)}
         />
       )}
     </header>

@@ -95,23 +95,15 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
     };
   }, [effectiveUsers]);
 
-  // Clean student deduplication: strictly by ID, valid NISN, or unique username
-  // NEVER by display name so students with similar names never overlap!
-  const { processedStudents, idToCanonicalIdMap } = useMemo(() => {
+  // Clean student list: strictly individual students by unique user.id
+  // NEVER merge different students so all student rankings and identities stay separate!
+  const processedStudents = useMemo(() => {
     const studentMap = new Map<string, User>();
-    const idToPrimaryMap = new Map<string, string>();
-    const nisnToPrimaryMap = new Map<string, string>();
-    const usernameToPrimaryMap = new Map<string, string>();
     const deletedIds = getDeletedUserIds();
 
-    const normalizeStr = (str?: string) =>
-      (str || '').toLowerCase().replace(/[^a-z0-9]/g, '').trim();
-
     for (const u of effectiveUsers) {
-      if (u.role !== 'student' || !u.id || deletedIds.has(u.id)) continue;
-
-      const normUsername = normalizeStr(u.username);
-      const cleanNisn = u.nisn ? u.nisn.trim() : '';
+      if (!u || u.role !== 'student' || !u.id || deletedIds.has(u.id)) continue;
+      if (String(u.id).startsWith('std-seed-')) continue;
 
       const safePoints = typeof u.totalPoints === 'number' && !isNaN(u.totalPoints) ? Math.max(0, u.totalPoints) : 0;
       const safeStars = typeof u.totalStars === 'number' && !isNaN(u.totalStars) ? Math.max(0, u.totalStars) : Math.floor(safePoints / 10);
@@ -123,83 +115,46 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
         totalStars: safeStars,
       };
 
-      // Match canonical key strictly by user ID, valid NISN (>=4 chars), or unique username
-      let canonicalKey: string | undefined = idToPrimaryMap.get(cleanObj.id);
-      if (!canonicalKey && cleanNisn && cleanNisn.length >= 4) {
-        canonicalKey = nisnToPrimaryMap.get(cleanNisn);
-      }
-      if (!canonicalKey && normUsername) {
-        canonicalKey = usernameToPrimaryMap.get(normUsername);
-      }
-
-      if (canonicalKey && studentMap.has(canonicalKey)) {
-        // Merge with existing record, keeping the highest scores and richest profile
-        const existing = studentMap.get(canonicalKey)!;
-        const higherPoints = Math.max(existing.totalPoints || 0, cleanObj.totalPoints || 0);
-        const higherStars = Math.max(existing.totalStars || 0, cleanObj.totalStars || 0, Math.floor(higherPoints / 10));
-        const mergedLessons = Array.from(new Set([...(existing.completedLessons || []), ...(cleanObj.completedLessons || [])]));
-        
-        const merged: User = {
-          ...existing,
-          ...cleanObj,
-          id: existing.id, // Keep stable primary id
-          name: cleanObj.name.length >= existing.name.length ? cleanObj.name : existing.name,
-          school: cleanObj.school || existing.school,
-          grade: cleanObj.grade || existing.grade,
-          totalPoints: higherPoints,
-          totalStars: higherStars,
-          completedLessons: mergedLessons,
-          avatarUrl: cleanObj.avatarUrl || existing.avatarUrl,
-          equippedBadge: cleanObj.equippedBadge || existing.equippedBadge,
-          equippedFrame: cleanObj.equippedFrame || existing.equippedFrame,
-          equippedTitle: cleanObj.equippedTitle || existing.equippedTitle,
-        };
-        studentMap.set(canonicalKey, merged);
-        idToPrimaryMap.set(cleanObj.id, existing.id);
+      if (studentMap.has(cleanObj.id)) {
+        const existing = studentMap.get(cleanObj.id)!;
+        if (cleanObj.totalPoints > (existing.totalPoints || 0)) {
+          studentMap.set(cleanObj.id, cleanObj);
+        }
       } else {
-        const primaryKey = cleanObj.id;
-        studentMap.set(primaryKey, cleanObj);
-        idToPrimaryMap.set(cleanObj.id, primaryKey);
-        if (cleanNisn && cleanNisn.length >= 4) nisnToPrimaryMap.set(cleanNisn, primaryKey);
-        if (normUsername) usernameToPrimaryMap.set(normUsername, primaryKey);
+        studentMap.set(cleanObj.id, cleanObj);
       }
     }
 
-    return {
-      processedStudents: Array.from(studentMap.values()),
-      idToCanonicalIdMap: idToPrimaryMap,
-    };
+    return Array.from(studentMap.values());
   }, [effectiveUsers, dataVersion]);
 
-  // Load sub-metrics for Typing and Quizzes categories with alias resolution
+  // Load sub-metrics for Typing and Quizzes categories directly per student ID
   const typingBestMap = useMemo(() => {
     const scores = getTypingLeagueScores();
     const map = new Map<string, { maxWpm: number; maxScore: number; accuracy: number }>();
     for (const s of scores) {
       if (!s.studentId) continue;
-      const canonicalId = idToCanonicalIdMap.get(s.studentId) || s.studentId;
-      const existing = map.get(canonicalId);
+      const existing = map.get(s.studentId);
       if (!existing || s.wpm > existing.maxWpm || (s.wpm === existing.maxWpm && s.score > existing.maxScore)) {
-        map.set(canonicalId, { maxWpm: s.wpm, maxScore: s.score, accuracy: s.accuracy });
+        map.set(s.studentId, { maxWpm: s.wpm, maxScore: s.score, accuracy: s.accuracy });
       }
     }
     return map;
-  }, [idToCanonicalIdMap, dataVersion]);
+  }, [dataVersion]);
 
   const quizCompletedMap = useMemo(() => {
     const submissions = getQuizSubmissions();
     const map = new Map<string, { count: number; perfectCount: number }>();
     for (const sub of submissions) {
       if (!sub.studentId) continue;
-      const canonicalId = idToCanonicalIdMap.get(sub.studentId) || sub.studentId;
-      const existing = map.get(canonicalId) || { count: 0, perfectCount: 0 };
-      map.set(canonicalId, {
+      const existing = map.get(sub.studentId) || { count: 0, perfectCount: 0 };
+      map.set(sub.studentId, {
         count: existing.count + 1,
         perfectCount: sub.score >= 100 ? existing.perfectCount + 1 : existing.perfectCount,
       });
     }
     return map;
-  }, [idToCanonicalIdMap, dataVersion]);
+  }, [dataVersion]);
 
   // Filter and sort students list
   const filteredAndSortedStudents = useMemo(() => {

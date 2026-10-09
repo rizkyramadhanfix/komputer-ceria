@@ -165,24 +165,101 @@ export function recordDeletedCommentId(id: string): void {
   setStoredItem(STORAGE_KEYS.DELETED_GALLERY_COMMENTS, Array.from(current));
 }
 
-// One-time clean deduplication migration to fix overlapping data
-const CLEAN_DEDUP_KEY = 'ekskul_clean_dedup_v10_fix_tumpang_tindih';
+// One-time clean deduplication migration to fix overlapping data (Liga Mengetik, Leaderboard, Karya Siswa, Akun Siswa)
+const CLEAN_DEDUP_KEY = 'ekskul_clean_dedup_v25_purge_ghost_seed_data';
 if (typeof window !== 'undefined') {
   try {
     if (localStorage.getItem(CLEAN_DEDUP_KEY) !== 'true') {
-      // Purge any stale ghost scores that had duplicate or corrupted references
+      const deletedUserIds = getDeletedUserIds();
+
+      // 1. Clean Users: Purge fake seed students, deduplicate strictly by user.id
+      const rawUsers = getStoredItem<any[]>(STORAGE_KEYS.USERS, INITIAL_USERS);
+      if (Array.isArray(rawUsers)) {
+        const userMap = new Map<string, any>();
+        for (const u of rawUsers) {
+          if (!u || !u.id || deletedUserIds.has(u.id)) continue;
+          if (u.id.startsWith('std-seed-') || u.id === 'usr-pembina-sukadamai' || u.id === 'usr-pembina-serikat') continue;
+          if (userMap.has(u.id)) {
+            const existing = userMap.get(u.id);
+            if ((u.totalPoints || 0) > (existing.totalPoints || 0)) {
+              userMap.set(u.id, u);
+            }
+          } else {
+            userMap.set(u.id, u);
+          }
+        }
+        const cleanUsers = Array.from(userMap.values());
+        setStoredItem(STORAGE_KEYS.USERS, cleanUsers);
+        try {
+          fetch('/api/db/users/batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(cleanUsers),
+          });
+        } catch {}
+      }
+
+      // 2. Clean Gallery Works: Purge old mock/seed works (gal-seed-*, std-seed-*)
+      const rawWorks = getStoredItem<any[]>(STORAGE_KEYS.GALLERY_WORKS, []);
+      if (Array.isArray(rawWorks)) {
+        const cleanWorks = rawWorks.filter((w) => {
+          if (!w || !w.id) return false;
+          if (String(w.id).startsWith('gal-seed-')) return false;
+          if (w.studentId && String(w.studentId).startsWith('std-seed-')) return false;
+          return true;
+        });
+        setStoredItem(STORAGE_KEYS.GALLERY_WORKS, cleanWorks);
+        try {
+          fetch('/api/db/galleryWorks/batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(cleanWorks),
+          });
+        } catch {}
+      }
+
+      // 3. Clean Gallery Comments: Purge seed comments
+      const rawComments = getStoredItem<any[]>(STORAGE_KEYS.GALLERY_COMMENTS, []);
+      if (Array.isArray(rawComments)) {
+        const cleanComments = rawComments.filter((c) => {
+          if (!c || !c.id) return false;
+          if (String(c.id).startsWith('gcom-seed-')) return false;
+          if (c.studentId && String(c.studentId).startsWith('std-seed-')) return false;
+          if (c.workId && String(c.workId).startsWith('gal-seed-')) return false;
+          return true;
+        });
+        setStoredItem(STORAGE_KEYS.GALLERY_COMMENTS, cleanComments);
+        try {
+          fetch('/api/db/galleryComments/batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(cleanComments),
+          });
+        } catch {}
+      }
+
+      // 4. Clean Typing League Scores: Purge ghost / duplicate scores
       const rawScores = getStoredItem<any[]>(STORAGE_KEYS.TYPING_LEAGUE_SCORES, []);
       if (Array.isArray(rawScores)) {
         const seen = new Set<string>();
         const clean = rawScores.filter((s) => {
           if (!s || !s.id || s.score <= 0) return false;
+          if (s.studentId && (s.studentId.startsWith('std-seed-') || deletedUserIds.has(s.studentId))) return false;
           const k = `${s.studentId || s.studentName}_${s.textId}_${s.score}_${s.wpm}`;
           if (seen.has(k)) return false;
           seen.add(k);
           return true;
         });
         setStoredItem(STORAGE_KEYS.TYPING_LEAGUE_SCORES, clean);
+        try {
+          fetch('/api/db/typingLeagueScores/batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(clean),
+          });
+        } catch {}
       }
+
       localStorage.setItem(CLEAN_DEDUP_KEY, 'true');
     }
   } catch (err) {
@@ -239,6 +316,11 @@ export async function pullFullSyncFromServer(): Promise<{ success: boolean; coun
       const { collections } = json;
       let updatedCount = 0;
 
+      const deletedUsers = getDeletedUserIds();
+      const deletedScores = getDeletedScoreIds();
+      const deletedWorks = getDeletedGalleryWorkIds();
+      const deletedComments = getDeletedCommentIds();
+
       const keyMap: Record<string, string> = {
         users: STORAGE_KEYS.USERS,
         lessons: STORAGE_KEYS.LESSONS,
@@ -260,25 +342,70 @@ export async function pullFullSyncFromServer(): Promise<{ success: boolean; coun
         forumReplies: 'ekskul_forum_replies',
       };
 
-      for (const [colName, items] of Object.entries(collections)) {
-        if (colName === 'config' && Array.isArray(items)) {
-          items.forEach((cfg: any) => {
+      for (const [colName, rawItems] of Object.entries(collections)) {
+        if (colName === 'config' && Array.isArray(rawItems)) {
+          rawItems.forEach((cfg: any) => {
             if (cfg.id === 'dashboard') setStoredItem(STORAGE_KEYS.DASHBOARD_CONFIG, cfg);
             else if (cfg.id === 'certificate') setStoredItem(STORAGE_KEYS.CERTIFICATE_CONFIG, cfg);
             else if (cfg.id === 'gamification') setStoredItem(STORAGE_KEYS.GAMIFICATION_CONFIG, cfg);
             else if (cfg.id === 'games_config') setStoredItem(STORAGE_KEYS.GAMES_CONFIG, cfg);
           });
-          updatedCount += items.length;
-        } else if (colName === 'typingDrafts' && Array.isArray(items)) {
+          updatedCount += rawItems.length;
+        } else if (colName === 'typingDrafts' && Array.isArray(rawItems)) {
           const draftsMap: Record<string, any> = {};
-          items.forEach((item: any) => {
+          rawItems.forEach((item: any) => {
             const key = item.id || `${item.studentId}_${item.practiceId}`;
             draftsMap[key] = item;
           });
           setStoredItem(STORAGE_KEYS.TYPING_DRAFTS, draftsMap);
-          updatedCount += items.length;
-        } else if (keyMap[colName] && Array.isArray(items)) {
-          // If server returns array (even empty after admin purge), reconcile cleanly
+          updatedCount += rawItems.length;
+        } else if (keyMap[colName] && Array.isArray(rawItems)) {
+          let items = rawItems;
+
+          // Filter out deleted items and ghost seed data
+          if (colName === 'users') {
+            items = items.filter((u: any) => u && u.id && !deletedUsers.has(u.id) && !String(u.id).startsWith('std-seed-'));
+            // Reconcile users: preserve locally created users that server might not have yet
+            const localUsers = getStoredItem<User[]>(STORAGE_KEYS.USERS, []);
+            const userMap = new Map<string, User>();
+            localUsers.forEach((u) => { if (u && u.id && !deletedUsers.has(u.id)) userMap.set(u.id, u); });
+            items.forEach((u: any) => {
+              if (u && u.id && !deletedUsers.has(u.id)) {
+                if (userMap.has(u.id)) {
+                  const local = userMap.get(u.id)!;
+                  if ((u.totalPoints || 0) >= (local.totalPoints || 0)) userMap.set(u.id, u);
+                } else {
+                  userMap.set(u.id, u);
+                }
+              }
+            });
+            items = Array.from(userMap.values());
+          } else if (colName === 'typingLeagueScores') {
+            items = items.filter((s: any) => {
+              if (!s || !s.id) return false;
+              if (deletedScores.has(s.id)) return false;
+              if (s.studentId && (deletedUsers.has(s.studentId) || String(s.studentId).startsWith('std-seed-'))) return false;
+              return true;
+            });
+          } else if (colName === 'galleryWorks') {
+            items = items.filter((w: any) => {
+              if (!w || !w.id) return false;
+              if (String(w.id).startsWith('gal-seed-')) return false;
+              if (deletedWorks.has(w.id)) return false;
+              if (w.studentId && (deletedUsers.has(w.studentId) || String(w.studentId).startsWith('std-seed-'))) return false;
+              return true;
+            });
+          } else if (colName === 'galleryComments') {
+            items = items.filter((c: any) => {
+              if (!c || !c.id) return false;
+              if (String(c.id).startsWith('gcom-seed-')) return false;
+              if (deletedComments.has(c.id)) return false;
+              if (c.studentId && String(c.studentId).startsWith('std-seed-')) return false;
+              if (c.workId && String(c.workId).startsWith('gal-seed-')) return false;
+              return true;
+            });
+          }
+
           const currentRaw = localStorage.getItem(keyMap[colName]);
           const newRaw = JSON.stringify(items);
           if (currentRaw !== newRaw) {
@@ -575,16 +702,9 @@ export function getUsers(): User[] {
   const deletedIds = getDeletedUserIds();
   let hasModified = false;
   
-  // Clean Deduplication Map
-  // Keyed strictly by unique user ID, valid NISN, or unique username
-  // NEVER by display name so students with similar names never overlap!
+  // Clean User Map: keyed strictly by unique user.id
+  // NEVER merge different users by name, username, or NISN so each student account stays distinct!
   const usersMap = new Map<string, User>();
-  const idToPrimaryMap = new Map<string, string>();
-  const nisnToPrimaryMap = new Map<string, string>();
-  const usernameToPrimaryMap = new Map<string, string>();
-
-  const normalizeStr = (str?: string) =>
-    (str || '').toLowerCase().replace(/[^a-z0-9]/g, '').trim();
 
   for (const raw of (Array.isArray(rawUsers) ? rawUsers : [])) {
     if (!raw || typeof raw !== 'object' || !raw.id || deletedIds.has(raw.id)) {
@@ -592,15 +712,11 @@ export function getUsers(): User[] {
       continue;
     }
 
-    const normUsername = normalizeStr(raw.username);
-    const cleanNisn = raw.nisn ? raw.nisn.trim() : '';
-
-    // Filter out dummy pembina accounts
+    // Filter out dummy/seed accounts
     if (
+      String(raw.id).startsWith('std-seed-') ||
       raw.id === 'usr-pembina-sukadamai' ||
-      raw.id === 'usr-pembina-serikat' ||
-      normUsername === 'pembinasukadamai' ||
-      normUsername === 'pembinaserikat'
+      raw.id === 'usr-pembina-serikat'
     ) {
       hasModified = true;
       continue;
@@ -624,45 +740,24 @@ export function getUsers(): User[] {
       lastActiveAt: raw.lastActiveAt || raw.createdAt || new Date().toISOString(),
     };
 
-    // Match strictly by exact user ID, valid NISN (>=4 chars), or unique username
-    let canonicalKey: string | undefined = idToPrimaryMap.get(cleanUser.id);
-    if (!canonicalKey && cleanNisn && cleanNisn.length >= 4) {
-      canonicalKey = nisnToPrimaryMap.get(cleanNisn);
-    }
-    if (!canonicalKey && normUsername) {
-      canonicalKey = usernameToPrimaryMap.get(normUsername);
-    }
-
-    if (canonicalKey && usersMap.has(canonicalKey)) {
-      hasModified = true;
-      const existing = usersMap.get(canonicalKey)!;
-      // Merge: keep higher points, combined lessons, and richer profile
-      const mergedPoints = Math.max(existing.totalPoints || 0, cleanUser.totalPoints || 0);
-      const mergedStars = Math.max(existing.totalStars || 0, cleanUser.totalStars || 0, Math.floor(mergedPoints / 10));
+    if (usersMap.has(cleanUser.id)) {
+      // Same user ID duplicated in storage: keep the more up-to-date / higher points record
+      const existing = usersMap.get(cleanUser.id)!;
+      const higherPoints = Math.max(existing.totalPoints || 0, cleanUser.totalPoints || 0);
+      const higherStars = Math.max(existing.totalStars || 0, cleanUser.totalStars || 0, Math.floor(higherPoints / 10));
       const mergedLessons = Array.from(new Set([...(existing.completedLessons || []), ...(cleanUser.completedLessons || [])]));
-      const mergedUser: User = {
+      usersMap.set(cleanUser.id, {
         ...existing,
         ...cleanUser,
-        id: existing.id, // keep stable primary id
-        totalPoints: mergedPoints,
-        totalStars: mergedStars,
+        id: cleanUser.id,
+        totalPoints: higherPoints,
+        totalStars: higherStars,
         completedLessons: mergedLessons,
-        equippedBadge: cleanUser.equippedBadge || existing.equippedBadge,
-        equippedFrame: cleanUser.equippedFrame || existing.equippedFrame,
-        equippedTitle: cleanUser.equippedTitle || existing.equippedTitle,
-        avatarUrl: cleanUser.avatarUrl || existing.avatarUrl,
-        school: cleanUser.school || existing.school,
-        grade: cleanUser.grade || existing.grade,
-        schoolFaction: cleanUser.schoolFaction || existing.schoolFaction,
         lastActiveAt: (cleanUser.lastActiveAt && cleanUser.lastActiveAt > (existing.lastActiveAt || '')) ? cleanUser.lastActiveAt : existing.lastActiveAt,
-      };
-      usersMap.set(canonicalKey, mergedUser);
+      });
+      hasModified = true;
     } else {
-      const primaryKey = cleanUser.id;
-      usersMap.set(primaryKey, cleanUser);
-      idToPrimaryMap.set(cleanUser.id, primaryKey);
-      if (cleanNisn && cleanNisn.length >= 4) nisnToPrimaryMap.set(cleanNisn, primaryKey);
-      if (normUsername) usernameToPrimaryMap.set(normUsername, primaryKey);
+      usersMap.set(cleanUser.id, cleanUser);
     }
   }
 
@@ -770,6 +865,13 @@ export function deletePembinaUser(id: string): boolean {
 
 export function saveUsers(users: User[]): void {
   setStoredItem(STORAGE_KEYS.USERS, users);
+  try {
+    fetch('/api/db/users/batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(users),
+    });
+  } catch {}
   notifyDataUpdated();
 }
 
@@ -1570,7 +1672,7 @@ export function validateAndSanitizePoints(
     console.warn(`[AntiCheat Guard] Batas harian 1500 poin tercapai untuk siswa ${studentId}.`);
     return {
       allowedPoints: 0,
-      reason: 'Batas maksimum poin harian (1.500 pt) telah tercapai untuk menjaga kejujuran belajar.',
+      reason: 'Batas maksimum poin harian (1500 pt) telah tercapai untuk menjaga kejujuran belajar.',
       isCapped: true,
     };
   }
@@ -2165,238 +2267,17 @@ export function exportGradesToCSV(summaries: StudentGradeSummary[]): string {
 }
 
 // --- Student Gallery Works Seed & Management ---
-export const INITIAL_GALLERY_WORKS: StudentGalleryWork[] = [
-  {
-    id: 'gal-seed-1',
-    studentId: 'std-seed-1',
-    studentName: 'Aisyah Putri',
-    studentGrade: 'Kelas 5A',
-    studentSchool: 'SDN Ceria 01',
-    title: 'Pemandangan Gunung & Sawah Alam Indonesia',
-    category: 'Menggambar Bebas',
-    type: 'paint',
-    imageUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="100%" height="100%"><rect width="600" height="400" fill="%2387ceeb"/><circle cx="300" cy="120" r="45" fill="%23f59e0b"/><polygon points="0,260 160,110 320,260" fill="%2322c55e"/><polygon points="200,260 380,90 560,260" fill="%2316a34a"/><rect y="240" width="600" height="160" fill="%2384cc16"/><polygon points="260,240 340,240 400,400 200,400" fill="%23eab308"/><circle cx="80" cy="80" r="25" fill="%23ffffff" opacity="0.8"/><circle cx="110" cy="80" r="30" fill="%23ffffff" opacity="0.8"/><circle cx="480" cy="70" r="25" fill="%23ffffff" opacity="0.8"/><circle cx="510" cy="70" r="30" fill="%23ffffff" opacity="0.8"/><text x="20" y="380" font-family="sans-serif" font-size="14" fill="%2314532d" font-weight="bold">Karya Paint: Alam Indonesia - Aisyah Putri</text></svg>',
-    previewText: 'Karya lukisan pemandangan alam pegunungan dibuat dengan tool kuas, garis kurva, dan ember cat MS Paint.',
-    starLikes: 18,
-    likedByStudentIds: [],
-    createdAt: new Date(Date.now() - 3600000 * 24 * 2).toISOString(),
-  },
-  {
-    id: 'gal-seed-2',
-    studentId: 'std-seed-2',
-    studentName: 'Nabila Syahrani',
-    studentGrade: 'Kelas 5B',
-    studentSchool: 'SDN Nusantara',
-    title: 'Laporan Praktikum: Mengenal Komponen Komputer & Fungsinya',
-    category: 'Naskah & Tabel Word',
-    type: 'word',
-    previewText: 'Artikel ringkas pengenalan CPU, RAM, Harddisk, dan Monitor lengkap dengan tabel fungsi dan spesifikasi dasar.',
-    contentHtml: `<div class="space-y-4 font-sans text-slate-800 dark:text-slate-200">
-      <h2 style="font-size: 1.25rem; font-weight: bold; color: #4338ca; border-bottom: 2px solid #6366f1; padding-bottom: 4px; margin-bottom: 12px;">LAPORAN PRAKTIKUM: MENGENAL PERANGKAT KERAS KOMPUTER</h2>
-      <p style="font-size: 0.85rem; line-height: 1.6;">Disusun oleh: <strong>Nabila Syahrani</strong> | Kelas: <strong>5B</strong></p>
-      <p style="font-size: 0.85rem; line-height: 1.6;">Komputer terdiri dari perangkat keras (hardware) yang saling bekerja sama untuk mengolah data menjadi informasi yang bermanfaat bagi kita.</p>
-      <table style="width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.8rem; border: 1px solid #cbd5e1;">
-        <thead>
-          <tr style="background-color: #e0e7ff; color: #1e1b4b; text-align: left;">
-            <th style="border: 1px solid #cbd5e1; padding: 8px;">No</th>
-            <th style="border: 1px solid #cbd5e1; padding: 8px;">Nama Perangkat</th>
-            <th style="border: 1px solid #cbd5e1; padding: 8px;">Kategori</th>
-            <th style="border: 1px solid #cbd5e1; padding: 8px;">Fungsi Utama</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">1</td>
-            <td style="border: 1px solid #cbd5e1; padding: 8px; font-weight: bold;">Processor (CPU)</td>
-            <td style="border: 1px solid #cbd5e1; padding: 8px;">Pemrosesan</td>
-            <td style="border: 1px solid #cbd5e1; padding: 8px;">Otak utama komputer yang memproses semua instruksi dan logika.</td>
-          </tr>
-          <tr style="background-color: #f8fafc;">
-            <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">2</td>
-            <td style="border: 1px solid #cbd5e1; padding: 8px; font-weight: bold;">RAM Memory</td>
-            <td style="border: 1px solid #cbd5e1; padding: 8px;">Penyimpanan Sementara</td>
-            <td style="border: 1px solid #cbd5e1; padding: 8px;">Menyimpan data aplikasi yang sedang berjalan agar cepat diakses.</td>
-          </tr>
-          <tr>
-            <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">3</td>
-            <td style="border: 1px solid #cbd5e1; padding: 8px; font-weight: bold;">Solid State Drive (SSD)</td>
-            <td style="border: 1px solid #cbd5e1; padding: 8px;">Penyimpanan Tetap</td>
-            <td style="border: 1px solid #cbd5e1; padding: 8px;">Menyimpan sistem operasi Windows dan berkas siswa secara permanen.</td>
-          </tr>
-          <tr style="background-color: #f8fafc;">
-            <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">4</td>
-            <td style="border: 1px solid #cbd5e1; padding: 8px; font-weight: bold;">Monitor & Keyboard</td>
-            <td style="border: 1px solid #cbd5e1; padding: 8px;">Input / Output</td>
-            <td style="border: 1px solid #cbd5e1; padding: 8px;">Memasukkan naskah teks dan menampilkan tampilan grafis kepada pengguna.</td>
-          </tr>
-        </tbody>
-      </table>
-      <h3 style="font-size: 1rem; font-weight: bold; color: #1e293b; margin-top: 14px;">Kesimpulan Belajar:</h3>
-      <p style="font-size: 0.85rem; line-height: 1.6;">Dengan memahami fungsi masing-masing komponen, kita dapat merawat komputer lab sekolah dengan bijak dan menggunakan teknologi secara maksimal untuk belajar.</p>
-    </div>`,
-    starLikes: 29,
-    likedByStudentIds: [],
-    createdAt: new Date(Date.now() - 3600000 * 24 * 3).toISOString(),
-  },
-  {
-    id: 'gal-seed-3',
-    studentId: 'std-seed-3',
-    studentName: 'Bima Pratama',
-    studentGrade: 'Kelas 6B',
-    studentSchool: 'SD Bintang Pelajar',
-    title: 'Robot Pintar Sahabat Komputer Sekolah',
-    category: 'Kreativitas Robotik',
-    type: 'paint',
-    imageUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="100%" height="100%"><rect width="600" height="400" fill="%23e0e7ff"/><rect x="230" y="60" width="140" height="100" rx="20" fill="%233b82f6"/><circle cx="270" cy="100" r="14" fill="%23facc15"/><circle cx="330" cy="100" r="14" fill="%23facc15"/><rect x="270" y="130" width="60" height="10" rx="5" fill="%23ffffff"/><line x1="300" y1="60" x2="300" y2="25" stroke="%233b82f6" stroke-width="8"/><circle cx="300" cy="20" r="12" fill="%23ef4444"/><rect x="210" y="180" width="180" height="150" rx="25" fill="%234f46e5"/><rect x="240" y="210" width="120" height="80" rx="10" fill="%2310b981"/><text x="260" y="255" font-family="monospace" font-size="18" fill="%23ffffff" font-weight="bold">AI-BOT</text><rect x="150" y="195" width="40" height="110" rx="15" fill="%233b82f6"/><rect x="410" y="195" width="40" height="110" rx="15" fill="%233b82f6"/><rect x="240" y="340" width="40" height="45" rx="8" fill="%231e293b"/><rect x="320" y="340" width="40" height="45" rx="8" fill="%231e293b"/><text x="20" y="380" font-family="sans-serif" font-size="14" fill="%23312e81" font-weight="bold">Karya Paint: Robot Sahabat Pintar - Bima Pratama</text></svg>',
-    previewText: 'Desain karakter robot komputer sahabat anak-anak yang dibuat dengan lingkaran, persegi, dan tool kuas warna di Paint.',
-    starLikes: 25,
-    likedByStudentIds: [],
-    createdAt: new Date(Date.now() - 3600000 * 24 * 4).toISOString(),
-  },
-  {
-    id: 'gal-seed-4',
-    studentId: 'std-seed-4',
-    studentName: 'Dimas Aditya',
-    studentGrade: 'Kelas 6A',
-    studentSchool: 'SMP Terpadu',
-    title: 'Panduan Etika & Tips Mengetik 10 Jari Cepat di MS Word',
-    category: 'Tips & Format Word',
-    type: 'word',
-    previewText: 'Naskah panduan posisi jari tangan pada tuts ASDF dan JKL; untuk mengetik cepat tanpa melihat keyboard.',
-    contentHtml: `<div class="space-y-4 font-sans text-slate-800 dark:text-slate-200">
-      <h2 style="font-size: 1.25rem; font-weight: bold; color: #0284c7; border-bottom: 2px solid #38bdf8; padding-bottom: 4px; margin-bottom: 12px;">PANDUAN MENGETIK 10 JARI RAPI & CEPAT DI MS WORD</h2>
-      <p style="font-size: 0.85rem; line-height: 1.6;">Oleh: <strong>Dimas Aditya</strong> | Kelas: <strong>6A</strong></p>
-      <p style="font-size: 0.85rem; line-height: 1.6;">Mengetik dengan sepuluh jari dapat menghemat waktu tugas sekolah dan melatih koordinasi motorik mata dan tangan.</p>
-      <div style="background-color: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; margin: 10px 0; font-size: 0.85rem;">
-        <strong>Posisi Rumah Jari (Home Row):</strong><br/>
-        • Tangan Kiri: Jari Kelingking (A), Jari Manis (S), Jari Tengah (D), Jari Telunjuk (F)<br/>
-        • Tangan Kanan: Jari Telunjuk (J), Jari Tengah (K), Jari Manis (L), Jari Kelingking (;)<br/>
-        • Ibu Jari: Bertugas menekan tombol Spasi (Spacebar)
-      </div>
-      <p style="font-size: 0.85rem; line-height: 1.6;">Kombinasi tombol shortcut yang sering digunakan saat menulis naskah tugas:</p>
-      <ul style="font-size: 0.85rem; line-height: 1.6; list-style-type: disc; padding-left: 20px;">
-        <li><strong>Ctrl + B:</strong> Membuat tulisan tebal (Bold)</li>
-        <li><strong>Ctrl + I:</strong> Membuat tulisan miring (Italic)</li>
-        <li><strong>Ctrl + U:</strong> Menggarisbawahi tulisan (Underline)</li>
-        <li><strong>Ctrl + S:</strong> Menyimpan dokumen secara berkala</li>
-      </ul>
-    </div>`,
-    starLikes: 21,
-    likedByStudentIds: [],
-    createdAt: new Date(Date.now() - 3600000 * 24 * 5).toISOString(),
-  },
-  {
-    id: 'gal-seed-5',
-    studentId: 'std-seed-5',
-    studentName: 'Rizky Ramadhan',
-    studentGrade: 'Kelas 4C',
-    studentSchool: 'SD Harapan Bangsa',
-    title: 'Poster Eksplorasi Luar Angkasa & Roket Antariksa',
-    category: 'Sains & Seni',
-    type: 'paint',
-    imageUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="100%" height="100%"><rect width="600" height="400" fill="%230f172a"/><circle cx="100" cy="90" r="35" fill="%23e2e8f0"/><circle cx="85" cy="80" r="6" fill="%2394a3b8"/><circle cx="115" cy="95" r="9" fill="%2394a3b8"/><circle cx="500" cy="180" r="50" fill="%23ea580c"/><circle cx="500" cy="180" r="70" stroke="%23f97316" stroke-width="5" fill="none" opacity="0.6"/><polygon points="260,180 340,180 300,90" fill="%23ef4444"/><rect x="270" y="180" width="60" height="110" fill="%23ffffff"/><circle cx="300" cy="225" r="16" fill="%2338bdf8"/><polygon points="270,250 230,290 270,290" fill="%23dc2626"/><polygon points="330,250 370,290 330,290" fill="%23dc2626"/><polygon points="280,290 320,290 300,340" fill="%23f59e0b"/><polygon points="288,290 312,290 300,325" fill="%23ef4444"/><circle cx="200" cy="70" r="3" fill="%23ffffff"/><circle cx="420" cy="50" r="2" fill="%23ffffff"/><circle cx="150" cy="260" r="3" fill="%23ffffff"/><circle cx="480" cy="320" r="2.5" fill="%23ffffff"/><text x="20" y="380" font-family="sans-serif" font-size="14" fill="%2394a3b8" font-weight="bold">Karya Paint: Roket Angkasa - Rizky Ramadhan</text></svg>',
-    previewText: 'Petualangan roket menuju antariksa berhias bintang dan planet warna-warni menggunakan tool spray MS Paint.',
-    starLikes: 14,
-    likedByStudentIds: [],
-    createdAt: new Date(Date.now() - 3600000 * 24 * 6).toISOString(),
-  },
-  {
-    id: 'gal-seed-6',
-    studentId: 'std-seed-6',
-    studentName: 'Siti Rahma',
-    studentGrade: 'Kelas 5A',
-    studentSchool: 'SD Unggulan Cendekia',
-    title: 'Tata Tertib & Panduan Penggunaan Laboratorium Komputer',
-    category: 'Format Dokumen & Tata Tertib',
-    type: 'word',
-    previewText: 'Dokumen format tata tertib penggunaan komputer sekolah yang bersih, teratur, dan aman bagi seluruh siswa.',
-    contentHtml: `<div class="space-y-4 font-sans text-slate-800 dark:text-slate-200">
-      <h2 style="font-size: 1.25rem; font-weight: bold; color: #e11d48; border-bottom: 2px solid #fb7185; padding-bottom: 4px; margin-bottom: 12px;">TATA TERTIB LABORATORIUM KOMPUTER SEKOLAH</h2>
-      <p style="font-size: 0.85rem; line-height: 1.6;">Disusun oleh Perwakilan Siswa: <strong>Siti Rahma</strong> (Kelas 5A)</p>
-      <p style="font-size: 0.85rem; line-height: 1.6;">Demi kelancaran dan kenyamanan bersama saat belajar komputer, seluruh siswa wajib mematuhi aturan berikut:</p>
-      <ol style="font-size: 0.85rem; line-height: 1.7; padding-left: 20px; list-style-type: decimal;">
-        <li>Membuka sepatu sebelum masuk dan menyusunnya dengan rapi di rak.</li>
-        <li>Dilarang membawa makanan dan minuman ke dekat meja komputer atau keyboard.</li>
-        <li>Menyalakan dan mematikan (Shutdown) komputer sesuai prosedur yang diajarkan guru.</li>
-        <li>Merapikan kembali kursi dan mousepad setelah sesi praktikum selesai.</li>
-      </ol>
-      <p style="font-size: 0.85rem; font-style: italic; color: #64748b; margin-top: 10px;">"Jagalah perangkat komputer sekolah seperti barang milik sendiri agar selalu awet dan siap pakai."</p>
-    </div>`,
-    starLikes: 33,
-    likedByStudentIds: [],
-    createdAt: new Date(Date.now() - 3600000 * 24 * 7).toISOString(),
-  },
-];
+export const INITIAL_GALLERY_WORKS: StudentGalleryWork[] = [];
 
 // Initial seed comments for student gallery
-export const INITIAL_GALLERY_COMMENTS: GalleryComment[] = [
-  {
-    id: 'gcom-seed-1',
-    workId: 'gal-seed-1',
-    studentId: 'std-seed-3',
-    studentName: 'Bima Pratama',
-    studentGrade: 'Kelas 6B',
-    studentSchool: 'SD Bintang Pelajar',
-    comment: 'Pilihan warnanya sejuk banget Aisyah! Garis sawah dan gunungnya kelihatan rapi sekali.',
-    category: 'apresiasi',
-    stickerTag: '🎨 Keren & Kreatif!',
-    createdAt: new Date(Date.now() - 3600000 * 30).toISOString(),
-  },
-  {
-    id: 'gcom-seed-2',
-    workId: 'gal-seed-1',
-    studentId: 'std-seed-4',
-    studentName: 'Dimas Aditya',
-    studentGrade: 'Kelas 6A',
-    studentSchool: 'SMP Terpadu',
-    comment: 'Coba nanti tambahkan sedikit awan di puncak gunung supaya efek pemandangannya makin hidup.',
-    category: 'masukan',
-    stickerTag: '💡 Ide Menarik!',
-    createdAt: new Date(Date.now() - 3600000 * 20).toISOString(),
-  },
-  {
-    id: 'gcom-seed-3',
-    workId: 'gal-seed-2',
-    studentId: 'std-seed-1',
-    studentName: 'Aisyah Putri',
-    studentGrade: 'Kelas 5A',
-    studentSchool: 'SDN Ceria 01',
-    comment: 'Tabel hardwarenya sangat jelas dan mudah dipelajari! Sangat membantu buat persiapan praktikum besok.',
-    category: 'apresiasi',
-    stickerTag: '⭐ Sangat Rapi!',
-    createdAt: new Date(Date.now() - 3600000 * 18).toISOString(),
-  },
-  {
-    id: 'gcom-seed-4',
-    workId: 'gal-seed-3',
-    studentId: 'std-seed-2',
-    studentName: 'Nabila Syahrani',
-    studentGrade: 'Kelas 5B',
-    studentSchool: 'SDN Nusantara',
-    comment: 'Robotnya lucu banget! Kombinasi bentuk persegi dan layarnya pas sekali.',
-    category: 'apresiasi',
-    stickerTag: '👏 Luar Biasa!',
-    createdAt: new Date(Date.now() - 3600000 * 12).toISOString(),
-  },
-  {
-    id: 'gcom-seed-5',
-    workId: 'gal-seed-4',
-    studentId: 'std-seed-5',
-    studentName: 'Rizky Ramadhan',
-    studentGrade: 'Kelas 4C',
-    studentSchool: 'SD Harapan Bangsa',
-    comment: 'Tips posisi tuts ASDF-JKL sangat bermanfaat, aku lagi belajar ngetik 10 jari di liga mengetik!',
-    category: 'apresiasi',
-    stickerTag: '🚀 Menginspirasi!',
-    createdAt: new Date(Date.now() - 3600000 * 8).toISOString(),
-  },
-];
+export const INITIAL_GALLERY_COMMENTS: GalleryComment[] = [];
 
 export function getGalleryComments(workId?: string): GalleryComment[] {
   const raw = localStorage.getItem(STORAGE_KEYS.GALLERY_COMMENTS);
+  const deletedCommentIds = getDeletedCommentIds();
   let comments: GalleryComment[] = [];
   if (raw === null) {
-    comments = INITIAL_GALLERY_COMMENTS;
+    comments = [];
     setStoredItem(STORAGE_KEYS.GALLERY_COMMENTS, comments);
   } else {
     try {
@@ -2405,6 +2286,17 @@ export function getGalleryComments(workId?: string): GalleryComment[] {
       comments = [];
     }
   }
+
+  // Filter out deleted and seed comments
+  comments = comments.filter((c) => {
+    if (!c || !c.id) return false;
+    if (deletedCommentIds.has(c.id)) return false;
+    if (String(c.id).startsWith('gcom-seed-')) return false;
+    if (c.studentId && String(c.studentId).startsWith('std-seed-')) return false;
+    if (c.workId && String(c.workId).startsWith('gal-seed-')) return false;
+    return true;
+  });
+
   if (workId) {
     return comments.filter((c) => String(c.workId) === String(workId));
   }
@@ -2486,7 +2378,7 @@ export function getGalleryWorks(): StudentGalleryWork[] {
   let works: StudentGalleryWork[] = [];
 
   if (raw === null) {
-    works = INITIAL_GALLERY_WORKS.filter((w) => !deletedWorkIds.has(w.id));
+    works = [];
     setStoredItem(STORAGE_KEYS.GALLERY_WORKS, works);
   } else {
     try {
@@ -2496,18 +2388,19 @@ export function getGalleryWorks(): StudentGalleryWork[] {
     }
   }
 
-  // Filter out any deleted works or works belonging to deleted student accounts
-  works = works.filter((w) => {
-    if (!w || !w.id) return false;
-    if (deletedWorkIds.has(w.id)) return false;
-    if (w.studentId && deletedUserIds.has(w.studentId)) return false;
-    return true;
-  });
-
-  // Dynamic user profile resolution and accurate comment counts
   const allUsers = getUsers();
   const userMap = new Map<string, User>();
   allUsers.forEach((u) => userMap.set(u.id, u));
+
+  // Filter out any seed works, deleted works, or works belonging to deleted/non-existent student accounts
+  works = works.filter((w) => {
+    if (!w || !w.id) return false;
+    if (String(w.id).startsWith('gal-seed-')) return false;
+    if (w.studentId && String(w.studentId).startsWith('std-seed-')) return false;
+    if (deletedWorkIds.has(w.id)) return false;
+    if (w.studentId && (deletedUserIds.has(w.studentId) || !userMap.has(w.studentId))) return false;
+    return true;
+  });
 
   const allComments = getGalleryComments();
   const commentCountMap = new Map<string, number>();
@@ -3175,6 +3068,66 @@ const DEFAULT_TYPING_LEAGUE_TEXTS: TypingLeagueText[] = [
     content: 'Setiap kesalahan dalam mengetik adalah langkah untuk menjadi lebih teliti dan terampil. Jangan takut membuat kekeliruan, teruslah berusaha dengan gigih karena keberhasilan milik mereka yang tidak pernah berhenti belajar.',
     author: 'Guru Pembina',
     createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'league-text-5',
+    title: 'Algoritma Pemrograman & Logika Percabangan If-Else',
+    category: 'Koding',
+    difficulty: 'Sulit',
+    durationSeconds: 90,
+    content: 'Dalam dunia koding komputer, logika percabangan if-else dan perulangan for-loop adalah fondasi utama untuk mengambil keputusan otomatis. Setiap baris instruksi harus ditulis dengan tanda titik koma dan kurung kurawal yang presisi agar program berjalan sempurna.',
+    author: 'Coach Algoritma',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'league-text-6',
+    title: 'Keamanan Siber & Pencegahan Phishing Penipuan Online',
+    category: 'Keamanan',
+    difficulty: 'Sulit',
+    durationSeconds: 90,
+    content: 'Keamanan siber menuntut kewaspadaan tinggi terhadap tautan palsu dan modus phishing penipuan online. Jangan pernah memberikan kata sandi akun pribadi, nomor induk siswa, atau kode OTP kepada siapa pun, termasuk orang yang mengaku sebagai petugas resmi.',
+    author: 'Cyber Security Expert',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'league-text-7',
+    title: 'Arsitektur Jaringan Komputer & Alamat IP',
+    category: 'Jaringan',
+    difficulty: 'Pakar',
+    durationSeconds: 120,
+    content: 'Jaringan komputer menghubungkan miliaran perangkat di seluruh dunia menggunakan protokol TCP/IP, kabel serat optik berkecepatan tinggi, router, switch, serta DNS. Setiap perangkat memiliki alamat IP unik layaknya nomor rumah di dunia nyata untuk pertukaran data.',
+    author: 'Network Engineer',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'league-text-8',
+    title: 'Dasar Perintah Terminal Linux & Manajemen Berkas',
+    category: 'Terminal',
+    difficulty: 'Pakar',
+    durationSeconds: 120,
+    content: 'Sistem operasi berbasis Linux menggunakan antarmuka baris perintah CLI seperti ls untuk melihat isi direktori, cd untuk berpindah folder, mkdir untuk membuat direktori baru, dan grep untuk mencari teks spesifik dengan cepat di dalam file.',
+    author: 'Linux System Admin',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'league-text-9',
+    title: 'Kecerdasan Buatan (AI) & Etika Penggunaan Teknologi',
+    category: 'AI & Etika',
+    difficulty: 'Sedang',
+    durationSeconds: 75,
+    content: 'Kecerdasan buatan membantu manusia memproses data besar, menerjemahkan bahasa, dan mengenali pola gambar. Namun, kita tetap harus menggunakan teknologi dengan bijak, menghormati hak cipta orang lain, serta menjaga etika moral dalam setiap karya digital.',
+    author: 'AI Researcher',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'league-text-10',
+    title: 'Sistem Basis Data Relasional & Perintah SQL',
+    category: 'Database',
+    difficulty: 'Pakar',
+    durationSeconds: 120,
+    content: 'Basis data relasional menyimpan informasi terstruktur dalam bentuk tabel baris dan kolom. Perintah SQL seperti SELECT, INSERT, UPDATE, dan DELETE digunakan untuk mengambil, menambah, memperbarui, serta menghapus data dengan aman dan efisien.',
+    author: 'Database Architect',
+    createdAt: new Date().toISOString(),
   }
 ];
 
@@ -3253,8 +3206,11 @@ export function getTypingLeagueScores(): TypingLeagueScore[] {
   return scores
     .filter((s) => {
       if (!s || !s.id) return false;
+      if (String(s.id).startsWith('lscore-seed-')) return false;
+      if (s.studentId && String(s.studentId).startsWith('std-seed-')) return false;
       if (deletedScoreIds.has(s.id)) return false;
-      if (s.studentId && deletedUserIds.has(s.studentId)) return false;
+      // Filter out scores from deleted or non-existent student accounts
+      if (s.studentId && (deletedUserIds.has(s.studentId) || !userMap.has(s.studentId))) return false;
       if (s.textId && (!validTextIds.has(s.textId) || deletedTextIds.has(s.textId))) return false;
       return true;
     })
@@ -3335,16 +3291,14 @@ export function getTypingLeagueLeaderboard(textId?: string, school?: string): Ty
   }
 
   if (school && school !== 'ALL') {
-    filtered = filtered.filter((s) => !s.studentSchool || s.studentSchool === school);
+    const cleanSch = school.trim().toLowerCase();
+    filtered = filtered.filter((s) => s.studentSchool && s.studentSchool.trim().toLowerCase() === cleanSch);
   }
 
-  // Group by student identity: use s.studentId if registered, or clean studentName + school if guest
-  // This guarantees two students with similar names never overlap or overwrite each other!
+  // Group by student: 1 best score per student
   const bestMap = new Map<string, TypingLeagueScore>();
   for (const s of filtered) {
-    const studentKey = s.studentId
-      ? `id_${s.studentId}`
-      : `guest_${(s.studentName || '').toLowerCase().replace(/[^a-z0-9]/g, '')}_${(s.studentSchool || '').toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+    const studentKey = s.studentId ? s.studentId : s.id;
 
     const existing = bestMap.get(studentKey);
     if (!existing || s.score > existing.score || (s.score === existing.score && s.wpm > existing.wpm)) {
@@ -3407,10 +3361,10 @@ const DEFAULT_FORUM_THREADS: ForumThreadItem[] = [
     title: '💻 Tanya Jawab: Komponen CPU dan Fungsi RAM Komputer',
     category: 'materi',
     content: 'Teman-teman, jika memori RAM di laptop kita penuh, apakah komputer akan menjadi lambat? Bagaimana cara mengecek penggunaan RAM di Windows Task Manager?',
-    authorId: 'std-seed-1',
-    authorName: 'Aisyah Putri',
+    authorId: 'admin-1',
+    authorName: 'Instruktur Komputer',
     authorAvatar: '',
-    authorRole: 'student',
+    authorRole: 'admin',
     createdAt: new Date(Date.now() - 3600000 * 12).toISOString(),
     likes: 5,
     likedBy: [],
@@ -3425,10 +3379,10 @@ const DEFAULT_FORUM_REPLIES: Record<string, ForumReplyItem[]> = {
       id: 'rep-1',
       threadId: 'th-1',
       content: 'Iya betul pak! Saya setiap hari rutin latihan 10 menit di menu Latihan Word, jari manis dan kelingking sekarang jadi lebih lentur!',
-      authorId: 'std-seed-2',
-      authorName: 'Nabila Syahrani',
+      authorId: 'admin-1',
+      authorName: 'Pengajar Komputer',
       authorAvatar: '',
-      authorRole: 'student',
+      authorRole: 'admin',
       createdAt: new Date(Date.now() - 3600000 * 18).toISOString(),
       isModerated: false,
     },
