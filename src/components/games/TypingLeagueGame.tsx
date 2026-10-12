@@ -431,7 +431,7 @@ export const TypingLeagueGame: React.FC<TypingLeagueGameProps> = ({ onBackToMenu
           {/* Filter and Search */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
             <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
-              {['ALL', 'Mudah', 'Sedang', 'Sulit'].map((diff) => (
+              {['ALL', 'Mudah', 'Sedang', 'Sulit', 'Pakar'].map((diff) => (
                 <button
                   key={diff}
                   onClick={() => setDifficultyFilter(diff)}
@@ -482,7 +482,9 @@ export const TypingLeagueGame: React.FC<TypingLeagueGameProps> = ({ onBackToMenu
                               ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
                               : textItem.difficulty === 'Sedang'
                               ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
-                              : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                              : textItem.difficulty === 'Sulit'
+                              ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                              : 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300'
                           }`}
                         >
                           {textItem.difficulty}

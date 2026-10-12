@@ -347,7 +347,7 @@ export const Header: React.FC<HeaderProps> = ({
                   type="button"
                   onClick={() => setActiveDropdown(activeDropdown === 'game' ? null : 'game')}
                   className={`transition-all px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1.5 font-bold cursor-pointer ${
-                    ['student-coding-lab', 'student-robot-maze', 'student-grid-robot', 'student-code-a-pet', 'student-binary-code', 'student-pc-builder', 'student-pc-doctor', 'student-port-master', 'student-lan-crimping', 'student-network-builder', 'student-storage-master', 'student-cyber-shield', 'student-detective-hoax', 'student-anti-phishing', 'student-cyber-safety', 'student-pizza-tycoon', 'student-spreadsheet', 'student-mini-poster', 'student-file-explorer', 'student-games'].includes(currentView)
+                    ['student-scratch-game', 'student-coding-lab', 'student-robot-maze', 'student-grid-robot', 'student-code-a-pet', 'student-binary-code', 'student-pc-builder', 'student-pc-doctor', 'student-port-master', 'student-lan-crimping', 'student-network-builder', 'student-storage-master', 'student-cyber-shield', 'student-detective-hoax', 'student-anti-phishing', 'student-cyber-safety', 'student-pizza-tycoon', 'student-spreadsheet', 'student-mini-poster', 'student-file-explorer', 'student-games'].includes(currentView)
                       ? 'bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400'
                       : 'text-slate-700 dark:text-slate-200'
                   }`}
@@ -373,6 +373,10 @@ export const Header: React.FC<HeaderProps> = ({
                         <span>Koding & Algoritma</span>
                       </div>
                       <div className="space-y-1">
+                        <button onClick={() => handleNavClick('student-scratch-game')} className="w-full text-left p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
+                          <span>🐱 Studio Game Scratch</span>
+                          <span className="text-[9px] bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300 px-1.5 rounded font-black">MIT</span>
+                        </button>
                         <button onClick={() => handleNavClick('student-coding-lab')} className="w-full text-left p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
                           <span>🧩 Lab Koding Blockly</span>
                           <span className="text-[9px] bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 px-1.5 rounded font-black">15 LVL</span>
@@ -487,7 +491,7 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
                   </div>
 
-                  {/* Mega Menu Footer with Quick Search CTA */}
+                  {/* Mega Menu Footer */}
                   <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <span className="text-[11px] text-slate-400 font-semibold">
                       🎮 20 Game Edukasi Interaktif Komputer & Koding
@@ -496,12 +500,11 @@ export const Header: React.FC<HeaderProps> = ({
                       type="button"
                       onClick={() => {
                         setActiveDropdown(null);
-                        setIsNavigatorOpen(true);
+                        handleNavClick('student-coding-lab');
                       }}
                       className="inline-flex items-center gap-1.5 text-xs font-extrabold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
                     >
-                      <Search className="w-3.5 h-3.5" />
-                      <span>Buka Pencarian Cepat Semua Game (Ctrl+K)</span>
+                      <span>Masuk ke Arena Game Lab</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -915,15 +918,18 @@ export const Header: React.FC<HeaderProps> = ({
                     <button
                       onClick={() => {
                         setMobileMenuOpen(false);
-                        setIsNavigatorOpen(true);
+                        handleNavClick('student-coding-lab');
                       }}
                       className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400"
                     >
-                      Lihat Semua →
+                      Lihat Game →
                     </button>
                   </div>
 
                   <div className="grid grid-cols-2 gap-1.5 text-xs font-bold">
+                    <button onClick={() => handleNavClick('student-scratch-game')} className="text-left p-2 rounded-lg bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 truncate">
+                      🐱 Scratch Game MIT
+                    </button>
                     <button onClick={() => handleNavClick('student-coding-lab')} className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-200 truncate">
                       🧩 Blockly Lab (15 Lvl)
                     </button>

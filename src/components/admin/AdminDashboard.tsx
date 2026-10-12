@@ -541,7 +541,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [leagueTextForm, setLeagueTextForm] = useState({
     title: '',
     category: 'Dasar',
-    difficulty: 'Mudah' as 'Mudah' | 'Sedang' | 'Sulit',
+    difficulty: 'Mudah' as 'Mudah' | 'Sedang' | 'Sulit' | 'Pakar',
     durationSeconds: 60,
     content: '',
     author: '',
@@ -2178,7 +2178,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                   ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
                                   : textItem.difficulty === 'Sedang'
                                   ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
-                                  : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                                  : textItem.difficulty === 'Sulit'
+                                  ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                                  : 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300'
                               }`}
                             >
                               {textItem.difficulty}
@@ -5443,7 +5445,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     onChange={(e) =>
                       setLeagueTextForm({
                         ...leagueTextForm,
-                        difficulty: e.target.value as 'Mudah' | 'Sedang' | 'Sulit',
+                        difficulty: e.target.value as 'Mudah' | 'Sedang' | 'Sulit' | 'Pakar',
                       })
                     }
                     className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white cursor-pointer"
@@ -5451,6 +5453,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <option value="Mudah">Mudah</option>
                     <option value="Sedang">Sedang</option>
                     <option value="Sulit">Sulit</option>
+                    <option value="Pakar">Pakar (Sangat Sulit)</option>
                   </select>
                 </div>
 

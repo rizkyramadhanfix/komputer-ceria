@@ -123,6 +123,9 @@ function MainAppContent() {
         {currentView === 'student-pc-builder' && (
           <StudentDashboard initialTab="pc-builder" />
         )}
+        {currentView === 'student-scratch-game' && (
+          <StudentDashboard initialTab="scratch-game" />
+        )}
         {currentView === 'student-coding-lab' && (
           <StudentDashboard initialTab="coding-lab" />
         )}

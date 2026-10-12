@@ -372,7 +372,7 @@ export interface TypingLeagueText {
   title: string;
   category: string;
   durationSeconds: number; // Duration in seconds (e.g. 60, 90, 120)
-  difficulty: 'Mudah' | 'Sedang' | 'Sulit';
+  difficulty: 'Mudah' | 'Sedang' | 'Sulit' | 'Pakar';
   content: string; // The passage/sentences to type
   author?: string;
   school?: string; // Optional: specific to a school or all

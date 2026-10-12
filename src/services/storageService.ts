@@ -1408,6 +1408,7 @@ const DEFAULT_GAMES_CONFIG: GamesConfig = {
     { id: 'games', name: 'Game Kata Jatuh', category: 'game', isEnabled: true, pointsMultiplier: 1, customSetting: '1.0' },
     { id: 'pc-builder', name: 'Simulator Merakit PC', category: 'simulator', isEnabled: true, pointsMultiplier: 1 },
     { id: 'coding-lab', name: 'Lab Koding Blockly', category: 'simulator', isEnabled: true, pointsMultiplier: 1 },
+    { id: 'scratch-game', name: 'Studio Game Scratch MIT (Koding Blok & Player)', category: 'game', isEnabled: true, pointsMultiplier: 1, basePoints: 50 },
     { id: 'cyber-safety', name: 'Edukasi Keamanan Siber', category: 'utility', isEnabled: true, pointsMultiplier: 1 },
     { id: 'shortcuts', name: 'Master Shortcut Keyboard', category: 'utility', isEnabled: true, pointsMultiplier: 1 },
     { id: 'daily-quests', name: 'Misi Harian & Streak Absen', category: 'utility', isEnabled: true, pointsMultiplier: 1 },
@@ -2914,6 +2915,8 @@ export function recordGameScore(
     'binary-code': 'binary-code',
     'anti-phishing': 'anti-phishing',
     'grid-robot': 'grid-robot',
+    'scratch-game': 'scratch-game',
+    'Studio Game Scratch': 'scratch-game',
   };
   const featureId = featureMap[gameName];
   if (featureId) {

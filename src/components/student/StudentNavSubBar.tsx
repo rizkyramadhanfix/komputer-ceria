@@ -24,7 +24,6 @@ import { User } from '../../types';
 interface StudentNavSubBarProps {
   activeTab: string;
   onSelectTab: (tab: string) => void;
-  onOpenNavigator: () => void;
   student: User;
 }
 
@@ -38,6 +37,7 @@ interface GameOption {
 
 const ALL_GAMES: GameOption[] = [
   // Koding & Algoritma
+  { id: 'scratch-game', name: 'Studio Game Scratch MIT', icon: '🐱', badge: 'MIT', category: 'coding' },
   { id: 'coding-lab', name: 'Lab Koding Blockly', icon: '🧩', badge: '15 LVL', category: 'coding' },
   { id: 'robot-maze', name: 'Robot Maze Runner', icon: '🤖', badge: '14 LVL', category: 'coding' },
   { id: 'grid-robot', name: 'Grid Robot Rover', icon: '🌐', badge: '16 LVL', category: 'coding' },
@@ -69,7 +69,6 @@ const ALL_GAMES: GameOption[] = [
 export const StudentNavSubBar: React.FC<StudentNavSubBarProps> = ({
   activeTab,
   onSelectTab,
-  onOpenNavigator,
   student,
 }) => {
   const [isGameMenuOpen, setIsGameMenuOpen] = useState(false);
@@ -263,16 +262,12 @@ export const StudentNavSubBar: React.FC<StudentNavSubBarProps> = ({
           </div>
         )}
 
-        {/* Right side: Quick Explorer Button & Student Points */}
+        {/* Right side: Quick Student Points Badge */}
         <div className="flex items-center gap-2 self-end md:self-auto shrink-0">
-          <button
-            onClick={onOpenNavigator}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-black text-xs shadow-md shadow-indigo-500/20 cursor-pointer active:scale-95 transition-all"
-            title="Buka Pusat Pencarian Semua Fitur & Game (Ctrl+K)"
-          >
-            <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-            <span>Jelajah Menu & Cari 🚀</span>
-          </button>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold text-xs">
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <span>{student.totalPoints || 0} Poin</span>
+          </div>
         </div>
       </div>
     </div>

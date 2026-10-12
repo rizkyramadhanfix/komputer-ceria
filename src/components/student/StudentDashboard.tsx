@@ -122,6 +122,7 @@ import { LanCrimpingSimulator } from '../games/LanCrimpingSimulator';
 import { RhythmTypingGame } from '../games/RhythmTypingGame';
 import { StorageMasterGame } from '../games/StorageMasterGame';
 import { MiniPosterStudio } from '../games/MiniPosterStudio';
+import { ScratchGameStudio } from '../games/ScratchGameStudio';
 import { ActivityCalendarModal } from '../common/ActivityCalendarModal';
 import { ShareAppModal } from '../common/ShareAppModal';
 import { StudentNavSubBar } from './StudentNavSubBar';
@@ -163,7 +164,8 @@ interface StudentDashboardProps {
     | 'mini-poster'
     | 'pizza-tycoon'
     | 'code-a-pet'
-    | 'detective-hoax';
+    | 'detective-hoax'
+    | 'scratch-game';
 }
 
 export const StudentDashboard: React.FC<StudentDashboardProps> = ({
@@ -208,6 +210,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
     | 'pizza-tycoon'
     | 'code-a-pet'
     | 'detective-hoax'
+    | 'scratch-game'
   >(initialTab);
   const [gamesConfig, setGamesConfig] = useState(() => getGamesConfig());
   const [showEditProfile, setShowEditProfile] = useState(false);
@@ -253,6 +256,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
       case 'forum': return 'Forum Diskusi Siswa';
       case 'tech-glossary': return 'Kamus A-Z Teknologi';
       case 'shortcuts': return 'Koleksi Shortcut Keyboard';
+      case 'scratch-game': return 'Studio Game Scratch MIT (Koding Balok)';
       default: return 'Aktivitas Belajar';
     }
   };
@@ -746,7 +750,6 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
         <StudentNavSubBar
           activeTab={activeTab}
           onSelectTab={(tab) => setActiveTab(tab as any)}
-          onOpenNavigator={() => setShowNavigatorModal(true)}
           student={currentUser}
         />
 
@@ -1043,10 +1046,11 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   ))}
                 </div>
 
-                {/* Grid 20 Game Kartu Interaktif */}
+                {/* Grid 20+ Game Kartu Interaktif */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
                   {[
                     // Koding & Algoritma
+                    { id: 'scratch-game', name: 'Studio Game Scratch MIT', icon: '🐱', badge: 'BARU MIT', category: 'coding', desc: 'Mainkan game Scratch 60 FPS, susun balok Kucing Oren, atau muat ID proyek Scratch sendiri.' },
                     { id: 'coding-lab', name: 'Lab Koding Blockly', icon: '🧩', badge: '15 LEVEL', category: 'coding', desc: 'Susun balok logika algoritma untuk memandu karakter ke target.' },
                     { id: 'robot-maze', name: 'Robot Maze Runner', icon: '🤖', badge: '14 LEVEL', category: 'coding', desc: 'Koding arah belok dan perulangan robot menembus labirin rintangan.' },
                     { id: 'grid-robot', name: 'Grid Robot Rover', icon: '🌐', badge: '16 LEVEL', category: 'coding', desc: 'Pemrograman rover koordinat X/Y mengumpulkan baterai energi.' },
@@ -2043,6 +2047,9 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
       {/* TAB: CODE-A-PET ROBOT */}
       {activeTab === 'code-a-pet' && <CodeAPetGame />}
+
+      {/* TAB: STUDIO GAME SCRATCH MIT */}
+      {activeTab === 'scratch-game' && (isFeatureEnabled('scratch-game') ? <ScratchGameStudio /> : renderLockedFeatureScreen('Studio Game Scratch MIT'))}
 
       {/* TAB: DETEKTIF HOAX */}
       {activeTab === 'detective-hoax' && <DetectiveHoaxGame />}
