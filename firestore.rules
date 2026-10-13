@@ -124,10 +124,25 @@ service cloud.firestore {
       allow write: if isValidId(logId);
     }
 
-    // App configurations
+    // App configurations & settings
     match /config/{configId} {
       allow read: if true;
       allow write: if isValidId(configId);
+    }
+
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isValidId(settingId);
+    }
+
+    match /shopItems/{itemId} {
+      allow read: if true;
+      allow write: if isValidId(itemId);
+    }
+
+    match /deletedTypingLeagueTexts/{textId} {
+      allow read: if true;
+      allow write: if isValidId(textId);
     }
   }
 }

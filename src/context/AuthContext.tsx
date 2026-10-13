@@ -167,10 +167,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               (u.role === 'pembina' || u.role === 'admin') &&
               (u.username.toLowerCase() === cleanId || u.name.toLowerCase() === cleanId)
           );
-        } else if (roleRequired === 'superadmin') {
+        } else if (roleRequired === 'superadmin' || roleRequired === 'admin') {
           return list.find(
             (u) =>
-              (u.role === 'superadmin' || u.role === 'admin') &&
+              (u.role === 'superadmin' || u.role === 'admin' || u.role === 'pembina') &&
               (u.username.toLowerCase() === cleanId || u.name.toLowerCase() === cleanId)
           );
         } else {
@@ -211,34 +211,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       if (roleRequired) {
-        if (roleRequired === 'pembina') {
-          if (user.role !== 'pembina') {
-            return {
-              success: false,
-              message: 'Akun ini bukan akun Pembina Sekolah. Silakan gunakan tombol Login Superadmin.',
-            };
-          }
-        } else if (roleRequired === 'superadmin') {
-          const isSuper = user.role === 'superadmin' || (user.role === 'admin' && !user.assignedSchool);
-          if (!isSuper) {
-            return {
-              success: false,
-              message: 'Akun ini bukan akun Super Administrator Pusat. Silakan gunakan tombol Login Pembina.',
-            };
-          }
-        } else if (roleRequired === 'admin') {
+        if (roleRequired === 'superadmin' || roleRequired === 'admin') {
           const isStaff = user.role === 'admin' || user.role === 'superadmin' || user.role === 'pembina';
           if (!isStaff) {
             return {
               success: false,
-              message: 'Akun ini bukan akun Admin / Pembina Sekolah.',
+              message: 'Akun ini bukan akun Administrator.',
             };
           }
         } else if (roleRequired === 'student') {
           if (user.role !== 'student') {
             return {
               success: false,
-              message: 'Akun ini bukan akun Siswa. Silakan gunakan tombol Login Pembina / Superadmin.',
+              message: 'Akun ini bukan akun Siswa. Silakan gunakan tombol Login Admin.',
             };
           }
         }

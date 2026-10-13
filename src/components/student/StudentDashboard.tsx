@@ -369,6 +369,11 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
     pointsEarned: number;
   } | null>(null);
 
+  const unlockedAchievements = React.useMemo(() => {
+    if (!currentUser) return [];
+    return getStudentUnlockedAchievements(currentUser).filter((a) => a.isUnlocked);
+  }, [currentUser]);
+
   if (!currentUser) {
     return (
       <div className="max-w-md mx-auto py-12 text-center space-y-4">
@@ -387,10 +392,6 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
     currentUser.totalPoints,
     config
   );
-
-  const unlockedAchievements = React.useMemo(() => {
-    return getStudentUnlockedAchievements(currentUser).filter((a) => a.isUnlocked);
-  }, [currentUser]);
 
   // Handle Mark Lesson Complete
   const handleCompleteLesson = (lesson: Lesson) => {

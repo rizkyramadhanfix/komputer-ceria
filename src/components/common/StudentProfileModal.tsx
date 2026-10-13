@@ -16,16 +16,18 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
   onClose,
   isCurrent,
 }) => {
-  if (!student) return null;
-
-  const { currentBadge } = getBadgeForPoints(student.totalPoints);
   const unlockedAchievements = React.useMemo(() => {
+    if (!student) return [];
     try {
       return getStudentUnlockedAchievements(student).filter((a) => a.isUnlocked);
     } catch {
       return [];
     }
   }, [student]);
+
+  if (!student) return null;
+
+  const { currentBadge } = getBadgeForPoints(student.totalPoints);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">

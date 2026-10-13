@@ -259,6 +259,10 @@
     "/config/{configId}": {
       "schema": { "$ref": "#/entities/AppConfig" },
       "description": "Application settings and certificates config"
+    },
+    "/settings/{settingId}": {
+      "schema": { "$ref": "#/entities/AppConfig" },
+      "description": "Site contact and general configuration settings"
     }
   }
 }

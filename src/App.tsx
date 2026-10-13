@@ -293,7 +293,7 @@ function MainAppContent() {
         onOpenSuperadmin={() => setAuthModalState({ isOpen: true, mode: 'superadmin' })}
       />
 
-      {/* Dedicated Superadmin Login Modal for Website Management */}
+      {/* Dedicated Admin Login Modal for Website Management */}
       <SuperadminLoginModal
         isOpen={authModalState.isOpen && authModalState.mode === 'superadmin'}
         onClose={() => setAuthModalState((prev) => ({ ...prev, isOpen: false }))}

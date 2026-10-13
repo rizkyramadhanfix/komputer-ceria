@@ -36,7 +36,7 @@ import { Avatar } from '../common/Avatar';
 import { LeaderboardWidget } from '../common/LeaderboardWidget';
 
 interface LandingPageProps {
-  onOpenAuth: (mode: 'admin' | 'superadmin' | 'pembina' | 'student-login' | 'student-register') => void;
+  onOpenAuth: (mode: 'admin' | 'superadmin' | 'student-login' | 'student-register') => void;
   onNavigate: (view: string) => void;
   onOpenAnnouncementModal?: () => void;
   onOpenContactModal?: () => void;
@@ -189,7 +189,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       className="px-4 py-3 text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-2xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
                     >
                       <Shield className="w-4 h-4 text-indigo-500" />
-                      <span>👑 Login Super Admin</span>
+                      <span>👑 Login Admin</span>
                     </button>
                   </div>
                 )}
